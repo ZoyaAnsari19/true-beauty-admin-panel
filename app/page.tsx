@@ -1,65 +1,123 @@
-import Image from "next/image";
+import Layout from "@/components/Layout";
+import { Users, ShoppingCart, DollarSign, TrendingUp } from "lucide-react";
 
 export default function Home() {
+  const stats = [
+    {
+      title: "Total Users",
+      value: "12,543",
+      change: "+12.5%",
+      icon: Users,
+      color: "bg-blue-50 text-blue-600",
+    },
+    {
+      title: "Total Orders",
+      value: "3,421",
+      change: "+8.2%",
+      icon: ShoppingCart,
+      color: "bg-green-50 text-green-600",
+    },
+    {
+      title: "Revenue",
+      value: "$45,231",
+      change: "+15.3%",
+      icon: DollarSign,
+      color: "bg-purple-50 text-purple-600",
+    },
+    {
+      title: "Growth",
+      value: "24.8%",
+      change: "+2.4%",
+      icon: TrendingUp,
+      color: "bg-orange-50 text-orange-600",
+    },
+  ];
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <Layout>
+      <div className="space-y-6">
+        {/* Stats Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {stats.map((stat, index) => {
+            const Icon = stat.icon;
+            return (
+              <div
+                key={index}
+                className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 hover:shadow-md transition-shadow"
+              >
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-gray-600 mb-1">{stat.title}</p>
+                    <p className="text-2xl font-semibold text-gray-900">
+                      {stat.value}
+                    </p>
+                    <p className="text-xs text-green-600 mt-2">{stat.change}</p>
+                  </div>
+                  <div className={`p-3 rounded-xl ${stat.color}`}>
+                    <Icon className="w-6 h-6" />
+                  </div>
+                </div>
+              </div>
+            );
+          })}
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+
+        {/* Recent Activity Card */}
+        <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">
+            Recent Activity
+          </h2>
+          <div className="space-y-4">
+            {[1, 2, 3, 4].map((item) => (
+              <div
+                key={item}
+                className="flex items-center justify-between p-4 rounded-xl bg-[#fef5f7] hover:bg-[#f8c6d0] transition-colors"
+              >
+                <div className="flex items-center gap-4">
+                  <div className="w-10 h-10 rounded-full bg-[#f8c6d0] flex items-center justify-center">
+                    <Users className="w-5 h-5 text-gray-900" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-gray-900">
+                      New user registered
+                    </p>
+                    <p className="text-xs text-gray-500">2 minutes ago</p>
+                  </div>
+                </div>
+                <span className="text-xs text-gray-500">View</span>
+              </div>
+            ))}
+          </div>
         </div>
-      </main>
-    </div>
+
+        {/* Quick Actions */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 hover:shadow-md transition-shadow cursor-pointer">
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">
+              Manage Products
+            </h3>
+            <p className="text-sm text-gray-600">
+              Add, edit, or remove products from your catalog
+            </p>
+          </div>
+          <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 hover:shadow-md transition-shadow cursor-pointer">
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">
+              View Orders
+            </h3>
+            <p className="text-sm text-gray-600">
+              Track and manage customer orders
+            </p>
+          </div>
+          <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 hover:shadow-md transition-shadow cursor-pointer">
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">
+              Analytics
+            </h3>
+            <p className="text-sm text-gray-600">
+              View detailed analytics and reports
+            </p>
+          </div>
+        </div>
+      </div>
+    </Layout>
   );
 }
