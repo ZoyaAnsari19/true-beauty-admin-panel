@@ -131,7 +131,7 @@ export default function UsersPage() {
       {/* Table card */}
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[800px]">
+          <table className="w-full min-w-[640px]">
             <thead>
               <tr className="border-b border-gray-200 bg-[#fef5f7]">
                 <th className="text-left py-4 px-4 text-xs font-semibold text-gray-600 uppercase tracking-wider">
@@ -142,12 +142,6 @@ export default function UsersPage() {
                 </th>
                 <th className="text-left py-4 px-4 text-xs font-semibold text-gray-600 uppercase tracking-wider">
                   Mobile
-                </th>
-                <th className="text-left py-4 px-4 text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                  Address
-                </th>
-                <th className="text-left py-4 px-4 text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                  Total Orders
                 </th>
                 <th className="text-left py-4 px-4 text-xs font-semibold text-gray-600 uppercase tracking-wider">
                   Status
@@ -164,7 +158,7 @@ export default function UsersPage() {
               {filtered.length === 0 ? (
                 <tr>
                   <td
-                    colSpan={8}
+                    colSpan={6}
                     className="py-12 text-center text-gray-500 text-sm"
                   >
                     No users match your filters.
@@ -184,12 +178,6 @@ export default function UsersPage() {
                     </td>
                     <td className="py-4 px-4 text-sm text-gray-600">
                       {user.mobile}
-                    </td>
-                    <td className="py-4 px-4 text-sm text-gray-600 max-w-[180px] truncate">
-                      {user.address}
-                    </td>
-                    <td className="py-4 px-4 text-sm text-gray-600">
-                      {user.totalOrders}
                     </td>
                     <td className="py-4 px-4">
                       <span

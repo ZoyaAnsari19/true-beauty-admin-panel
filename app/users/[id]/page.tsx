@@ -3,8 +3,28 @@
 import React from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { ArrowLeft, Ban, CheckCircle, User, Mail, Phone, MapPin, ShoppingBag, DollarSign, Calendar, Shield } from "lucide-react";
+import {
+  ArrowLeft,
+  Ban,
+  CheckCircle,
+  User,
+  Mail,
+  Phone,
+  MapPin,
+  ShoppingBag,
+  DollarSign,
+  Shield,
+  Cake,
+  VenusAndMars,
+  Building2,
+  Hash,
+  Globe,
+  Undo2,
+} from "lucide-react";
 import { useUsers } from "@/lib/users-context";
+import { Tabination, type TabItem } from "@/components/ui/Tabination";
+import { ProductOrderCard } from "@/components/ui/Card";
+import type { OrderItem } from "@/lib/users-data";
 
 function formatDate(dateStr: string) {
   return new Date(dateStr).toLocaleDateString("en-US", {
@@ -19,6 +39,66 @@ function formatCurrency(amount: number) {
     style: "currency",
     currency: "USD",
   }).format(amount);
+}
+
+function uniqueOrderCount(items: OrderItem[]): number {
+  return new Set(items.map((i) => i.orderId)).size;
+}
+
+function totalAmount(items: OrderItem[]): number {
+  return items.reduce((sum, i) => sum + i.totalAmount, 0);
+}
+
+function OrdersTabSummary({ count, total }: { count: number; total: number }) {
+  return (
+    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+      <div className="flex items-center gap-3 p-4 rounded-xl bg-[#fef5f7] border border-[#f8c6d0]/40">
+        <ShoppingBag className="w-5 h-5 text-gray-600" />
+        <div>
+          <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">Total Orders</p>
+          <p className="text-xl font-semibold text-gray-900">{count}</p>
+        </div>
+      </div>
+      <div className="flex items-center gap-3 p-4 rounded-xl bg-[#fef5f7] border border-[#f8c6d0]/40">
+        <DollarSign className="w-5 h-5 text-gray-600" />
+        <div>
+          <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">Total Amount</p>
+          <p className="text-xl font-semibold text-gray-900">{formatCurrency(total)}</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function OrderCardsList({ items }: { items: OrderItem[] }) {
+  if (items.length === 0) {
+    return (
+      <p className="text-center text-gray-500 py-8 text-sm">No items to show.</p>
+    );
+  }
+  return (
+    <div className="space-y-4">
+      {items.map((item, index) => (
+        <ProductOrderCard
+          key={`${item.orderId}-${item.productName}-${index}`}
+          productImage={item.productImage}
+          productName={item.productName}
+          price={item.price}
+          quantity={item.quantity}
+          totalAmount={item.totalAmount}
+          orderDate={item.orderDate}
+          orderStatus={item.orderStatus}
+          formatDate={(d) =>
+            new Date(d).toLocaleDateString("en-US", {
+              year: "numeric",
+              month: "short",
+              day: "numeric",
+            })
+          }
+        />
+      ))}
+    </div>
+  );
 }
 
 export default function UserDetailPage() {
@@ -49,23 +129,15 @@ export default function UserDetailPage() {
     setUserStatus(user.id, isActive ? "blocked" : "active");
   };
 
-  return (
+  const basicInfoContent = (
     <div className="space-y-6">
-      <Link
-        href="/users"
-        className="inline-flex items-center gap-2 text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors"
-      >
-        <ArrowLeft className="w-4 h-4" />
-        Back to Users
-      </Link>
-
-      {/* Basic Info */}
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+      {/* Basic Info card */}
+      <div className="rounded-2xl border border-gray-100 overflow-hidden">
         <div className="px-6 py-4 border-b border-gray-100 bg-[#fef5f7]">
           <h2 className="text-lg font-semibold text-gray-900">Basic Info</h2>
           <p className="text-xs text-gray-500 mt-0.5">View only — not editable</p>
         </div>
-        <div className="p-6 grid grid-cols-1 sm:grid-cols-2 gap-6">
+        <div className="p-6 grid grid-cols-1 sm:grid-cols-2 gap-6 bg-white">
           <div className="flex items-start gap-3">
             <div className="p-2 rounded-lg bg-[#fef5f7]">
               <User className="w-5 h-5 text-gray-600" />
@@ -93,8 +165,26 @@ export default function UserDetailPage() {
               <p className="text-gray-900 font-medium mt-0.5">{user.mobile}</p>
             </div>
           </div>
-          <div className="flex items-start gap-3 sm:col-span-2">
-            <div className="p-2 rounded-lg bg-[#fef5f7] shrink-0">
+          <div className="flex items-start gap-3">
+            <div className="p-2 rounded-lg bg-[#fef5f7]">
+              <Cake className="w-5 h-5 text-gray-600" />
+            </div>
+            <div>
+              <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">Date of birth</p>
+              <p className="text-gray-900 font-medium mt-0.5">{formatDate(user.dob)}</p>
+            </div>
+          </div>
+          <div className="flex items-start gap-3">
+            <div className="p-2 rounded-lg bg-[#fef5f7]">
+              <VenusAndMars className="w-5 h-5 text-gray-600" />
+            </div>
+            <div>
+              <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">Gender</p>
+              <p className="text-gray-900 font-medium mt-0.5">{user.gender}</p>
+            </div>
+          </div>
+          <div className="flex items-start gap-3">
+            <div className="p-2 rounded-lg bg-[#fef5f7]">
               <MapPin className="w-5 h-5 text-gray-600" />
             </div>
             <div className="min-w-0">
@@ -102,69 +192,38 @@ export default function UserDetailPage() {
               <p className="text-gray-900 font-medium mt-0.5">{user.address}</p>
             </div>
           </div>
-        </div>
-      </div>
-
-      {/* Stats row: Total Orders, Total Spend, Joined Date, Status */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-          <div className="flex items-center gap-3">
-            <div className="p-2 rounded-xl bg-green-50">
-              <ShoppingBag className="w-5 h-5 text-green-600" />
+          <div className="flex items-start gap-3">
+            <div className="p-2 rounded-lg bg-[#fef5f7]">
+              <Building2 className="w-5 h-5 text-gray-600" />
             </div>
             <div>
-              <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">Total Orders</p>
-              <p className="text-xl font-semibold text-gray-900 mt-0.5">{user.totalOrders}</p>
+              <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">City</p>
+              <p className="text-gray-900 font-medium mt-0.5">{user.city}</p>
             </div>
           </div>
-          <p className="text-xs text-gray-400 mt-2">Read only</p>
-        </div>
-        <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-          <div className="flex items-center gap-3">
-            <div className="p-2 rounded-xl bg-purple-50">
-              <DollarSign className="w-5 h-5 text-purple-600" />
+          <div className="flex items-start gap-3">
+            <div className="p-2 rounded-lg bg-[#fef5f7]">
+              <Globe className="w-5 h-5 text-gray-600" />
             </div>
             <div>
-              <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">Total Spend</p>
-              <p className="text-xl font-semibold text-gray-900 mt-0.5">{formatCurrency(user.totalSpend)}</p>
+              <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">State</p>
+              <p className="text-gray-900 font-medium mt-0.5">{user.state}</p>
             </div>
           </div>
-          <p className="text-xs text-gray-400 mt-2">Read only</p>
-        </div>
-        <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-          <div className="flex items-center gap-3">
-            <div className="p-2 rounded-xl bg-blue-50">
-              <Calendar className="w-5 h-5 text-blue-600" />
+          <div className="flex items-start gap-3">
+            <div className="p-2 rounded-lg bg-[#fef5f7]">
+              <Hash className="w-5 h-5 text-gray-600" />
             </div>
             <div>
-              <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">Joined Date</p>
-              <p className="text-lg font-semibold text-gray-900 mt-0.5">{formatDate(user.joinedDate)}</p>
-            </div>
-          </div>
-        </div>
-        <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-          <div className="flex items-center gap-3">
-            <div className="p-2 rounded-xl bg-gray-100">
-              <Shield className="w-5 h-5 text-gray-600" />
-            </div>
-            <div>
-              <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">Current Status</p>
-              <span
-                className={`inline-flex mt-1.5 items-center px-2.5 py-1 rounded-full text-xs font-medium ${
-                  user.status === "active"
-                    ? "bg-green-50 text-green-700"
-                    : "bg-red-50 text-red-700"
-                }`}
-              >
-                {user.status === "active" ? "Active" : "Blocked"}
-              </span>
+              <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">Pincode</p>
+              <p className="text-gray-900 font-medium mt-0.5">{user.pincode}</p>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Block / Unblock */}
-      <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+      {/* Account status */}
+      <div className="bg-white rounded-2xl p-6 border border-gray-100">
         <h2 className="text-lg font-semibold text-gray-900 mb-2">Account status</h2>
         <p className="text-sm text-gray-500 mb-4">
           Block this user to prevent them from logging in or placing orders. Unblock to restore access.
@@ -173,9 +232,7 @@ export default function UserDetailPage() {
           type="button"
           onClick={toggleStatus}
           className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-colors ${
-            isActive
-              ? "bg-red-50 text-red-700 hover:bg-red-100"
-              : "bg-green-50 text-green-700 hover:bg-green-100"
+            isActive ? "bg-red-50 text-red-700 hover:bg-red-100" : "bg-green-50 text-green-700 hover:bg-green-100"
           }`}
         >
           {isActive ? (
@@ -191,6 +248,113 @@ export default function UserDetailPage() {
           )}
         </button>
       </div>
+    </div>
+  );
+
+  const purchasesContent = (
+    <div>
+      <OrdersTabSummary count={uniqueOrderCount(user.purchases)} total={totalAmount(user.purchases)} />
+      <OrderCardsList items={user.purchases} />
+    </div>
+  );
+
+  const returnsContent = (
+    <div>
+      <OrdersTabSummary count={uniqueOrderCount(user.returnsOrders)} total={totalAmount(user.returnsOrders)} />
+      <OrderCardsList items={user.returnsOrders} />
+    </div>
+  );
+
+  const cancelledContent = (
+    <div>
+      <OrdersTabSummary count={uniqueOrderCount(user.cancelledOrders)} total={totalAmount(user.cancelledOrders)} />
+      <OrderCardsList items={user.cancelledOrders} />
+    </div>
+  );
+
+  const refundsContent = (
+    <div>
+      <OrdersTabSummary count={uniqueOrderCount(user.refundedOrders)} total={totalAmount(user.refundedOrders)} />
+      <OrderCardsList items={user.refundedOrders} />
+    </div>
+  );
+
+  const tabs: TabItem[] = [
+    { id: "basic", label: "Basic Info", content: basicInfoContent },
+    { id: "purchases", label: "Purchases", content: purchasesContent },
+    { id: "returns", label: "Returns", content: returnsContent },
+    { id: "cancelled", label: "Cancelled", content: cancelledContent },
+    { id: "refunds", label: "Refunds", content: refundsContent },
+  ];
+
+  const totalRefundAmount = totalAmount(user.refundedOrders);
+
+  return (
+    <div className="space-y-6">
+      <Link
+        href="/users"
+        className="inline-flex items-center gap-2 text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors"
+      >
+        <ArrowLeft className="w-4 h-4" />
+        Back to Users
+      </Link>
+
+      {/* KPI cards — always visible above tabs */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-xl bg-[#fef5f7]">
+              <ShoppingBag className="w-5 h-5 text-gray-600" />
+            </div>
+            <div>
+              <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">Total Orders</p>
+              <p className="text-xl font-semibold text-gray-900 mt-0.5">{user.totalOrders}</p>
+            </div>
+          </div>
+        </div>
+        <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-xl bg-[#fef5f7]">
+              <DollarSign className="w-5 h-5 text-gray-600" />
+            </div>
+            <div>
+              <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">Total Spend</p>
+              <p className="text-xl font-semibold text-gray-900 mt-0.5">{formatCurrency(user.totalSpend)}</p>
+            </div>
+          </div>
+        </div>
+        <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-xl bg-[#fef5f7]">
+              <Undo2 className="w-5 h-5 text-gray-600" />
+            </div>
+            <div>
+              <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">Total Refund Amount</p>
+              <p className="text-xl font-semibold text-gray-900 mt-0.5">{formatCurrency(totalRefundAmount)}</p>
+            </div>
+          </div>
+        </div>
+        <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-xl bg-[#fef5f7]">
+              <Shield className="w-5 h-5 text-gray-600" />
+            </div>
+            <div>
+              <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">Account Status</p>
+              <span
+                className={`inline-flex mt-1.5 items-center px-2.5 py-1 rounded-full text-xs font-medium ${
+                  user.status === "active" ? "bg-green-50 text-green-700" : "bg-red-50 text-red-700"
+                }`}
+              >
+                {user.status === "active" ? "Active" : "Blocked"}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Tabs */}
+      <Tabination tabs={tabs} defaultTabId="basic" />
     </div>
   );
 }
