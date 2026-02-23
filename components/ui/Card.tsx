@@ -15,8 +15,8 @@ export interface ProductOrderCardProps {
   formatDate?: (dateStr: string) => string;
 }
 
-function defaultFormatCurrency(amount: number, currency: string = "USD") {
-  return new Intl.NumberFormat("en-US", {
+function defaultFormatCurrency(amount: number, currency: string = "INR") {
+  return new Intl.NumberFormat("en-IN", {
     style: "currency",
     currency,
   }).format(amount);
@@ -38,7 +38,7 @@ export function ProductOrderCard({
   totalAmount,
   orderDate,
   orderStatus,
-  currency = "USD",
+  currency = "INR",
   formatDate = defaultFormatDate,
 }: ProductOrderCardProps) {
   const statusColors: Record<string, string> = {

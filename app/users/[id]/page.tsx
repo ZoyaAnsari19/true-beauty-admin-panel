@@ -12,18 +12,17 @@ import {
   Phone,
   MapPin,
   ShoppingBag,
-  DollarSign,
-  Shield,
+  IndianRupee,
   Cake,
   VenusAndMars,
   Building2,
   Hash,
   Globe,
-  Undo2,
 } from "lucide-react";
 import { useUsers } from "@/lib/users-context";
 import { Tabination, type TabItem } from "@/components/ui/Tabination";
 import { ProductOrderCard } from "@/components/ui/Card";
+import { KpiCard } from "@/components/ui/kpiCard";
 import type { OrderItem } from "@/lib/users-data";
 
 function formatDate(dateStr: string) {
@@ -35,9 +34,9 @@ function formatDate(dateStr: string) {
 }
 
 function formatCurrency(amount: number) {
-  return new Intl.NumberFormat("en-US", {
+  return new Intl.NumberFormat("en-IN", {
     style: "currency",
-    currency: "USD",
+    currency: "INR",
   }).format(amount);
 }
 
@@ -49,20 +48,30 @@ function totalAmount(items: OrderItem[]): number {
   return items.reduce((sum, i) => sum + i.totalAmount, 0);
 }
 
-function OrdersTabSummary({ count, total }: { count: number; total: number }) {
+function OrdersTabSummary({
+  count,
+  total,
+  countLabel,
+  amountLabel,
+}: {
+  count: number;
+  total: number;
+  countLabel: string;
+  amountLabel: string;
+}) {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
       <div className="flex items-center gap-3 p-4 rounded-xl bg-[#fef5f7] border border-[#f8c6d0]/40">
         <ShoppingBag className="w-5 h-5 text-gray-600" />
         <div>
-          <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">Total Orders</p>
+          <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">{countLabel}</p>
           <p className="text-xl font-semibold text-gray-900">{count}</p>
         </div>
       </div>
       <div className="flex items-center gap-3 p-4 rounded-xl bg-[#fef5f7] border border-[#f8c6d0]/40">
-        <DollarSign className="w-5 h-5 text-gray-600" />
+        <IndianRupee className="w-5 h-5 text-gray-600" />
         <div>
-          <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">Total Amount</p>
+          <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">{amountLabel}</p>
           <p className="text-xl font-semibold text-gray-900">{formatCurrency(total)}</p>
         </div>
       </div>
@@ -253,28 +262,48 @@ export default function UserDetailPage() {
 
   const purchasesContent = (
     <div>
-      <OrdersTabSummary count={uniqueOrderCount(user.purchases)} total={totalAmount(user.purchases)} />
+      <OrdersTabSummary
+        count={user.purchases.length}
+        total={totalAmount(user.purchases)}
+        countLabel="Total Purchases"
+        amountLabel="Total Amount"
+      />
       <OrderCardsList items={user.purchases} />
     </div>
   );
 
   const returnsContent = (
     <div>
-      <OrdersTabSummary count={uniqueOrderCount(user.returnsOrders)} total={totalAmount(user.returnsOrders)} />
+      <OrdersTabSummary
+        count={uniqueOrderCount(user.returnsOrders)}
+        total={totalAmount(user.returnsOrders)}
+        countLabel="Total Returns"
+        amountLabel="Total Return Amount"
+      />
       <OrderCardsList items={user.returnsOrders} />
     </div>
   );
 
   const cancelledContent = (
     <div>
-      <OrdersTabSummary count={uniqueOrderCount(user.cancelledOrders)} total={totalAmount(user.cancelledOrders)} />
+      <OrdersTabSummary
+        count={uniqueOrderCount(user.cancelledOrders)}
+        total={totalAmount(user.cancelledOrders)}
+        countLabel="Total Cancelled"
+        amountLabel="Total Amount"
+      />
       <OrderCardsList items={user.cancelledOrders} />
     </div>
   );
 
   const refundsContent = (
     <div>
-      <OrdersTabSummary count={uniqueOrderCount(user.refundedOrders)} total={totalAmount(user.refundedOrders)} />
+      <OrdersTabSummary
+        count={uniqueOrderCount(user.refundedOrders)}
+        total={totalAmount(user.refundedOrders)}
+        countLabel="Total Refunds"
+        amountLabel="Total Refund Amount"
+      />
       <OrderCardsList items={user.refundedOrders} />
     </div>
   );
@@ -300,57 +329,39 @@ export default function UserDetailPage() {
       </Link>
 
       {/* KPI cards — always visible above tabs */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-          <div className="flex items-center gap-3">
-            <div className="p-2 rounded-xl bg-[#fef5f7]">
-              <ShoppingBag className="w-5 h-5 text-gray-600" />
-            </div>
-            <div>
-              <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">Total Orders</p>
-              <p className="text-xl font-semibold text-gray-900 mt-0.5">{user.totalOrders}</p>
-            </div>
-          </div>
-        </div>
-        <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-          <div className="flex items-center gap-3">
-            <div className="p-2 rounded-xl bg-[#fef5f7]">
-              <DollarSign className="w-5 h-5 text-gray-600" />
-            </div>
-            <div>
-              <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">Total Spend</p>
-              <p className="text-xl font-semibold text-gray-900 mt-0.5">{formatCurrency(user.totalSpend)}</p>
-            </div>
-          </div>
-        </div>
-        <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-          <div className="flex items-center gap-3">
-            <div className="p-2 rounded-xl bg-[#fef5f7]">
-              <Undo2 className="w-5 h-5 text-gray-600" />
-            </div>
-            <div>
-              <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">Total Refund Amount</p>
-              <p className="text-xl font-semibold text-gray-900 mt-0.5">{formatCurrency(totalRefundAmount)}</p>
-            </div>
-          </div>
-        </div>
-        <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-          <div className="flex items-center gap-3">
-            <div className="p-2 rounded-xl bg-[#fef5f7]">
-              <Shield className="w-5 h-5 text-gray-600" />
-            </div>
-            <div>
-              <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">Account Status</p>
-              <span
-                className={`inline-flex mt-1.5 items-center px-2.5 py-1 rounded-full text-xs font-medium ${
-                  user.status === "active" ? "bg-green-50 text-green-700" : "bg-red-50 text-red-700"
-                }`}
-              >
-                {user.status === "active" ? "Active" : "Blocked"}
-              </span>
-            </div>
-          </div>
-        </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <KpiCard
+          title="Total Orders"
+          value={String(user.totalOrders)}
+          change="—"
+          icon="shopping-cart"
+          iconClassName="bg-green-50 text-green-600"
+        />
+        <KpiCard
+          title="Total Spend"
+          value={formatCurrency(user.totalSpend)}
+          change="—"
+          icon="indian-rupee"
+          iconClassName="bg-purple-50 text-purple-600"
+        />
+        <KpiCard
+          title="Total Refund Amount"
+          value={formatCurrency(totalRefundAmount)}
+          change="—"
+          icon="indian-rupee"
+          iconClassName="bg-amber-50 text-amber-600"
+        />
+        <KpiCard
+          title="Account Status"
+          value={user.status === "active" ? "Active" : "Blocked"}
+          change="—"
+          icon={user.status === "active" ? "user-check" : "user-x"}
+          iconClassName={
+            user.status === "active"
+              ? "bg-emerald-50 text-emerald-600"
+              : "bg-red-50 text-red-600"
+          }
+        />
       </div>
 
       {/* Tabs */}

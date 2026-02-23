@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { useUsers } from "@/lib/users-context";
 import { type User, type UserStatus } from "@/lib/users-data";
+import { KpiCard } from "@/components/ui/kpiCard";
 
 function BlockUnblockButton({ user }: { user: User }) {
   const { setUserStatus } = useUsers();
@@ -76,11 +77,71 @@ export default function UsersPage() {
     return list;
   }, [users, search, statusFilter]);
 
+  const kpis = useMemo(() => {
+    const totalUsers = users.length;
+    const totalOrders = users.reduce((s, u) => s + u.totalOrders, 0);
+    const activeCount = users.filter((u) => u.status === "active").length;
+    const blockedCount = users.filter((u) => u.status === "blocked").length;
+    const now = new Date();
+    const thisMonth = now.getMonth();
+    const thisYear = now.getFullYear();
+    const newThisMonth = users.filter((u) => {
+      const d = new Date(u.joinedDate);
+      return d.getMonth() === thisMonth && d.getFullYear() === thisYear;
+    }).length;
+    return {
+      totalUsers,
+      totalOrders,
+      activeCount,
+      blockedCount,
+      newThisMonth,
+    };
+  }, [users]);
+
   const statusLabel =
     STATUS_OPTIONS.find((o) => o.value === statusFilter)?.label ?? "All statuses";
 
   return (
     <div className="space-y-6">
+      {/* KPI Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
+        <KpiCard
+          title="Total Users"
+          value={kpis.totalUsers.toLocaleString()}
+          change="—"
+          icon="users"
+          iconClassName="bg-blue-50 text-blue-600"
+        />
+        <KpiCard
+          title="Total Orders"
+          value={kpis.totalOrders.toLocaleString()}
+          change="—"
+          icon="shopping-cart"
+          iconClassName="bg-green-50 text-green-600"
+        />
+        <KpiCard
+          title="Active Accounts"
+          value={kpis.activeCount.toLocaleString()}
+          change="—"
+          icon="user-check"
+          iconClassName="bg-emerald-50 text-emerald-600"
+        />
+        <KpiCard
+          title="Blocked Accounts"
+          value={kpis.blockedCount.toLocaleString()}
+          change="—"
+          icon="user-x"
+          iconClassName="bg-red-50 text-red-600"
+        />
+        <KpiCard
+          title="New This Month"
+          value={kpis.newThisMonth.toLocaleString()}
+          change="—"
+          icon="trending-up"
+          iconClassName="bg-orange-50 text-orange-600"
+        />
+      </div>
+
       {/* Filters */}
       <div className="flex flex-col sm:flex-row gap-4">
         <div className="relative flex-1">
