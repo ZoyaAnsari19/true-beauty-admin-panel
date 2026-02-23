@@ -15,6 +15,9 @@ interface FiltersProps {
   filterOptions?: FilterOption[];
   filterValue?: string;
   onFilterChange?: (value: string) => void;
+  categoryOptions?: FilterOption[];
+  categoryValue?: string;
+  onCategoryChange?: (value: string) => void;
 }
 
 export function Filters({
@@ -24,8 +27,12 @@ export function Filters({
   filterOptions,
   filterValue,
   onFilterChange,
+  categoryOptions,
+  categoryValue,
+  onCategoryChange,
 }: FiltersProps) {
   const [open, setOpen] = useState(false);
+  const [categoryOpen, setCategoryOpen] = useState(false);
 
   const activeLabel =
     filterOptions?.find((opt) => opt.value === filterValue)?.label ??
@@ -33,6 +40,11 @@ export function Filters({
     "All";
 
   const showFilter = filterOptions && onFilterChange;
+  const showCategoryFilter = categoryOptions && onCategoryChange;
+
+  const activeCategoryLabel =
+    categoryOptions?.find((opt) => opt.value === categoryValue)?.label ??
+    "All categories";
 
   return (
     <div className="flex flex-col sm:flex-row gap-4">
@@ -47,40 +59,88 @@ export function Filters({
         />
       </div>
 
-      {showFilter && (
-        <div className="relative">
-          <button
-            type="button"
-            onClick={() => setOpen((prev) => !prev)}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-gray-200 bg-white text-sm text-gray-700 hover:bg-[#fef5f7] transition-colors min-w-[160px] justify-between"
-          >
-            <span>{activeLabel}</span>
-            <ChevronDown className="w-4 h-4 text-gray-500" />
-          </button>
-          {open && (
-            <>
-              <div
-                className="fixed inset-0 z-10"
-                onClick={() => setOpen(false)}
-              />
-              <div className="absolute right-0 mt-1 w-full min-w-[160px] bg-white rounded-xl shadow-lg border border-gray-200 py-1 z-20">
-                {filterOptions!.map((opt) => (
-                  <button
-                    key={opt.value || "all"}
-                    type="button"
-                    onClick={() => {
-                      onFilterChange(opt.value);
-                      setOpen(false);
-                    }}
-                    className={`block w-full text-left px-4 py-2 text-sm hover:bg-[#fef5f7] transition-colors ${
-                      filterValue === opt.value ? "bg-[#fef5f7] font-medium" : ""
-                    }`}
-                  >
-                    {opt.label}
-                  </button>
-                ))}
-              </div>
-            </>
+      {(showCategoryFilter || showFilter) && (
+        <div className="flex gap-2">
+          {showCategoryFilter && (
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => {
+                  setCategoryOpen((prev) => !prev);
+                  setOpen(false);
+                }}
+                className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-gray-200 bg-white text-sm text-gray-700 hover:bg-[#fef5f7] transition-colors min-w-[160px] justify-between"
+              >
+                <span>{activeCategoryLabel}</span>
+                <ChevronDown className="w-4 h-4 text-gray-500" />
+              </button>
+              {categoryOpen && (
+                <>
+                  <div
+                    className="fixed inset-0 z-10"
+                    onClick={() => setCategoryOpen(false)}
+                  />
+                  <div className="absolute right-0 mt-1 w-full min-w-[160px] bg-white rounded-xl shadow-lg border border-gray-200 py-1 z-20">
+                    {categoryOptions!.map((opt) => (
+                      <button
+                        key={opt.value || "all"}
+                        type="button"
+                        onClick={() => {
+                          onCategoryChange(opt.value);
+                          setCategoryOpen(false);
+                        }}
+                        className={`block w-full text-left px-4 py-2 text-sm hover:bg-[#fef5f7] transition-colors ${
+                          categoryValue === opt.value ? "bg-[#fef5f7] font-medium" : ""
+                        }`}
+                      >
+                        {opt.label}
+                      </button>
+                    ))}
+                  </div>
+                </>
+              )}
+            </div>
+          )}
+
+          {showFilter && (
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => {
+                  setOpen((prev) => !prev);
+                  setCategoryOpen(false);
+                }}
+                className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-gray-200 bg-white text-sm text-gray-700 hover:bg-[#fef5f7] transition-colors min-w-[160px] justify-between"
+              >
+                <span>{activeLabel}</span>
+                <ChevronDown className="w-4 h-4 text-gray-500" />
+              </button>
+              {open && (
+                <>
+                  <div
+                    className="fixed inset-0 z-10"
+                    onClick={() => setOpen(false)}
+                  />
+                  <div className="absolute right-0 mt-1 w-full min-w-[160px] bg-white rounded-xl shadow-lg border border-gray-200 py-1 z-20">
+                    {filterOptions!.map((opt) => (
+                      <button
+                        key={opt.value || "all"}
+                        type="button"
+                        onClick={() => {
+                          onFilterChange(opt.value);
+                          setOpen(false);
+                        }}
+                        className={`block w-full text-left px-4 py-2 text-sm hover:bg-[#fef5f7] transition-colors ${
+                          filterValue === opt.value ? "bg-[#fef5f7] font-medium" : ""
+                        }`}
+                      >
+                        {opt.label}
+                      </button>
+                    ))}
+                  </div>
+                </>
+              )}
+            </div>
           )}
         </div>
       )}

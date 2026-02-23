@@ -37,6 +37,19 @@ const STATUS_OPTIONS: FilterOption[] = [
   { value: "inactive", label: STATUS_LABELS.inactive },
 ];
 
+const CATEGORY_OPTIONS: FilterOption[] = [
+  { value: "", label: "All categories" },
+  { value: "Skincare", label: "Skincare" },
+  { value: "Makeup", label: "Makeup" },
+  { value: "Bath & Body", label: "Bath & Body" },
+  { value: "Haircare", label: "Haircare" },
+  { value: "Fragrance", label: "Fragrance" },
+  { value: "Wellness", label: "Wellness" },
+  { value: "Gifting", label: "Gifting" },
+  { value: "Jewellery", label: "Jewellery" },
+  { value: "Offers", label: "Offers" },
+];
+
 const STATUS_CLASSES: Record<string, string> = {
   active: "bg-emerald-50 text-emerald-700",
   draft: "bg-gray-100 text-gray-700",
@@ -56,6 +69,7 @@ export default function ProductsPage() {
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<"" | ProductStatus>("");
+  const [categoryFilter, setCategoryFilter] = useState("");
 
   const kpis = useMemo(() => {
     const totalProducts = products.length;
@@ -93,12 +107,16 @@ export default function ProductsPage() {
       );
     }
 
+    if (categoryFilter) {
+      list = list.filter((p) => p.category === categoryFilter);
+    }
+
     if (statusFilter) {
       list = list.filter((p) => p.status === statusFilter);
     }
 
     return list;
-  }, [products, search, statusFilter]);
+  }, [products, search, categoryFilter, statusFilter]);
 
   const handleAdd = () => {
     setEditingProduct(null);
@@ -257,6 +275,9 @@ export default function ProductsPage() {
         filterOptions={STATUS_OPTIONS}
         filterValue={statusFilter}
         onFilterChange={(value) => setStatusFilter(value as "" | ProductStatus)}
+        categoryOptions={CATEGORY_OPTIONS}
+        categoryValue={categoryFilter}
+        onCategoryChange={setCategoryFilter}
       />
 
       {/* Product table */}

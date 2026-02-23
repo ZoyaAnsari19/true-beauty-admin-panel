@@ -55,7 +55,7 @@ const MOCK_PRODUCTS: Product[] = [
   {
     id: "prod-3",
     name: "Hair Growth Serum",
-    category: "Hair Care",
+    category: "Haircare",
     price: 899,
     stock: 0,
     stockStatus: "out_of_stock",
