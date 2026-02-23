@@ -2,16 +2,11 @@
 
 import React, { useMemo, useState } from "react";
 import Link from "next/link";
-import {
-  Search,
-  Eye,
-  Ban,
-  CheckCircle,
-  ChevronDown,
-} from "lucide-react";
+import { Eye, Ban, CheckCircle } from "lucide-react";
 import { useUsers } from "@/lib/users-context";
 import { type User, type UserStatus } from "@/lib/users-data";
 import { KpiCard } from "@/components/ui/kpiCard";
+import { Filters, type FilterOption } from "@/components/ui/filters";
 
 function BlockUnblockButton({ user }: { user: User }) {
   const { setUserStatus } = useUsers();
@@ -39,7 +34,7 @@ function BlockUnblockButton({ user }: { user: User }) {
   );
 }
 
-const STATUS_OPTIONS: { value: "" | UserStatus; label: string }[] = [
+const STATUS_OPTIONS: FilterOption[] = [
   { value: "", label: "All statuses" },
   { value: "active", label: "Active" },
   { value: "blocked", label: "Blocked" },
@@ -57,7 +52,6 @@ export default function UsersPage() {
   const { users } = useUsers();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<"" | UserStatus>("");
-  const [showStatusDropdown, setShowStatusDropdown] = useState(false);
 
   const filtered = useMemo(() => {
     let list = [...users];
@@ -97,9 +91,6 @@ export default function UsersPage() {
       newThisMonth,
     };
   }, [users]);
-
-  const statusLabel =
-    STATUS_OPTIONS.find((o) => o.value === statusFilter)?.label ?? "All statuses";
 
   return (
     <div className="space-y-6">
@@ -143,51 +134,14 @@ export default function UsersPage() {
       </div>
 
       {/* Filters */}
-      <div className="flex flex-col sm:flex-row gap-4">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-          <input
-            type="text"
-            placeholder="Search by name, email, mobile, or address..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-[#f8c6d0] focus:border-transparent transition-all"
-          />
-        </div>
-        <div className="relative">
-          <button
-            onClick={() => setShowStatusDropdown(!showStatusDropdown)}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-gray-200 bg-white text-sm text-gray-700 hover:bg-[#fef5f7] transition-colors min-w-[160px] justify-between"
-          >
-            <span>{statusLabel}</span>
-            <ChevronDown className="w-4 h-4 text-gray-500" />
-          </button>
-          {showStatusDropdown && (
-            <>
-              <div
-                className="fixed inset-0 z-10"
-                onClick={() => setShowStatusDropdown(false)}
-              />
-              <div className="absolute right-0 mt-1 w-full min-w-[160px] bg-white rounded-xl shadow-lg border border-gray-200 py-1 z-20">
-                {STATUS_OPTIONS.map((opt) => (
-                  <button
-                    key={opt.value || "all"}
-                    onClick={() => {
-                      setStatusFilter(opt.value);
-                      setShowStatusDropdown(false);
-                    }}
-                    className={`block w-full text-left px-4 py-2 text-sm hover:bg-[#fef5f7] transition-colors ${
-                      statusFilter === opt.value ? "bg-[#fef5f7] font-medium" : ""
-                    }`}
-                  >
-                    {opt.label}
-                  </button>
-                ))}
-              </div>
-            </>
-          )}
-        </div>
-      </div>
+      <Filters
+        search={search}
+        onSearchChange={setSearch}
+        searchPlaceholder="Search by name, email, mobile, or address..."
+        filterOptions={STATUS_OPTIONS}
+        filterValue={statusFilter}
+        onFilterChange={(value) => setStatusFilter(value as "" | UserStatus)}
+      />
 
       {/* Table card */}
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">

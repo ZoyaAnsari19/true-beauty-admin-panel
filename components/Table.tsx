@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { ChevronLeft, ChevronRight, Search, Filter } from "lucide-react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import { Filters } from "@/components/ui/filters";
 
 interface Column<T> {
   header: string;
@@ -80,29 +81,16 @@ export default function Table<T extends Record<string, any>>({
       {/* Search and Filter Bar */}
       {(searchable || filterable) && (
         <div className="p-4 border-b border-gray-200 bg-gray-50">
-          <div className="flex items-center gap-4">
-            {searchable && (
-              <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                <input
-                  type="text"
-                  placeholder="Search..."
-                  value={searchTerm}
-                  onChange={(e) => {
-                    setSearchTerm(e.target.value);
-                    setCurrentPage(1);
-                  }}
-                  className="pl-10 pr-4 py-2 w-full rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                />
-              </div>
-            )}
-            {filterable && (
-              <button className="flex items-center gap-2 px-4 py-2 rounded-xl border border-gray-200 bg-white text-sm text-gray-700 hover:bg-gray-50 transition-colors">
-                <Filter className="w-4 h-4" />
-                Filter
-              </button>
-            )}
-          </div>
+          {searchable && (
+            <Filters
+              search={searchTerm}
+              onSearchChange={(value) => {
+                setSearchTerm(value);
+                setCurrentPage(1);
+              }}
+              searchPlaceholder="Search..."
+            />
+          )}
         </div>
       )}
 
