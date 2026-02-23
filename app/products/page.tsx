@@ -6,8 +6,8 @@ import { useProducts } from "@/lib/products-context";
 import type { Product } from "@/lib/products-data";
 import type { ProductFormValues } from "@/lib/products-context";
 import { Drawer } from "@/components/ui/Drawer";
-import { ProductCard } from "@/components/products/ProductCard";
-import { ProductForm } from "@/components/products/ProductForm";
+import { ProductCard } from "@/components/ui/ProductCard";
+import { ProductForm } from "@/components/ui/ProductForm";
 
 export default function ProductsPage() {
   const { products, addProduct, updateProduct, softDeleteProduct } = useProducts();

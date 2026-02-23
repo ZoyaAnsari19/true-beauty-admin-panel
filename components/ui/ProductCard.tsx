@@ -64,7 +64,7 @@ export function ProductCard({ product, onEdit, onDelete }: ProductCardProps) {
   return (
     <div className="group relative bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-all overflow-hidden">
       {/* Image */}
-      <div className="aspect-square bg-[#fef5f7] relative overflow-hidden">
+      <div className="h-44 sm:h-48 bg-[#fef5f7] relative overflow-hidden">
         {product.image ? (
           <Image
             src={product.image}
