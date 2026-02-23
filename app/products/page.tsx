@@ -53,7 +53,7 @@ export default function ProductsPage() {
         <button
           type="button"
           onClick={handleAdd}
-          className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl font-medium text-white bg-[#e8a0ad] hover:bg-[#e891a0] transition-colors shadow-sm"
+          className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl font-medium text-white bg-[#D96A86] hover:bg-[#C85A76] transition-colors shadow-sm"
         >
           <Plus className="w-5 h-5" />
           Add Product
@@ -67,7 +67,7 @@ export default function ProductsPage() {
           <button
             type="button"
             onClick={handleAdd}
-            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl font-medium text-white bg-[#e8a0ad] hover:bg-[#e891a0] transition-colors"
+            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl font-medium text-white bg-[#D96A86] hover:bg-[#C85A76] transition-colors"
           >
             <Plus className="w-5 h-5" />
             Add Product

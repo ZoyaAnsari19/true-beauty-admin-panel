@@ -175,7 +175,7 @@ export function ProductForm({
       <div className="flex gap-3 pt-2">
         <button
           type="submit"
-          className="flex-1 px-4 py-2.5 rounded-xl font-medium text-white bg-[#e8a0ad] hover:bg-[#e891a0] transition-colors"
+          className="flex-1 px-4 py-2.5 rounded-xl font-medium text-white bg-[#D96A86] hover:bg-[#C85A76] transition-colors"
         >
           {initialValues ? "Update Product" : "Add Product"}
         </button>
