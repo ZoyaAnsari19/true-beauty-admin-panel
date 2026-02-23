@@ -8,6 +8,7 @@ interface Column<T> {
   header: string;
   accessor: keyof T | ((row: T) => React.ReactNode);
   sortable?: boolean;
+  cellClassName?: string;
 }
 
 interface TableProps<T> {
@@ -139,7 +140,9 @@ export default function Table<T extends Record<string, any>>({
                   {columns.map((column, colIndex) => (
                     <td
                       key={colIndex}
-                      className="px-6 py-4 whitespace-nowrap text-sm text-gray-900"
+                      className={`px-6 py-4 whitespace-nowrap text-sm text-gray-900 ${
+                        column.cellClassName ?? ""
+                      }`}
                     >
                       {renderCell(row, column)}
                     </td>

@@ -1,8 +1,8 @@
 "use client";
 
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import { Plus } from "lucide-react";
+import { MoreVertical, Plus } from "lucide-react";
 import { useProducts } from "@/lib/products-context";
 import type { Product, ProductStatus } from "@/lib/products-data";
 import type { ProductFormValues } from "@/lib/products-context";
@@ -61,6 +61,75 @@ function formatPrice(amount: number) {
     style: "currency",
     currency: "INR",
   }).format(amount);
+}
+
+function ProductActionsMenu({
+  product,
+  onEdit,
+  onDelete,
+}: {
+  product: Product;
+  onEdit: (product: Product) => void;
+  onDelete: (product: Product) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const handleClickOutside = (event: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [open]);
+
+  return (
+    <div className="relative inline-block text-left" ref={menuRef}>
+      <button
+        type="button"
+        onClick={() => setOpen((prev) => !prev)}
+        className="p-2 rounded-lg border border-gray-200 bg-white hover:bg-[#fef5f7] transition-colors"
+        aria-haspopup="menu"
+        aria-expanded={open}
+      >
+        <MoreVertical className="w-4 h-4 text-gray-600" />
+      </button>
+      {open && (
+        <div className="absolute right-0 mt-2 w-40 bg-white rounded-xl shadow-lg border border-gray-200 py-1 z-20">
+          <Link
+            href={`/products/${product.id}`}
+            onClick={() => setOpen(false)}
+            className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-[#fef5f7] transition-colors"
+          >
+            View
+          </Link>
+          <button
+            type="button"
+            onClick={() => {
+              setOpen(false);
+              onEdit(product);
+            }}
+            className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-[#fef5f7] transition-colors"
+          >
+            Edit
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setOpen(false);
+              onDelete(product);
+            }}
+            className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
+          >
+            Delete
+          </button>
+        </div>
+      )}
+    </div>
+  );
 }
 
 export default function ProductsPage() {
@@ -153,10 +222,13 @@ export default function ProductsPage() {
     {
       header: "Product",
       accessor: (product: Product) => (
-        <div>
-          <div className="font-medium text-gray-900">{product.name}</div>
-          <div className="text-xs text-gray-500">{product.category}</div>
-        </div>
+        <div className="font-medium text-gray-900">{product.name}</div>
+      ),
+    },
+    {
+      header: "Category",
+      accessor: (product: Product) => (
+        <span className="text-sm text-gray-700">{product.category}</span>
       ),
     },
     {
@@ -194,28 +266,14 @@ export default function ProductsPage() {
     },
     {
       header: "Actions",
+      cellClassName: "text-center",
       accessor: (product: Product) => (
-        <div className="flex items-center gap-2">
-          <Link
-            href={`/products/${product.id}`}
-            className="text-sm font-medium text-[#D96A86] hover:text-[#C85A76] transition-colors"
-          >
-            View
-          </Link>
-          <button
-            type="button"
-            onClick={() => handleEdit(product)}
-            className="text-sm font-medium text-gray-700 hover:text-[#D96A86] transition-colors"
-          >
-            Edit
-          </button>
-          <button
-            type="button"
-            onClick={() => handleDelete(product)}
-            className="text-sm font-medium text-red-600 hover:text-red-700 transition-colors"
-          >
-            Delete
-          </button>
+        <div className="inline-flex justify-center w-full">
+          <ProductActionsMenu
+            product={product}
+            onEdit={handleEdit}
+            onDelete={handleDelete}
+          />
         </div>
       ),
     },
