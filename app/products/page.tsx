@@ -2,7 +2,7 @@
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import { MoreVertical, Plus } from "lucide-react";
+import { Eye, MoreVertical, Pencil, Plus, Trash2 } from "lucide-react";
 import { useProducts } from "@/lib/products-context";
 import type { Product, ProductStatus } from "@/lib/products-data";
 import type { ProductFormValues } from "@/lib/products-context";
@@ -102,9 +102,10 @@ function ProductActionsMenu({
           <Link
             href={`/products/${product.id}`}
             onClick={() => setOpen(false)}
-            className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-[#fef5f7] transition-colors"
+            className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-[#fef5f7] transition-colors text-left"
           >
-            View
+            <Eye className="w-4 h-4" />
+            <span>View</span>
           </Link>
           <button
             type="button"
@@ -112,9 +113,10 @@ function ProductActionsMenu({
               setOpen(false);
               onEdit(product);
             }}
-            className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-[#fef5f7] transition-colors"
+            className="flex w-full items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-[#fef5f7] transition-colors text-left"
           >
-            Edit
+            <Pencil className="w-4 h-4" />
+            <span>Edit</span>
           </button>
           <button
             type="button"
@@ -122,9 +124,10 @@ function ProductActionsMenu({
               setOpen(false);
               onDelete(product);
             }}
-            className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
+            className="flex w-full items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors text-left"
           >
-            Delete
+            <Trash2 className="w-4 h-4" />
+            <span>Delete</span>
           </button>
         </div>
       )}
@@ -220,7 +223,7 @@ export default function ProductsPage() {
 
   const columns = [
     {
-      header: "Product",
+      header: "Product name",
       accessor: (product: Product) => (
         <div className="font-medium text-gray-900">{product.name}</div>
       ),
@@ -294,13 +297,14 @@ export default function ProductsPage() {
         </button>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="flex gap-4 overflow-x-auto pb-2 -mx-4 px-4 sm:mx-0 sm:px-0 sm:grid sm:grid-cols-2 lg:grid-cols-4 sm:gap-6">
         <KpiCard
           title="Total Products"
           value={kpis.totalProducts.toLocaleString()}
           change="—"
           icon="shopping-cart"
           iconClassName="bg-blue-50 text-blue-600"
+          className="min-w-[260px] sm:min-w-0"
         />
         <KpiCard
           title="Active Products"
@@ -308,6 +312,7 @@ export default function ProductsPage() {
           change="—"
           icon="user-check"
           iconClassName="bg-emerald-50 text-emerald-600"
+          className="min-w-[260px] sm:min-w-0"
         />
         <KpiCard
           title="Draft Products"
@@ -315,6 +320,7 @@ export default function ProductsPage() {
           change="—"
           icon="users"
           iconClassName="bg-gray-100 text-gray-700"
+          className="min-w-[260px] sm:min-w-0"
         />
         <KpiCard
           title="Out of Stock"
@@ -323,6 +329,7 @@ export default function ProductsPage() {
           icon="user-x"
           iconClassName="bg-red-50 text-red-600"
           changePositive={false}
+          className="min-w-[260px] sm:min-w-0"
         />
       </div>
 

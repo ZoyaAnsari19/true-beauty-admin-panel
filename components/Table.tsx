@@ -81,7 +81,7 @@ export default function Table<T extends Record<string, any>>({
     <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
       {/* Search and Filter Bar */}
       {(searchable || filterable) && (
-        <div className="p-4 border-b border-gray-200 bg-gray-50">
+        <div className="p-4 border-b border-gray-200 bg-[#fef5f7]">
           {searchable && (
             <Filters
               search={searchTerm}
@@ -98,7 +98,7 @@ export default function Table<T extends Record<string, any>>({
       {/* Table */}
       <div className="overflow-x-auto">
         <table className="w-full">
-          <thead className="bg-gray-50 border-b border-gray-200">
+          <thead className="bg-[#fef5f7] border-b border-gray-200">
             <tr>
               {columns.map((column, index) => (
                 <th
@@ -121,7 +121,7 @@ export default function Table<T extends Record<string, any>>({
               ))}
             </tr>
           </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
+          <tbody className="bg-white">
             {paginatedData.length === 0 ? (
               <tr>
                 <td
@@ -135,7 +135,7 @@ export default function Table<T extends Record<string, any>>({
               paginatedData.map((row, rowIndex) => (
                 <tr
                   key={rowIndex}
-                  className="hover:bg-gray-50 transition-colors"
+                  className="border-b border-gray-100 hover:bg-[#fef5f7]/50 transition-colors"
                 >
                   {columns.map((column, colIndex) => (
                     <td

@@ -1,36 +1,74 @@
 "use client";
 
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import { Eye, Ban, CheckCircle } from "lucide-react";
+import { Ban, Eye, MoreVertical } from "lucide-react";
 import { useUsers } from "@/lib/users-context";
 import { type User, type UserStatus } from "@/lib/users-data";
 import { KpiCard } from "@/components/ui/kpiCard";
 import { Filters, type FilterOption } from "@/components/ui/filters";
 
-function BlockUnblockButton({ user }: { user: User }) {
+function UserActionsMenu({ user }: { user: User }) {
   const { setUserStatus } = useUsers();
+  const [open, setOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement | null>(null);
+
   const isActive = user.status === "active";
-  const toggle = () =>
+
+  const toggleStatus = () => {
     setUserStatus(user.id, isActive ? "blocked" : "active");
+  };
+
+  useEffect(() => {
+    if (!open) return;
+    const handleClickOutside = (event: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [open]);
+
   return (
-    <button
-      type="button"
-      onClick={toggle}
-      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium text-gray-700 bg-gray-100 hover:bg-[#f8c6d0] transition-colors"
-    >
-      {isActive ? (
-        <>
-          <Ban className="w-4 h-4" />
-          Block
-        </>
-      ) : (
-        <>
-          <CheckCircle className="w-4 h-4" />
-          Unblock
-        </>
+    <div className="relative inline-block text-left" ref={menuRef}>
+      <button
+        type="button"
+        onClick={() => setOpen((prev) => !prev)}
+        className="p-2 rounded-lg border border-gray-200 bg-white hover:bg-[#fef5f7] transition-colors"
+        aria-haspopup="menu"
+        aria-expanded={open}
+      >
+        <MoreVertical className="w-4 h-4 text-gray-600" />
+      </button>
+      {open && (
+        <div className="absolute right-0 mt-2 w-40 bg-white rounded-xl shadow-lg border border-gray-200 py-1 z-20">
+          <Link
+            href={`/users/${user.id}`}
+            onClick={() => setOpen(false)}
+            className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-[#fef5f7] transition-colors"
+          >
+            <Eye className="w-4 h-4" />
+            <span>View</span>
+          </Link>
+          <button
+            type="button"
+            onClick={() => {
+              toggleStatus();
+              setOpen(false);
+            }}
+            className={`flex w-full items-center gap-2 px-4 py-2 text-sm transition-colors text-left ${
+              isActive
+                ? "text-red-600 hover:bg-red-50"
+                : "text-gray-700 hover:bg-[#fef5f7]"
+            }`}
+          >
+            <Ban className="w-4 h-4 shrink-0" />
+            <span>{isActive ? "Block" : "Unblock"}</span>
+          </button>
+        </div>
       )}
-    </button>
+    </div>
   );
 }
 
@@ -164,7 +202,7 @@ export default function UsersPage() {
                 <th className="text-left py-4 px-4 text-xs font-semibold text-gray-600 uppercase tracking-wider">
                   Joined Date
                 </th>
-                <th className="text-right py-4 px-4 text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                <th className="text-center py-4 px-4 text-xs font-semibold text-gray-600 uppercase tracking-wider">
                   Actions
                 </th>
               </tr>
@@ -208,17 +246,8 @@ export default function UsersPage() {
                     <td className="py-4 px-4 text-sm text-gray-600">
                       {formatDate(user.joinedDate)}
                     </td>
-                    <td className="py-4 px-4 text-right">
-                      <div className="flex items-center justify-end gap-2">
-                        <Link
-                          href={`/users/${user.id}`}
-                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium text-gray-700 bg-gray-100 hover:bg-[#f8c6d0] transition-colors"
-                        >
-                          <Eye className="w-4 h-4" />
-                          View
-                        </Link>
-                        <BlockUnblockButton user={user} />
-                      </div>
+                    <td className="py-4 px-4 text-center">
+                      <UserActionsMenu user={user} />
                     </td>
                   </tr>
                 ))
