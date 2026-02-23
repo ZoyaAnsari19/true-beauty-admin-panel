@@ -99,7 +99,8 @@ export default function SideBar() {
               const Icon = item.icon;
               const isActive =
                 pathname === item.href ||
-                (item.href === "/users" && pathname.startsWith("/users/"));
+                (item.href === "/users" && pathname.startsWith("/users/")) ||
+                (item.href === "/products" && pathname.startsWith("/products"));
               return (
                 <Link
                   key={item.href}
