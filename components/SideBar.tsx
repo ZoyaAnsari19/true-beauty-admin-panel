@@ -97,7 +97,10 @@ export default function SideBar() {
           <nav className="flex-1 overflow-y-auto p-4 space-y-1">
             {menuItems.map((item) => {
               const Icon = item.icon;
-              const isActive = pathname === item.href;
+              const isActive =
+                pathname === item.href ||
+                (item.href === "/users" && pathname.startsWith("/users/")) ||
+                (item.href === "/products" && pathname.startsWith("/products"));
               return (
                 <Link
                   key={item.href}
@@ -108,13 +111,13 @@ export default function SideBar() {
                     transition-all duration-200
                     ${
                       isActive
-                        ? "bg-[#f8c6d0] text-gray-900 font-medium shadow-sm"
+                        ? "bg-[#D96A86] text-white font-medium shadow-sm hover:bg-[#C85A76]"
                         : "text-gray-700 hover:bg-[#fef5f7] hover:text-gray-900"
                     }
                   `}
                 >
                   <Icon
-                    className={`w-5 h-5 ${isActive ? "text-gray-900" : "text-gray-500"}`}
+                    className={`w-5 h-5 ${isActive ? "text-white" : "text-gray-500"}`}
                   />
                   <span className="text-sm">{item.label}</span>
                 </Link>

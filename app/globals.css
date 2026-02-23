@@ -6,8 +6,9 @@
   --card: #ffffff;
   --card-foreground: #1a1a1a;
   --border: #e5e5e5;
-  --primary: #f8c6d0;
-  --primary-foreground: #1a1a1a;
+  --primary: #D96A86;
+  --primary-foreground: #ffffff;
+  --primary-hover: #C85A76;
   --secondary: #fef5f7;
   --secondary-foreground: #1a1a1a;
   --muted: #fef5f7;

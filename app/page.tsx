@@ -1,4 +1,5 @@
-import { Users, ShoppingCart, DollarSign, TrendingUp } from "lucide-react";
+import { Users } from "lucide-react";
+import { KpiCard } from "@/components/ui/kpiCard";
 
 export default function Home() {
   const stats = [
@@ -6,29 +7,29 @@ export default function Home() {
       title: "Total Users",
       value: "12,543",
       change: "+12.5%",
-      icon: Users,
-      color: "bg-blue-50 text-blue-600",
+      icon: "users" as const,
+      iconClassName: "bg-blue-50 text-blue-600",
     },
     {
       title: "Total Orders",
       value: "3,421",
       change: "+8.2%",
-      icon: ShoppingCart,
-      color: "bg-green-50 text-green-600",
+      icon: "shopping-cart" as const,
+      iconClassName: "bg-green-50 text-green-600",
     },
     {
       title: "Revenue",
-      value: "$45,231",
+      value: new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR" }).format(45231),
       change: "+15.3%",
-      icon: DollarSign,
-      color: "bg-purple-50 text-purple-600",
+      icon: "indian-rupee" as const,
+      iconClassName: "bg-purple-50 text-purple-600",
     },
     {
       title: "Growth",
       value: "24.8%",
       change: "+2.4%",
-      icon: TrendingUp,
-      color: "bg-orange-50 text-orange-600",
+      icon: "trending-up" as const,
+      iconClassName: "bg-orange-50 text-orange-600",
     },
   ];
 
@@ -36,28 +37,16 @@ export default function Home() {
     <div className="space-y-6">
         {/* Stats Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {stats.map((stat, index) => {
-            const Icon = stat.icon;
-            return (
-              <div
-                key={index}
-                className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 hover:shadow-md transition-shadow"
-              >
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-gray-600 mb-1">{stat.title}</p>
-                    <p className="text-2xl font-semibold text-gray-900">
-                      {stat.value}
-                    </p>
-                    <p className="text-xs text-green-600 mt-2">{stat.change}</p>
-                  </div>
-                  <div className={`p-3 rounded-xl ${stat.color}`}>
-                    <Icon className="w-6 h-6" />
-                  </div>
-                </div>
-              </div>
-            );
-          })}
+          {stats.map((stat, index) => (
+            <KpiCard
+              key={index}
+              title={stat.title}
+              value={stat.value}
+              change={stat.change}
+              icon={stat.icon}
+              iconClassName={stat.iconClassName}
+            />
+          ))}
         </div>
 
         {/* Recent Activity Card */}

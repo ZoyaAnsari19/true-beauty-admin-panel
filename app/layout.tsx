@@ -6,6 +6,8 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import SideBar from "@/components/SideBar";
 import TopBar from "@/components/TopBar";
+import { UsersProvider } from "@/lib/users-context";
+import { ProductsProvider } from "@/lib/products-context";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -37,7 +39,19 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   const pathname = usePathname();
-  const pageTitle = pageTitles[pathname] || "Dashboard";
+  const isUserDetail =
+    typeof pathname === "string" &&
+    pathname.startsWith("/users/") &&
+    pathname !== "/users";
+  const isProductDetail =
+    typeof pathname === "string" &&
+    pathname.startsWith("/products/") &&
+    pathname !== "/products";
+  const pageTitle = isUserDetail
+    ? "User Details"
+    : isProductDetail
+      ? "Product Details"
+      : (pageTitles[pathname] || "Dashboard");
 
   return (
     <html lang="en">
@@ -48,6 +62,8 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
+        <UsersProvider>
+        <ProductsProvider>
         <div className="flex h-screen bg-[#fef5f7]">
           <SideBar />
           <div className="flex-1 flex flex-col md:ml-64 overflow-hidden">
@@ -57,6 +73,8 @@ export default function RootLayout({
             </main>
           </div>
         </div>
+        </ProductsProvider>
+        </UsersProvider>
       </body>
     </html>
   );
