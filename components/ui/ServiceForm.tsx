@@ -20,6 +20,10 @@ const CATEGORY_OPTIONS = [
   "Other",
 ];
 
+const WORKING_DAYS_PRESETS: { key: string; label: string; value: string }[] = [];
+
+const DAY_SHORT_LABELS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+
 const emptyForm: ServiceFormValues = {
   name: "",
   description: "",
@@ -50,6 +54,15 @@ export function ServiceForm({
   onCancel,
 }: ServiceFormProps) {
   const [values, setValues] = React.useState<ServiceFormValues>(emptyForm);
+  const [imageMode, setImageMode] = React.useState<"url" | "file">("url");
+  const [imageFile, setImageFile] = React.useState<File | null>(null);
+  const [workingDaysMode, setWorkingDaysMode] =
+    React.useState<"preset" | "custom">("preset");
+  const [workingDaysPresetKey, setWorkingDaysPresetKey] =
+    React.useState<string>("");
+  const [customWorkingDays, setCustomWorkingDays] = React.useState<string[]>(
+    []
+  );
 
   useEffect(() => {
     if (initialValues) {
@@ -70,14 +83,43 @@ export function ServiceForm({
         workingHours: initialValues.workingHours ?? "",
         workingDays: initialValues.workingDays ?? "",
       });
+
+      const wd = initialValues.workingDays ?? "";
+      if (wd) {
+        const preset = WORKING_DAYS_PRESETS.find((p) => p.value === wd);
+        if (preset) {
+          setWorkingDaysMode("preset");
+          setWorkingDaysPresetKey(preset.key);
+          setCustomWorkingDays([]);
+        } else {
+          setWorkingDaysMode("custom");
+          setWorkingDaysPresetKey("custom");
+          const tokens = wd.split(/[, ]+/).filter(Boolean);
+          const days = DAY_SHORT_LABELS.filter((d) => tokens.includes(d));
+          setCustomWorkingDays(days);
+        }
+      } else {
+        setWorkingDaysMode("preset");
+        setWorkingDaysPresetKey("");
+        setCustomWorkingDays([]);
+      }
     } else {
       setValues(emptyForm);
+      setWorkingDaysMode("preset");
+      setWorkingDaysPresetKey("");
+      setCustomWorkingDays([]);
     }
   }, [initialValues]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!values.name.trim()) return;
+
+    let imageValue = values.image?.trim() ?? "";
+    if (imageMode === "file" && imageFile) {
+      imageValue = URL.createObjectURL(imageFile);
+    }
+
     onSubmit({
       ...values,
       name: values.name.trim(),
@@ -85,6 +127,7 @@ export function ServiceForm({
       category: values.category.trim() || "Other",
       price: values.price || 0,
       durationMinutes: Math.max(0, values.durationMinutes ?? 0),
+      image: imageValue,
       areaBranchName: values.areaBranchName?.trim() ?? "",
       fullAddress: values.fullAddress?.trim() ?? "",
       city: values.city?.trim() ?? "",
@@ -185,15 +228,62 @@ export function ServiceForm({
         <label htmlFor="service-image" className="block text-sm font-medium text-gray-700 mb-1">
           Image Upload
         </label>
-        <input
-          id="service-image"
-          type="url"
-          value={values.image ?? ""}
-          onChange={(e) => setValues((v) => ({ ...v, image: e.target.value || "" }))}
-          className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-[#f8c6d0] focus:border-transparent outline-none transition-all"
-          placeholder="https://..."
-        />
-        <p className="mt-1 text-xs text-gray-500">Enter image URL. File upload can be added later.</p>
+        <div className="mb-2 inline-flex items-center rounded-full bg-gray-100 p-0.5 text-xs font-medium text-gray-600">
+          <button
+            type="button"
+            onClick={() => setImageMode("file")}
+            className={`px-3 py-1 rounded-full transition-colors ${
+              imageMode === "file"
+                ? "bg-white text-gray-900 shadow-sm"
+                : "text-gray-600 hover:text-gray-900"
+            }`}
+          >
+            File
+          </button>
+          <button
+            type="button"
+            onClick={() => setImageMode("url")}
+            className={`px-3 py-1 rounded-full transition-colors ${
+              imageMode === "url"
+                ? "bg-white text-gray-900 shadow-sm"
+                : "text-gray-600 hover:text-gray-900"
+            }`}
+          >
+            URL
+          </button>
+        </div>
+
+        {imageMode === "file" ? (
+          <>
+            <input
+              id="service-image-file"
+              type="file"
+              accept="image/*"
+              onChange={(e) => {
+                const file = e.target.files?.[0] ?? null;
+                setImageFile(file);
+              }}
+              className="block w-full text-sm text-gray-700 file:mr-3 file:rounded-lg file:border-0 file:bg-[#fef5f7] file:px-4 file:py-2.5 file:text-sm file:font-medium file:text-[#D96A86] hover:file:bg-[#f8c6d0] cursor-pointer"
+            />
+            <p className="mt-1 text-xs text-gray-500">
+              Upload an image from your device. This will be used inside the admin panel.
+            </p>
+          </>
+        ) : (
+          <>
+            <input
+              id="service-image-url"
+              type="url"
+              value={values.image ?? ""}
+              onChange={(e) => setValues((v) => ({ ...v, image: e.target.value || "" }))}
+              className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-[#f8c6d0] focus:border-transparent outline-none transition-all"
+              placeholder="https://..."
+            />
+            <p className="mt-1 text-xs text-gray-500">
+              Enter image URL (e.g. from CDN or hosted image).
+            </p>
+          </>
+        )}
       </div>
       <div>
         <label htmlFor="service-status" className="block text-sm font-medium text-gray-700 mb-1">
@@ -318,14 +408,84 @@ export function ServiceForm({
             <label htmlFor="service-working-days" className="block text-sm font-medium text-gray-700 mb-1">
               Working Days
             </label>
-            <input
-              id="service-working-days"
-              type="text"
-              value={values.workingDays ?? ""}
-              onChange={(e) => setValues((v) => ({ ...v, workingDays: e.target.value }))}
-              className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-[#f8c6d0] focus:border-transparent outline-none transition-all"
-              placeholder="e.g. Mon - Sat"
-            />
+        <div className="space-y-2">
+          <select
+            id="service-working-days"
+            value={workingDaysMode === "custom" ? "custom" : ""}
+            onChange={(e) => {
+              const key = e.target.value;
+              if (key === "custom") {
+                setWorkingDaysMode("custom");
+                setWorkingDaysPresetKey("custom");
+                setValues((v) => ({
+                  ...v,
+                  workingDays: customWorkingDays.join(", "),
+                }));
+              }
+            }}
+            className="w-full px-4 py-2.5 rounded-xl border border-gray-200 bg-white focus:ring-2 focus:ring-[#f8c6d0] focus:border-transparent outline-none transition-all"
+          >
+            <option value="" disabled hidden>
+              Select working days
+            </option>
+            <option value="custom">Custom Day Range</option>
+          </select>
+
+          {workingDaysMode === "preset" && values.workingDays && (
+            <p className="text-xs text-gray-500">
+              Selected:{" "}
+              <span className="font-medium text-gray-700">
+                {values.workingDays}
+              </span>
+            </p>
+          )}
+
+          {workingDaysMode === "custom" && (
+            <div className="space-y-1.5">
+              <div className="flex flex-wrap gap-1.5">
+                {DAY_SHORT_LABELS.map((day) => {
+                  const active = customWorkingDays.includes(day);
+                  return (
+                    <button
+                      key={day}
+                      type="button"
+                      onClick={() =>
+                        setCustomWorkingDays((prev) => {
+                          const exists = prev.includes(day);
+                          const next = exists
+                            ? prev.filter((d) => d !== day)
+                            : [...prev, day];
+                          next.sort(
+                            (a, b) =>
+                              DAY_SHORT_LABELS.indexOf(a) -
+                              DAY_SHORT_LABELS.indexOf(b)
+                          );
+                          setValues((v) => ({
+                            ...v,
+                            workingDays: next.join(", "),
+                          }));
+                          return next;
+                        })
+                      }
+                      className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${
+                        active
+                          ? "bg-[#D96A86] text-white border-transparent"
+                          : "bg-white text-gray-700 border-gray-200 hover:bg-[#fef5f7]"
+                      }`}
+                    >
+                      {day}
+                    </button>
+                  );
+                })}
+              </div>
+              <p className="text-xs text-gray-500">
+                {customWorkingDays.length
+                  ? `Selected: ${customWorkingDays.join(", ")}`
+                  : "Select one or more days."}
+              </p>
+            </div>
+          )}
+        </div>
           </div>
         </div>
       </div>

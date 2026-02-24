@@ -222,32 +222,25 @@ export default function ServiceDetailPage() {
                     {(service.areaBranchName || service.fullAddress || service.city || service.state || service.pincode) && (
                       <>
                         <div className="px-4 py-3 sm:px-5 sm:py-3.5">
-                          <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-widest mb-2.5">
-                            Address
-                          </p>
                           <div className="space-y-2.5">
-                            {(service.areaBranchName || service.fullAddress) && (
-                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2.5 sm:gap-y-0">
-                                {service.areaBranchName && (
-                                  <div>
-                                    <p className="text-[11px] font-medium text-gray-400 uppercase tracking-wider">
-                                      Area / Branch
-                                    </p>
-                                    <p className="text-sm font-medium text-gray-900 mt-0.5 leading-snug">
-                                      {service.areaBranchName}
-                                    </p>
-                                  </div>
-                                )}
-                                {service.fullAddress && (
-                                  <div>
-                                    <p className="text-[11px] font-medium text-gray-400 uppercase tracking-wider">
-                                      Full Address
-                                    </p>
-                                    <p className="text-sm font-medium text-gray-900 mt-0.5 leading-snug">
-                                      {service.fullAddress}
-                                    </p>
-                                  </div>
-                                )}
+                            {service.areaBranchName && (
+                              <div>
+                                <p className="text-[11px] font-medium text-gray-400 uppercase tracking-wider">
+                                  Area / Branch
+                                </p>
+                                <p className="text-sm font-medium text-gray-900 mt-0.5 leading-snug">
+                                  {service.areaBranchName}
+                                </p>
+                              </div>
+                            )}
+                            {service.fullAddress && (
+                              <div>
+                                <p className="text-[11px] font-medium text-gray-400 uppercase tracking-wider">
+                                  Full Address
+                                </p>
+                                <p className="text-sm font-medium text-gray-900 mt-0.5 leading-snug">
+                                  {service.fullAddress}
+                                </p>
                               </div>
                             )}
                             {(service.city || service.state || service.pincode) && (
@@ -292,46 +285,31 @@ export default function ServiceDetailPage() {
                       </>
                     )}
 
-                    {/* Contact group */}
-                    {service.phoneNumber && (
-                      <>
-                        <div className="px-4 py-3 sm:px-5 sm:py-3.5">
-                          <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-widest mb-2">
-                            Contact
-                          </p>
-                          <div className="flex items-center gap-3">
-                            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#fef5f7]">
-                              <Phone className="h-4 w-4 text-[#D96A86]" />
-                            </div>
-                            <div>
-                              <p className="text-[11px] font-medium text-gray-400 uppercase tracking-wider">
-                                Phone
-                              </p>
-                              <p className="text-sm font-semibold text-gray-900 tracking-tight">
-                                {service.phoneNumber}
-                              </p>
-                            </div>
-                          </div>
-                        </div>
-                        {(service.workingHours || service.workingDays) && (
-                          <div className="h-px bg-gray-200" aria-hidden />
-                        )}
-                      </>
-                    )}
-
-                    {/* Working hours group */}
-                    {(service.workingHours || service.workingDays) && (
+                    {/* Number, Time, Days — single row */}
+                    {(service.phoneNumber || service.workingHours || service.workingDays) && (
                       <div className="px-4 py-3 sm:px-5 sm:py-3.5">
-                        <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-widest mb-2">
-                          Working
-                        </p>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2.5">
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-x-6 gap-y-3 sm:gap-y-0">
+                          {service.phoneNumber && (
+                            <div className="flex items-center gap-3">
+                              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#fef5f7]">
+                                <Phone className="h-4 w-4 text-[#D96A86]" />
+                              </div>
+                              <div className="min-w-0">
+                                <p className="text-[11px] font-medium text-gray-400 uppercase tracking-wider">
+                                  Phone
+                                </p>
+                                <p className="text-sm font-semibold text-gray-900 tracking-tight truncate">
+                                  {service.phoneNumber}
+                                </p>
+                              </div>
+                            </div>
+                          )}
                           {service.workingHours && (
                             <div className="flex items-center gap-3">
                               <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#fef5f7]">
                                 <Clock className="h-4 w-4 text-[#D96A86]" />
                               </div>
-                              <div>
+                              <div className="min-w-0">
                                 <p className="text-[11px] font-medium text-gray-400 uppercase tracking-wider">
                                   Hours
                                 </p>
@@ -346,7 +324,7 @@ export default function ServiceDetailPage() {
                               <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#fef5f7]">
                                 <Calendar className="h-4 w-4 text-[#D96A86]" />
                               </div>
-                              <div>
+                              <div className="min-w-0">
                                 <p className="text-[11px] font-medium text-gray-400 uppercase tracking-wider">
                                   Days
                                 </p>
