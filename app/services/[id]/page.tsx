@@ -11,6 +11,9 @@ import {
   Image as ImageIcon,
   Tag,
   Scissors,
+  MapPin,
+  Phone,
+  Calendar,
 } from "lucide-react";
 import { useParams } from "next/navigation";
 import { useServices } from "@/lib/services-context";
@@ -72,6 +75,16 @@ export default function ServiceDetailPage() {
 
   const statusClass =
     STATUS_CLASSES[service.status] ?? "bg-gray-100 text-gray-700";
+
+  const hasLocationContact =
+    service.areaBranchName ||
+    service.fullAddress ||
+    service.city ||
+    service.state ||
+    service.pincode ||
+    service.phoneNumber ||
+    service.workingHours ||
+    service.workingDays;
 
   return (
     <div className="space-y-6">
@@ -192,6 +205,161 @@ export default function ServiceDetailPage() {
                   <p className="text-gray-600 text-sm leading-relaxed whitespace-pre-wrap">
                     {service.description}
                   </p>
+                </div>
+              )}
+
+              {hasLocationContact && (
+                <div className="pt-4 border-t border-gray-200">
+                  <div className="flex items-center gap-2 mb-3">
+                    <MapPin className="w-5 h-5 text-[#D96A86]" />
+                    <h3 className="text-base font-semibold text-gray-900 tracking-tight">
+                      Location & Contact
+                    </h3>
+                  </div>
+
+                  <div className="rounded-xl border border-gray-200 bg-gray-50/50 overflow-hidden">
+                    {/* Address group */}
+                    {(service.areaBranchName || service.fullAddress || service.city || service.state || service.pincode) && (
+                      <>
+                        <div className="px-4 py-3 sm:px-5 sm:py-3.5">
+                          <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-widest mb-2.5">
+                            Address
+                          </p>
+                          <div className="space-y-2.5">
+                            {(service.areaBranchName || service.fullAddress) && (
+                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2.5 sm:gap-y-0">
+                                {service.areaBranchName && (
+                                  <div>
+                                    <p className="text-[11px] font-medium text-gray-400 uppercase tracking-wider">
+                                      Area / Branch
+                                    </p>
+                                    <p className="text-sm font-medium text-gray-900 mt-0.5 leading-snug">
+                                      {service.areaBranchName}
+                                    </p>
+                                  </div>
+                                )}
+                                {service.fullAddress && (
+                                  <div>
+                                    <p className="text-[11px] font-medium text-gray-400 uppercase tracking-wider">
+                                      Full Address
+                                    </p>
+                                    <p className="text-sm font-medium text-gray-900 mt-0.5 leading-snug">
+                                      {service.fullAddress}
+                                    </p>
+                                  </div>
+                                )}
+                              </div>
+                            )}
+                            {(service.city || service.state || service.pincode) && (
+                              <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-6 gap-y-2.5 pt-0.5">
+                                {service.city && (
+                                  <div>
+                                    <p className="text-[11px] font-medium text-gray-400 uppercase tracking-wider">
+                                      City
+                                    </p>
+                                    <p className="text-sm font-medium text-gray-900 mt-0.5">
+                                      {service.city}
+                                    </p>
+                                  </div>
+                                )}
+                                {service.state && (
+                                  <div>
+                                    <p className="text-[11px] font-medium text-gray-400 uppercase tracking-wider">
+                                      State
+                                    </p>
+                                    <p className="text-sm font-medium text-gray-900 mt-0.5">
+                                      {service.state}
+                                    </p>
+                                  </div>
+                                )}
+                                {service.pincode && (
+                                  <div>
+                                    <p className="text-[11px] font-medium text-gray-400 uppercase tracking-wider">
+                                      Pincode
+                                    </p>
+                                    <p className="text-sm font-medium text-gray-900 mt-0.5">
+                                      {service.pincode}
+                                    </p>
+                                  </div>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                        {(service.phoneNumber || service.workingHours || service.workingDays) && (
+                          <div className="h-px bg-gray-200" aria-hidden />
+                        )}
+                      </>
+                    )}
+
+                    {/* Contact group */}
+                    {service.phoneNumber && (
+                      <>
+                        <div className="px-4 py-3 sm:px-5 sm:py-3.5">
+                          <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-widest mb-2">
+                            Contact
+                          </p>
+                          <div className="flex items-center gap-3">
+                            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#fef5f7]">
+                              <Phone className="h-4 w-4 text-[#D96A86]" />
+                            </div>
+                            <div>
+                              <p className="text-[11px] font-medium text-gray-400 uppercase tracking-wider">
+                                Phone
+                              </p>
+                              <p className="text-sm font-semibold text-gray-900 tracking-tight">
+                                {service.phoneNumber}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                        {(service.workingHours || service.workingDays) && (
+                          <div className="h-px bg-gray-200" aria-hidden />
+                        )}
+                      </>
+                    )}
+
+                    {/* Working hours group */}
+                    {(service.workingHours || service.workingDays) && (
+                      <div className="px-4 py-3 sm:px-5 sm:py-3.5">
+                        <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-widest mb-2">
+                          Working
+                        </p>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2.5">
+                          {service.workingHours && (
+                            <div className="flex items-center gap-3">
+                              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#fef5f7]">
+                                <Clock className="h-4 w-4 text-[#D96A86]" />
+                              </div>
+                              <div>
+                                <p className="text-[11px] font-medium text-gray-400 uppercase tracking-wider">
+                                  Hours
+                                </p>
+                                <p className="text-sm font-medium text-gray-900">
+                                  {service.workingHours}
+                                </p>
+                              </div>
+                            </div>
+                          )}
+                          {service.workingDays && (
+                            <div className="flex items-center gap-3">
+                              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#fef5f7]">
+                                <Calendar className="h-4 w-4 text-[#D96A86]" />
+                              </div>
+                              <div>
+                                <p className="text-[11px] font-medium text-gray-400 uppercase tracking-wider">
+                                  Days
+                                </p>
+                                <p className="text-sm font-medium text-gray-900">
+                                  {service.workingDays}
+                                </p>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </div>
               )}
             </div>

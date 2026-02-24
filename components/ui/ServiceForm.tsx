@@ -28,6 +28,14 @@ const emptyForm: ServiceFormValues = {
   durationMinutes: 0,
   image: "",
   status: "active",
+  areaBranchName: "",
+  fullAddress: "",
+  city: "",
+  state: "",
+  pincode: "",
+  phoneNumber: "",
+  workingHours: "",
+  workingDays: "",
 };
 
 interface ServiceFormProps {
@@ -53,6 +61,14 @@ export function ServiceForm({
         durationMinutes: initialValues.durationMinutes,
         image: initialValues.image ?? "",
         status: initialValues.status,
+        areaBranchName: initialValues.areaBranchName ?? "",
+        fullAddress: initialValues.fullAddress ?? "",
+        city: initialValues.city ?? "",
+        state: initialValues.state ?? "",
+        pincode: initialValues.pincode ?? "",
+        phoneNumber: initialValues.phoneNumber ?? "",
+        workingHours: initialValues.workingHours ?? "",
+        workingDays: initialValues.workingDays ?? "",
       });
     } else {
       setValues(emptyForm);
@@ -69,6 +85,14 @@ export function ServiceForm({
       category: values.category.trim() || "Other",
       price: values.price || 0,
       durationMinutes: Math.max(0, values.durationMinutes ?? 0),
+      areaBranchName: values.areaBranchName?.trim() ?? "",
+      fullAddress: values.fullAddress?.trim() ?? "",
+      city: values.city?.trim() ?? "",
+      state: values.state?.trim() ?? "",
+      pincode: values.pincode?.trim() ?? "",
+      phoneNumber: values.phoneNumber?.trim() ?? "",
+      workingHours: values.workingHours?.trim() ?? "",
+      workingDays: values.workingDays?.trim() ?? "",
     });
   };
 
@@ -190,6 +214,122 @@ export function ServiceForm({
           ))}
         </select>
       </div>
+
+      {/* Location & Contact Section */}
+      <div className="pt-4 border-t border-gray-200">
+        <h3 className="text-sm font-semibold text-gray-900 mb-4">Location & Contact</h3>
+        <div className="space-y-4">
+          <div>
+            <label htmlFor="service-area-branch" className="block text-sm font-medium text-gray-700 mb-1">
+              Area / Branch Name
+            </label>
+            <input
+              id="service-area-branch"
+              type="text"
+              value={values.areaBranchName ?? ""}
+              onChange={(e) => setValues((v) => ({ ...v, areaBranchName: e.target.value }))}
+              className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-[#f8c6d0] focus:border-transparent outline-none transition-all"
+              placeholder="e.g. MG Road Branch"
+            />
+          </div>
+          <div>
+            <label htmlFor="service-full-address" className="block text-sm font-medium text-gray-700 mb-1">
+              Full Address
+            </label>
+            <textarea
+              id="service-full-address"
+              rows={2}
+              value={values.fullAddress ?? ""}
+              onChange={(e) => setValues((v) => ({ ...v, fullAddress: e.target.value }))}
+              className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-[#f8c6d0] focus:border-transparent outline-none transition-all resize-none"
+              placeholder="Street, landmark, building"
+            />
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label htmlFor="service-city" className="block text-sm font-medium text-gray-700 mb-1">
+                City
+              </label>
+              <input
+                id="service-city"
+                type="text"
+                value={values.city ?? ""}
+                onChange={(e) => setValues((v) => ({ ...v, city: e.target.value }))}
+                className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-[#f8c6d0] focus:border-transparent outline-none transition-all"
+                placeholder="e.g. Bangalore"
+              />
+            </div>
+            <div>
+              <label htmlFor="service-state" className="block text-sm font-medium text-gray-700 mb-1">
+                State
+              </label>
+              <input
+                id="service-state"
+                type="text"
+                value={values.state ?? ""}
+                onChange={(e) => setValues((v) => ({ ...v, state: e.target.value }))}
+                className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-[#f8c6d0] focus:border-transparent outline-none transition-all"
+                placeholder="e.g. Karnataka"
+              />
+            </div>
+          </div>
+          <div>
+            <label htmlFor="service-pincode" className="block text-sm font-medium text-gray-700 mb-1">
+              Pincode
+            </label>
+            <input
+              id="service-pincode"
+              type="text"
+              inputMode="numeric"
+              maxLength={6}
+              value={values.pincode ?? ""}
+              onChange={(e) => setValues((v) => ({ ...v, pincode: e.target.value.replace(/\D/g, "").slice(0, 6) }))}
+              className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-[#f8c6d0] focus:border-transparent outline-none transition-all"
+              placeholder="e.g. 560001"
+            />
+          </div>
+          <div>
+            <label htmlFor="service-phone" className="block text-sm font-medium text-gray-700 mb-1">
+              Phone Number
+            </label>
+            <input
+              id="service-phone"
+              type="tel"
+              value={values.phoneNumber ?? ""}
+              onChange={(e) => setValues((v) => ({ ...v, phoneNumber: e.target.value }))}
+              className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-[#f8c6d0] focus:border-transparent outline-none transition-all"
+              placeholder="e.g. +91 98765 43210"
+            />
+          </div>
+          <div>
+            <label htmlFor="service-working-hours" className="block text-sm font-medium text-gray-700 mb-1">
+              Working Hours
+            </label>
+            <input
+              id="service-working-hours"
+              type="text"
+              value={values.workingHours ?? ""}
+              onChange={(e) => setValues((v) => ({ ...v, workingHours: e.target.value }))}
+              className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-[#f8c6d0] focus:border-transparent outline-none transition-all"
+              placeholder="e.g. 10:00 AM - 8:00 PM"
+            />
+          </div>
+          <div>
+            <label htmlFor="service-working-days" className="block text-sm font-medium text-gray-700 mb-1">
+              Working Days
+            </label>
+            <input
+              id="service-working-days"
+              type="text"
+              value={values.workingDays ?? ""}
+              onChange={(e) => setValues((v) => ({ ...v, workingDays: e.target.value }))}
+              className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-[#f8c6d0] focus:border-transparent outline-none transition-all"
+              placeholder="e.g. Mon - Sat"
+            />
+          </div>
+        </div>
+      </div>
+
       <div className="flex gap-3 pt-2">
         <button
           type="submit"

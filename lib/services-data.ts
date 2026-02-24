@@ -9,6 +9,15 @@ export interface Service {
   durationMinutes: number;
   image?: string | null;
   status: ServiceStatus;
+  /** Location & contact (optional) */
+  areaBranchName?: string;
+  fullAddress?: string;
+  city?: string;
+  state?: string;
+  pincode?: string;
+  phoneNumber?: string;
+  workingHours?: string;
+  workingDays?: string;
   deletedAt?: string | null;
   createdAt: string;
   updatedAt: string;
@@ -24,6 +33,14 @@ const MOCK_SERVICES: Service[] = [
     durationMinutes: 60,
     image: "https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?w=400&h=400&fit=crop",
     status: "active",
+    areaBranchName: "MG Road Branch",
+    fullAddress: "123, MG Road, Near City Mall",
+    city: "Bangalore",
+    state: "Karnataka",
+    pincode: "560001",
+    phoneNumber: "+91 98765 43210",
+    workingHours: "10:00 AM - 8:00 PM",
+    workingDays: "Mon - Sat",
     createdAt: "2024-01-15T10:00:00Z",
     updatedAt: "2024-01-15T10:00:00Z",
   },
@@ -36,6 +53,14 @@ const MOCK_SERVICES: Service[] = [
     durationMinutes: 45,
     image: "https://images.unsplash.com/photo-1560066984-138dadb4c035?w=400&h=400&fit=crop",
     status: "active",
+    areaBranchName: "Indiranagar",
+    fullAddress: "456, 12th Main, Indiranagar",
+    city: "Bangalore",
+    state: "Karnataka",
+    pincode: "560038",
+    phoneNumber: "+91 87654 32109",
+    workingHours: "9:30 AM - 7:30 PM",
+    workingDays: "Tue - Sun",
     createdAt: "2024-02-01T10:00:00Z",
     updatedAt: "2024-02-01T10:00:00Z",
   },

@@ -10,6 +10,7 @@ import { Drawer } from "@/components/ui/Drawer";
 import { ServiceForm } from "@/components/ui/ServiceForm";
 import Table from "@/components/Table";
 import { Filters, type FilterOption } from "@/components/ui/filters";
+import { KpiCard } from "@/components/ui/kpiCard";
 
 const STATUS_LABELS: Record<string, string> = {
   active: "Active",
@@ -145,6 +146,19 @@ export default function ServicesPage() {
     return list;
   }, [services, search, statusFilter]);
 
+  const kpis = useMemo(() => {
+    const totalServices = services.length;
+    const activeCount = services.filter((s) => s.status === "active").length;
+    const inactiveCount = services.filter((s) => s.status === "inactive").length;
+    const categoriesCount = new Set(services.map((s) => s.category)).size;
+    return {
+      totalServices,
+      activeCount,
+      inactiveCount,
+      categoriesCount,
+    };
+  }, [services]);
+
   const handleAdd = () => {
     setEditingService(null);
     setDrawerOpen(true);
@@ -259,6 +273,38 @@ export default function ServicesPage() {
           <span>Add</span>
           <span className="hidden sm:inline">Service</span>
         </button>
+      </div>
+
+      {/* KPI Cards — horizontal scroll on mobile, grid on desktop */}
+      <div className="flex gap-4 overflow-x-auto pb-2 -mx-4 px-4 md:mx-0 md:px-0 md:grid md:grid-cols-2 lg:grid-cols-4 md:gap-6">
+        <KpiCard
+          title="Total Services"
+          value={kpis.totalServices.toLocaleString()}
+          icon="shopping-cart"
+          iconClassName="bg-blue-50 text-blue-600"
+          className="min-w-[260px] md:min-w-0 shrink-0 md:shrink"
+        />
+        <KpiCard
+          title="Active Services"
+          value={kpis.activeCount.toLocaleString()}
+          icon="user-check"
+          iconClassName="bg-emerald-50 text-emerald-600"
+          className="min-w-[260px] md:min-w-0 shrink-0 md:shrink"
+        />
+        <KpiCard
+          title="Inactive Services"
+          value={kpis.inactiveCount.toLocaleString()}
+          icon="user-x"
+          iconClassName="bg-red-50 text-red-600"
+          className="min-w-[260px] md:min-w-0 shrink-0 md:shrink"
+        />
+        <KpiCard
+          title="Categories"
+          value={kpis.categoriesCount.toLocaleString()}
+          icon="trending-up"
+          iconClassName="bg-orange-50 text-orange-600"
+          className="min-w-[260px] md:min-w-0 shrink-0 md:shrink"
+        />
       </div>
 
       <Filters
