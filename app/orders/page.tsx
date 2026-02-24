@@ -141,8 +141,6 @@ export default function OrdersPage() {
   const [paymentStatusFilter, setPaymentStatusFilter] = useState<
     "" | PaymentStatus
   >("");
-  const [dateFrom, setDateFrom] = useState("");
-  const [dateTo, setDateTo] = useState("");
 
   const filteredOrders = useMemo(() => {
     let list = [...orders];
@@ -160,18 +158,8 @@ export default function OrdersPage() {
     if (paymentStatusFilter) {
       list = list.filter((o) => o.paymentStatus === paymentStatusFilter);
     }
-    if (dateFrom) {
-      const from = new Date(dateFrom);
-      list = list.filter((o) => new Date(o.createdAt) >= from);
-    }
-    if (dateTo) {
-      const to = new Date(dateTo);
-      // include entire end day
-      to.setHours(23, 59, 59, 999);
-      list = list.filter((o) => new Date(o.createdAt) <= to);
-    }
     return list;
-  }, [orders, search, statusFilter, paymentStatusFilter, dateFrom, dateTo]);
+  }, [orders, search, statusFilter, paymentStatusFilter]);
 
   const kpis = useMemo(() => {
     const totalOrders = orders.length;
@@ -333,22 +321,12 @@ export default function OrdersPage() {
             onFilterChange={(value) =>
               setStatusFilter(value as "" | OrderStatus)
             }
-          />
-        </div>
-        <div className="w-full md:w-40">
-          <select
-            value={paymentStatusFilter}
-            onChange={(e) =>
-              setPaymentStatusFilter(e.target.value as "" | PaymentStatus)
+            categoryOptions={PAYMENT_STATUS_FILTER_OPTIONS}
+            categoryValue={paymentStatusFilter}
+            onCategoryChange={(value) =>
+              setPaymentStatusFilter(value as "" | PaymentStatus)
             }
-            className="w-full px-3 py-2.5 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-[#f8c6d0] focus:border-transparent"
-          >
-            {PAYMENT_STATUS_FILTER_OPTIONS.map((opt) => (
-              <option key={opt.value || "all"} value={opt.value}>
-                {opt.label}
-              </option>
-            ))}
-          </select>
+          />
         </div>
       </div>
 
@@ -405,13 +383,11 @@ export default function OrdersPage() {
                       </span>
                     </div>
                   </div>
-                  <Link
-                    href={`/orders/${order.id}`}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium text-[#D96A86] bg-[#fef5f7] hover:bg-[#f8c6d0] transition-colors shrink-0"
-                  >
-                    <Eye className="w-4 h-4" />
-                    <span>View</span>
-                  </Link>
+                  <OrderActionsMenu
+                    order={order}
+                    onCancel={handleCancel}
+                    onApproveRefund={handleApproveRefund}
+                  />
                 </div>
               </div>
             ))}
