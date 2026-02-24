@@ -1,10 +1,10 @@
 "use client";
 
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import { Eye } from "lucide-react";
+import { Eye, MoreVertical, RotateCcw, XCircle } from "lucide-react";
 import { useOrders } from "@/lib/orders-context";
-import type { OrderStatus, PaymentStatus } from "@/lib/orders-data";
+import type { Order, OrderStatus, PaymentStatus } from "@/lib/orders-data";
 import Table from "@/components/Table";
 import { Filters, type FilterOption } from "@/components/ui/filters";
 import { KpiCard } from "@/components/ui/kpiCard";
@@ -14,6 +14,92 @@ import {
   PAYMENT_STATUS_CLASSES,
   PAYMENT_STATUS_LABELS,
 } from "@/lib/orders-ui";
+
+function OrderActionsMenu({
+  order,
+  onCancel,
+  onApproveRefund,
+}: {
+  order: Order;
+  onCancel: (order: Order) => void;
+  onApproveRefund: (order: Order) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const handleClickOutside = (event: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [open]);
+
+  const isCancelled = order.orderStatus === "cancelled";
+  const canApproveRefund = order.refundStatus === "requested";
+
+  return (
+    <div className="relative inline-block text-left" ref={menuRef}>
+      <button
+        type="button"
+        onClick={() => setOpen((prev) => !prev)}
+        className="p-2 rounded-lg border border-gray-200 bg-white hover:bg-[#fef5f7] transition-colors"
+        aria-haspopup="menu"
+        aria-expanded={open}
+      >
+        <MoreVertical className="w-4 h-4 text-gray-600" />
+      </button>
+      {open && (
+        <div className="absolute right-0 mt-2 w-44 bg-white rounded-xl shadow-lg border border-gray-200 py-1 z-20">
+          <Link
+            href={`/orders/${order.id}`}
+            onClick={() => setOpen(false)}
+            className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-[#fef5f7] transition-colors text-left"
+          >
+            <Eye className="w-4 h-4" />
+            <span>View</span>
+          </Link>
+          <button
+            type="button"
+            onClick={() => {
+              setOpen(false);
+              onCancel(order);
+            }}
+            disabled={isCancelled}
+            className={`flex w-full items-center gap-2 px-4 py-2 text-sm text-left transition-colors ${
+              isCancelled
+                ? "text-gray-400 cursor-not-allowed"
+                : "text-red-600 hover:bg-red-50"
+            }`}
+          >
+            <XCircle className="w-4 h-4" />
+            <span>{isCancelled ? "Cancelled" : "Cancel order"}</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              if (!canApproveRefund) return;
+              setOpen(false);
+              onApproveRefund(order);
+            }}
+            disabled={!canApproveRefund}
+            className={`flex w-full items-center gap-2 px-4 py-2 text-sm text-left transition-colors ${
+              canApproveRefund
+                ? "text-emerald-700 hover:bg-emerald-50"
+                : "text-gray-400 cursor-not-allowed"
+            }`}
+          >
+            <RotateCcw className="w-4 h-4" />
+            <span>Approve refund</span>
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
 
 function formatCurrency(amount: number) {
   return new Intl.NumberFormat("en-IN", {
@@ -49,7 +135,7 @@ const PAYMENT_STATUS_FILTER_OPTIONS: FilterOption[] = [
 ];
 
 export default function OrdersPage() {
-  const { orders } = useOrders();
+  const { orders, updateOrderStatus, approveRefund } = useOrders();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<"" | OrderStatus>("");
   const [paymentStatusFilter, setPaymentStatusFilter] = useState<
@@ -102,6 +188,22 @@ export default function OrdersPage() {
       refundRequests,
     };
   }, [orders]);
+
+  const handleCancel = (order: Order) => {
+    if (order.orderStatus === "cancelled") return;
+    if (
+      window.confirm(
+        `Cancel order ${order.id}? This will mark the order as cancelled.`
+      )
+    ) {
+      updateOrderStatus(order.id, "cancelled");
+    }
+  };
+
+  const handleApproveRefund = (order: Order) => {
+    if (order.refundStatus === "approved") return;
+    approveRefund(order.id);
+  };
 
   const columns = [
     {
@@ -174,15 +276,15 @@ export default function OrdersPage() {
     },
     {
       header: "Actions",
-      cellClassName: "text-right",
+      cellClassName: "text-center",
       accessor: (order: (typeof orders)[number]) => (
-        <Link
-          href={`/orders/${order.id}`}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium text-[#D96A86] bg-[#fef5f7] hover:bg-[#f8c6d0] transition-colors"
-        >
-          <Eye className="w-4 h-4" />
-          <span>View</span>
-        </Link>
+        <div className="inline-flex justify-center w-full">
+          <OrderActionsMenu
+            order={order}
+            onCancel={handleCancel}
+            onApproveRefund={handleApproveRefund}
+          />
+        </div>
       ),
     },
   ];
