@@ -60,17 +60,17 @@ function OrdersTabSummary({
   amountLabel: string;
 }) {
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
-      <div className="flex items-center gap-3 p-4 rounded-xl bg-[#fef5f7] border border-[#f8c6d0]/40">
-        <ShoppingBag className="w-5 h-5 text-gray-600" />
-        <div>
+    <div className="flex gap-4 overflow-x-auto pb-2 -mx-4 px-4 md:mx-0 md:px-0 md:grid md:grid-cols-2 md:gap-4 mb-6">
+      <div className="flex items-center gap-3 p-4 rounded-xl bg-[#fef5f7] border border-[#f8c6d0]/40 min-w-[200px] md:min-w-0 shrink-0 md:shrink">
+        <ShoppingBag className="w-5 h-5 text-gray-600 shrink-0" />
+        <div className="min-w-0">
           <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">{countLabel}</p>
           <p className="text-xl font-semibold text-gray-900">{count}</p>
         </div>
       </div>
-      <div className="flex items-center gap-3 p-4 rounded-xl bg-[#fef5f7] border border-[#f8c6d0]/40">
-        <IndianRupee className="w-5 h-5 text-gray-600" />
-        <div>
+      <div className="flex items-center gap-3 p-4 rounded-xl bg-[#fef5f7] border border-[#f8c6d0]/40 min-w-[200px] md:min-w-0 shrink-0 md:shrink">
+        <IndianRupee className="w-5 h-5 text-gray-600 shrink-0" />
+        <div className="min-w-0">
           <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">{amountLabel}</p>
           <p className="text-xl font-semibold text-gray-900">{formatCurrency(total)}</p>
         </div>
@@ -328,39 +328,39 @@ export default function UserDetailPage() {
         Back to Users
       </Link>
 
-      {/* KPI cards — always visible above tabs */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+      {/* KPI cards — horizontal scroll on mobile, grid on desktop */}
+      <div className="flex gap-4 overflow-x-auto pb-2 -mx-4 px-4 md:mx-0 md:px-0 md:grid md:grid-cols-2 lg:grid-cols-4 md:gap-6">
         <KpiCard
           title="Total Orders"
           value={String(user.totalOrders)}
-          change="—"
           icon="shopping-cart"
           iconClassName="bg-green-50 text-green-600"
+          className="min-w-[260px] md:min-w-0 shrink-0 md:shrink"
         />
         <KpiCard
           title="Total Spend"
           value={formatCurrency(user.totalSpend)}
-          change="—"
           icon="indian-rupee"
           iconClassName="bg-purple-50 text-purple-600"
+          className="min-w-[260px] md:min-w-0 shrink-0 md:shrink"
         />
         <KpiCard
           title="Total Refund Amount"
           value={formatCurrency(totalRefundAmount)}
-          change="—"
           icon="indian-rupee"
           iconClassName="bg-amber-50 text-amber-600"
+          className="min-w-[260px] md:min-w-0 shrink-0 md:shrink"
         />
         <KpiCard
           title="Account Status"
           value={user.status === "active" ? "Active" : "Blocked"}
-          change="—"
           icon={user.status === "active" ? "user-check" : "user-x"}
           iconClassName={
             user.status === "active"
               ? "bg-emerald-50 text-emerald-600"
               : "bg-red-50 text-red-600"
           }
+          className="min-w-[260px] md:min-w-0 shrink-0 md:shrink"
         />
       </div>
 

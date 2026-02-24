@@ -284,52 +284,51 @@ export default function ProductsPage() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <h1 className="text-2xl font-semibold text-gray-900">My Products</h1>
+      {/* Header — heading left, Add button right (same row on mobile) */}
+      <div className="flex items-center justify-between gap-3">
+        <h1 className="text-xl sm:text-2xl font-semibold text-gray-900 truncate min-w-0">
+          My Products
+        </h1>
         <button
           type="button"
           onClick={handleAdd}
-          className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl font-medium text-white bg-[#D96A86] hover:bg-[#C85A76] transition-colors shadow-sm"
+          className="shrink-0 inline-flex items-center gap-2 px-3 py-2 sm:px-4 sm:py-2.5 rounded-xl font-medium text-white bg-[#D96A86] hover:bg-[#C85A76] transition-colors shadow-sm text-sm sm:text-base"
         >
-          <Plus className="w-5 h-5" />
-          Add Product
+          <Plus className="w-4 h-4 sm:w-5 sm:h-5" />
+          <span>Add</span>
+          <span className="hidden sm:inline">Product</span>
         </button>
       </div>
 
-      <div className="flex gap-4 overflow-x-auto pb-2 -mx-4 px-4 sm:mx-0 sm:px-0 sm:grid sm:grid-cols-2 lg:grid-cols-4 sm:gap-6">
+      {/* KPI Cards — horizontal scroll on mobile, grid on desktop */}
+      <div className="flex gap-4 overflow-x-auto pb-2 -mx-4 px-4 md:mx-0 md:px-0 md:grid md:grid-cols-2 lg:grid-cols-4 md:gap-6">
         <KpiCard
           title="Total Products"
           value={kpis.totalProducts.toLocaleString()}
-          change="—"
           icon="shopping-cart"
           iconClassName="bg-blue-50 text-blue-600"
-          className="min-w-[260px] sm:min-w-0"
+          className="min-w-[260px] md:min-w-0 shrink-0 md:shrink"
         />
         <KpiCard
           title="Active Products"
           value={kpis.activeCount.toLocaleString()}
-          change="—"
           icon="user-check"
           iconClassName="bg-emerald-50 text-emerald-600"
-          className="min-w-[260px] sm:min-w-0"
+          className="min-w-[260px] md:min-w-0 shrink-0 md:shrink"
         />
         <KpiCard
           title="Draft Products"
           value={kpis.draftCount.toLocaleString()}
-          change="—"
           icon="users"
           iconClassName="bg-gray-100 text-gray-700"
-          className="min-w-[260px] sm:min-w-0"
+          className="min-w-[260px] md:min-w-0 shrink-0 md:shrink"
         />
         <KpiCard
           title="Out of Stock"
           value={kpis.outOfStockCount.toLocaleString()}
-          change="—"
           icon="user-x"
           iconClassName="bg-red-50 text-red-600"
-          changePositive={false}
-          className="min-w-[260px] sm:min-w-0"
+          className="min-w-[260px] md:min-w-0 shrink-0 md:shrink"
         />
       </div>
 
@@ -345,27 +344,75 @@ export default function ProductsPage() {
         onCategoryChange={setCategoryFilter}
       />
 
-      {/* Product table */}
       {filteredProducts.length === 0 ? (
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-12 text-center">
-          <p className="text-gray-500 mb-4">No products match your filters.</p>
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-8 sm:p-12 text-center">
+          <p className="text-gray-500 mb-4 text-sm sm:text-base">No products match your filters.</p>
           <button
             type="button"
             onClick={handleAdd}
-            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl font-medium text-white bg-[#D96A86] hover:bg-[#C85A76] transition-colors"
+            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl font-medium text-white bg-[#D96A86] hover:bg-[#C85A76] transition-colors text-sm sm:text-base"
           >
-            <Plus className="w-5 h-5" />
+            <Plus className="w-4 h-4 sm:w-5 sm:h-5" />
             Add Product
           </button>
         </div>
       ) : (
-        <Table<Product>
-          data={filteredProducts}
-          columns={columns}
-          searchable={false}
-          filterable={false}
-          itemsPerPage={10}
-        />
+        <>
+          {/* Mobile: Product cards */}
+          <div className="md:hidden space-y-3">
+            {filteredProducts.map((product) => (
+              <div
+                key={product.id}
+                className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4"
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-semibold text-gray-900 truncate">
+                      {product.name}
+                    </p>
+                    <p className="text-sm text-gray-600 mt-0.5">{product.category}</p>
+                    <p className="text-sm font-medium text-gray-900 mt-0.5">
+                      {formatPrice(product.price)}
+                    </p>
+                    <div className="flex items-center gap-2 mt-2 flex-wrap">
+                      <span
+                        className={`inline-flex px-2.5 py-1 rounded-full text-xs font-medium ${
+                          STOCK_CLASSES[product.stockStatus] ?? "bg-gray-100 text-gray-700"
+                        }`}
+                      >
+                        {STOCK_LABELS[product.stockStatus] ?? product.stockStatus}
+                      </span>
+                      <span
+                        className={`inline-flex px-2.5 py-1 rounded-full text-xs font-medium ${
+                          STATUS_CLASSES[product.status] ?? "bg-gray-100 text-gray-700"
+                        }`}
+                      >
+                        {STATUS_LABELS[product.status] ?? product.status}
+                      </span>
+                      <span className="text-xs text-gray-500">{product.stock} units</span>
+                    </div>
+                  </div>
+                  <ProductActionsMenu
+                    product={product}
+                    onEdit={handleEdit}
+                    onDelete={handleDelete}
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Desktop: Product table */}
+          <div className="hidden md:block">
+            <Table<Product>
+              data={filteredProducts}
+              columns={columns}
+              searchable={false}
+              filterable={false}
+              itemsPerPage={10}
+            />
+          </div>
+        </>
       )}
 
       {/* Add/Edit drawer */}

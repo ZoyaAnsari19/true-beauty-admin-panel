@@ -77,17 +77,16 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Stats – horizontal scroll on mobile, grid on desktop */}
+      {/* KPI Cards — horizontal scroll on mobile, grid on desktop */}
       <div className="flex gap-4 overflow-x-auto pb-2 -mx-4 px-4 md:mx-0 md:px-0 md:grid md:grid-cols-2 lg:grid-cols-4 md:gap-6">
         {stats.map((stat, index) => (
           <KpiCard
             key={index}
             title={stat.title}
             value={stat.value}
-            change={stat.change}
             icon={stat.icon}
             iconClassName={stat.iconClassName}
-            className="min-w-[260px] md:min-w-0"
+            className="min-w-[260px] md:min-w-0 shrink-0 md:shrink"
           />
         ))}
       </div>

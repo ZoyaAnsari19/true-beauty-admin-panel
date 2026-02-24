@@ -132,42 +132,42 @@ export default function UsersPage() {
 
   return (
     <div className="space-y-6">
-      {/* KPI Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
+      {/* KPI Cards — horizontal scroll on mobile, grid on desktop */}
+      <div className="flex gap-4 overflow-x-auto pb-2 -mx-4 px-4 md:mx-0 md:px-0 md:grid md:grid-cols-2 lg:grid-cols-5 md:gap-6">
         <KpiCard
           title="Total Users"
           value={kpis.totalUsers.toLocaleString()}
-          change="—"
           icon="users"
           iconClassName="bg-blue-50 text-blue-600"
+          className="min-w-[260px] md:min-w-0 shrink-0 md:shrink"
         />
         <KpiCard
           title="Total Orders"
           value={kpis.totalOrders.toLocaleString()}
-          change="—"
           icon="shopping-cart"
           iconClassName="bg-green-50 text-green-600"
+          className="min-w-[260px] md:min-w-0 shrink-0 md:shrink"
         />
         <KpiCard
           title="Active Accounts"
           value={kpis.activeCount.toLocaleString()}
-          change="—"
           icon="user-check"
           iconClassName="bg-emerald-50 text-emerald-600"
+          className="min-w-[260px] md:min-w-0 shrink-0 md:shrink"
         />
         <KpiCard
           title="Blocked Accounts"
           value={kpis.blockedCount.toLocaleString()}
-          change="—"
           icon="user-x"
           iconClassName="bg-red-50 text-red-600"
+          className="min-w-[260px] md:min-w-0 shrink-0 md:shrink"
         />
         <KpiCard
           title="New This Month"
           value={kpis.newThisMonth.toLocaleString()}
-          change="—"
           icon="trending-up"
           iconClassName="bg-orange-50 text-orange-600"
+          className="min-w-[260px] md:min-w-0 shrink-0 md:shrink"
         />
       </div>
 
@@ -181,8 +181,51 @@ export default function UsersPage() {
         onFilterChange={(value) => setStatusFilter(value as "" | UserStatus)}
       />
 
-      {/* Table card */}
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+      {/* Mobile: User cards */}
+      <div className="md:hidden space-y-3">
+        {filtered.length === 0 ? (
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 text-center">
+            <p className="text-gray-500 text-sm">No users match your filters.</p>
+          </div>
+        ) : (
+          filtered.map((user) => (
+            <div
+              key={user.id}
+              className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4"
+            >
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-semibold text-gray-900 truncate">
+                    {user.name}
+                  </p>
+                  <p className="text-sm text-gray-600 truncate mt-0.5">
+                    {user.email}
+                  </p>
+                  <p className="text-sm text-gray-600 mt-0.5">{user.mobile}</p>
+                  <div className="flex items-center gap-2 mt-2 flex-wrap">
+                    <span
+                      className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${
+                        user.status === "active"
+                          ? "bg-green-50 text-green-700"
+                          : "bg-red-50 text-red-700"
+                      }`}
+                    >
+                      {user.status === "active" ? "Active" : "Blocked"}
+                    </span>
+                    <span className="text-xs text-gray-500">
+                      {formatDate(user.joinedDate)}
+                    </span>
+                  </div>
+                </div>
+                <UserActionsMenu user={user} />
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+
+      {/* Desktop: Table */}
+      <div className="hidden md:block bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full min-w-[640px]">
             <thead>
