@@ -6,6 +6,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import SideBar from "@/components/SideBar";
 import TopBar from "@/components/TopBar";
+import { SidebarProvider } from "@/lib/sidebar-context";
 import { UsersProvider } from "@/lib/users-context";
 import { ProductsProvider } from "@/lib/products-context";
 
@@ -64,6 +65,7 @@ export default function RootLayout({
       >
         <UsersProvider>
         <ProductsProvider>
+        <SidebarProvider>
         <div className="flex h-screen bg-[#fef5f7]">
           <SideBar />
           <div className="flex-1 flex flex-col md:ml-64 overflow-hidden">
@@ -73,6 +75,7 @@ export default function RootLayout({
             </main>
           </div>
         </div>
+        </SidebarProvider>
         </ProductsProvider>
         </UsersProvider>
       </body>

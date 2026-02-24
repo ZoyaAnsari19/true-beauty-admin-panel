@@ -13,11 +13,11 @@ import {
   Palette,
   Boxes,
   Settings,
-  Menu,
   X,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useSidebar } from "@/lib/sidebar-context";
 
 interface MenuItem {
   label: string;
@@ -40,7 +40,7 @@ const menuItems: MenuItem[] = [
 ];
 
 export default function SideBar() {
-  const [isOpen, setIsOpen] = useState(false);
+  const { isOpen, setOpen } = useSidebar();
   const [isMobile, setIsMobile] = useState(false);
   const pathname = usePathname();
 
@@ -48,18 +48,18 @@ export default function SideBar() {
     const checkMobile = () => {
       setIsMobile(window.innerWidth < 768);
       if (window.innerWidth >= 768) {
-        setIsOpen(true);
+        setOpen(true);
       } else {
-        setIsOpen(false);
+        setOpen(false);
       }
     };
 
     checkMobile();
     window.addEventListener("resize", checkMobile);
     return () => window.removeEventListener("resize", checkMobile);
-  }, []);
+  }, [setOpen]);
 
-  const toggleSidebar = () => setIsOpen(!isOpen);
+  const toggleSidebar = () => setOpen(!isOpen);
 
   return (
     <>
@@ -67,7 +67,7 @@ export default function SideBar() {
       {isMobile && isOpen && (
         <div
           className="fixed inset-0 bg-black/20 z-40 md:hidden"
-          onClick={() => setIsOpen(false)}
+          onClick={() => setOpen(false)}
         />
       )}
 
@@ -88,6 +88,7 @@ export default function SideBar() {
             <button
               onClick={toggleSidebar}
               className="md:hidden p-2 rounded-lg hover:bg-[#f8c6d0] transition-colors"
+              aria-label="Close menu"
             >
               <X className="w-5 h-5 text-gray-600" />
             </button>
@@ -105,7 +106,7 @@ export default function SideBar() {
                 <Link
                   key={item.href}
                   href={item.href}
-                  onClick={() => isMobile && setIsOpen(false)}
+                  onClick={() => isMobile && setOpen(false)}
                   className={`
                     flex items-center gap-3 px-4 py-3 rounded-xl
                     transition-all duration-200
@@ -127,15 +128,6 @@ export default function SideBar() {
         </div>
       </aside>
 
-      {/* Mobile menu button */}
-      {isMobile && (
-        <button
-          onClick={toggleSidebar}
-          className="fixed top-4 left-4 z-50 p-2 bg-[#fef5f7] rounded-lg shadow-md border border-gray-200 md:hidden hover:bg-[#f8c6d0] transition-colors"
-        >
-          <Menu className="w-5 h-5 text-gray-700" />
-        </button>
-      )}
     </>
   );
 }
