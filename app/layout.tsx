@@ -10,6 +10,7 @@ import { SidebarProvider } from "@/lib/sidebar-context";
 import { UsersProvider } from "@/lib/users-context";
 import { ProductsProvider } from "@/lib/products-context";
 import { ServicesProvider } from "@/lib/services-context";
+import { OrdersProvider } from "@/lib/orders-context";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -73,6 +74,7 @@ export default function RootLayout({
         <UsersProvider>
         <ProductsProvider>
         <ServicesProvider>
+        <OrdersProvider>
         <SidebarProvider>
         <div className="flex h-screen bg-[#fef5f7]">
           <SideBar />
@@ -84,6 +86,7 @@ export default function RootLayout({
           </div>
         </div>
         </SidebarProvider>
+        </OrdersProvider>
         </ServicesProvider>
         </ProductsProvider>
         </UsersProvider>
