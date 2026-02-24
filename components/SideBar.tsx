@@ -101,7 +101,8 @@ export default function SideBar() {
               const isActive =
                 pathname === item.href ||
                 (item.href === "/users" && pathname.startsWith("/users/")) ||
-                (item.href === "/products" && pathname.startsWith("/products"));
+                (item.href === "/products" && pathname.startsWith("/products")) ||
+                (item.href === "/services" && pathname.startsWith("/services"));
               return (
                 <Link
                   key={item.href}

@@ -9,6 +9,7 @@ import TopBar from "@/components/TopBar";
 import { SidebarProvider } from "@/lib/sidebar-context";
 import { UsersProvider } from "@/lib/users-context";
 import { ProductsProvider } from "@/lib/products-context";
+import { ServicesProvider } from "@/lib/services-context";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -48,11 +49,17 @@ export default function RootLayout({
     typeof pathname === "string" &&
     pathname.startsWith("/products/") &&
     pathname !== "/products";
+  const isServiceDetail =
+    typeof pathname === "string" &&
+    pathname.startsWith("/services/") &&
+    pathname !== "/services";
   const pageTitle = isUserDetail
     ? "User Details"
     : isProductDetail
       ? "Product Details"
-      : (pageTitles[pathname] || "Dashboard");
+      : isServiceDetail
+        ? "Service Details"
+        : (pageTitles[pathname] || "Dashboard");
 
   return (
     <html lang="en">
@@ -65,6 +72,7 @@ export default function RootLayout({
       >
         <UsersProvider>
         <ProductsProvider>
+        <ServicesProvider>
         <SidebarProvider>
         <div className="flex h-screen bg-[#fef5f7]">
           <SideBar />
@@ -76,6 +84,7 @@ export default function RootLayout({
           </div>
         </div>
         </SidebarProvider>
+        </ServicesProvider>
         </ProductsProvider>
         </UsersProvider>
       </body>
