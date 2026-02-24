@@ -2,7 +2,6 @@ import type { OrderStatus, PaymentStatus } from "./orders-data";
 
 export const ORDER_STATUS_LABELS: Record<OrderStatus, string> = {
   pending: "Pending",
-  processing: "Processing",
   shipped: "Shipped",
   delivered: "Delivered",
   cancelled: "Cancelled",
@@ -12,7 +11,6 @@ export const ORDER_STATUS_LABELS: Record<OrderStatus, string> = {
 
 export const ORDER_STATUS_CLASSES: Record<OrderStatus, string> = {
   pending: "bg-gray-50 text-gray-700",
-  processing: "bg-amber-50 text-amber-700",
   shipped: "bg-blue-50 text-blue-700",
   delivered: "bg-emerald-50 text-emerald-700",
   cancelled: "bg-red-50 text-red-700",

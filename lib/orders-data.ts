@@ -1,6 +1,5 @@
 export type OrderStatus =
   | "pending"
-  | "processing"
   | "shipped"
   | "delivered"
   | "cancelled"
@@ -54,7 +53,7 @@ export const MOCK_ORDERS: Order[] = [
     id: "ORD-1001",
     customerName: "Sarah Johnson",
     customerEmail: "sarah.j@example.com",
-    customerPhone: "+1 555-0101",
+    customerPhone: "+91 98765 01010",
     customerAddress: "123 Oak St",
     customerCity: "New York",
     customerState: "NY",
@@ -99,7 +98,7 @@ export const MOCK_ORDERS: Order[] = [
     id: "ORD-1002",
     customerName: "Emma Williams",
     customerEmail: "emma.w@example.com",
-    customerPhone: "+1 555-0102",
+    customerPhone: "+91 98765 01020",
     customerAddress: "456 Pine Ave",
     customerCity: "Los Angeles",
     customerState: "CA",
@@ -135,7 +134,7 @@ export const MOCK_ORDERS: Order[] = [
     id: "ORD-1003",
     customerName: "Ava Davis",
     customerEmail: "ava.d@example.com",
-    customerPhone: "+1 555-0104",
+    customerPhone: "+91 98765 01040",
     customerAddress: "321 Elm St",
     customerCity: "Houston",
     customerState: "TX",
@@ -168,7 +167,7 @@ export const MOCK_ORDERS: Order[] = [
     totalAmount: 1001,
     paymentMethod: "netbanking",
     paymentStatus: "paid",
-    orderStatus: "processing",
+    orderStatus: "shipped",
     refundStatus: "requested",
     notes: "Requested refund for moisturizer due to allergy.",
     createdAt: "2024-06-14T09:45:00Z",
@@ -178,7 +177,7 @@ export const MOCK_ORDERS: Order[] = [
     id: "ORD-1004",
     customerName: "Sophia Martinez",
     customerEmail: "sophia.m@example.com",
-    customerPhone: "+1 555-0105",
+    customerPhone: "+91 98765 01050",
     customerAddress: "654 Cedar Ln",
     customerCity: "Phoenix",
     customerState: "AZ",

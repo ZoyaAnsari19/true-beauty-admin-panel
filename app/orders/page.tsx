@@ -33,7 +33,6 @@ function formatDate(dateStr: string) {
 const STATUS_FILTER_OPTIONS: FilterOption[] = [
   { value: "", label: "All statuses" },
   { value: "pending", label: ORDER_STATUS_LABELS.pending },
-  { value: "processing", label: ORDER_STATUS_LABELS.processing },
   { value: "shipped", label: ORDER_STATUS_LABELS.shipped },
   { value: "delivered", label: ORDER_STATUS_LABELS.delivered },
   { value: "cancelled", label: ORDER_STATUS_LABELS.cancelled },
@@ -93,9 +92,7 @@ export default function OrdersPage() {
     const totalRevenue = orders
       .filter((o) => o.paymentStatus === "paid" || o.paymentStatus === "refunded")
       .reduce((sum, o) => sum + o.totalAmount, 0);
-    const pendingOrders = orders.filter(
-      (o) => o.orderStatus === "pending" || o.orderStatus === "processing"
-    ).length;
+    const pendingOrders = orders.filter((o) => o.orderStatus === "pending").length;
     const refundRequests = orders.filter((o) => o.refundStatus === "requested")
       .length;
     return {
@@ -114,7 +111,7 @@ export default function OrdersPage() {
       ),
     },
     {
-      header: "Customer",
+      header: "Customer Name",
       accessor: (order: (typeof orders)[number]) => (
         <span className="text-sm text-gray-800">{order.customerName}</span>
       ),
@@ -208,7 +205,7 @@ export default function OrdersPage() {
           className="min-w-[260px] md:min-w-0 shrink-0 md:shrink"
         />
         <KpiCard
-          title="Pending / Processing"
+          title="Pending Orders"
           value={kpis.pendingOrders.toLocaleString()}
           icon="trending-up"
           iconClassName="bg-amber-50 text-amber-600"
@@ -223,35 +220,33 @@ export default function OrdersPage() {
         />
       </div>
 
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-5 space-y-4">
-        <div className="flex flex-col md:flex-row md:items-end gap-3 md:gap-4">
-          <div className="flex-1">
-            <Filters
-              search={search}
-              onSearchChange={setSearch}
-              searchPlaceholder="Search by Order ID or customer..."
-              filterOptions={STATUS_FILTER_OPTIONS}
-              filterValue={statusFilter}
-              onFilterChange={(value) =>
-                setStatusFilter(value as "" | OrderStatus)
-              }
-            />
-          </div>
-          <div className="w-full md:w-40">
-            <select
-              value={paymentStatusFilter}
-              onChange={(e) =>
-                setPaymentStatusFilter(e.target.value as "" | PaymentStatus)
-              }
-              className="w-full px-3 py-2.5 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-[#f8c6d0] focus:border-transparent"
-            >
-              {PAYMENT_STATUS_FILTER_OPTIONS.map((opt) => (
-                <option key={opt.value || "all"} value={opt.value}>
-                  {opt.label}
-                </option>
-              ))}
-            </select>
-          </div>
+      <div className="flex flex-col md:flex-row md:items-end gap-3 md:gap-4">
+        <div className="flex-1">
+          <Filters
+            search={search}
+            onSearchChange={setSearch}
+            searchPlaceholder="Search by Order ID or customer..."
+            filterOptions={STATUS_FILTER_OPTIONS}
+            filterValue={statusFilter}
+            onFilterChange={(value) =>
+              setStatusFilter(value as "" | OrderStatus)
+            }
+          />
+        </div>
+        <div className="w-full md:w-40">
+          <select
+            value={paymentStatusFilter}
+            onChange={(e) =>
+              setPaymentStatusFilter(e.target.value as "" | PaymentStatus)
+            }
+            className="w-full px-3 py-2.5 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-[#f8c6d0] focus:border-transparent"
+          >
+            {PAYMENT_STATUS_FILTER_OPTIONS.map((opt) => (
+              <option key={opt.value || "all"} value={opt.value}>
+                {opt.label}
+              </option>
+            ))}
+          </select>
         </div>
       </div>
 
