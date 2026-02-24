@@ -29,7 +29,7 @@ const menuItems: MenuItem[] = [
   { label: "Dashboard", icon: LayoutDashboard, href: "/" },
   { label: "Users", icon: Users, href: "/users" },
   { label: "Add Product", icon: Package, href: "/products" },
-  { label: "Services", icon: Scissors, href: "/services" },
+  { label: "Add Service", icon: Scissors, href: "/services" },
   { label: "Orders", icon: ShoppingCart, href: "/orders" },
   { label: "Affiliates", icon: UserCheck, href: "/affiliates" },
   { label: "Withdrawals", icon: Wallet, href: "/withdrawals" },

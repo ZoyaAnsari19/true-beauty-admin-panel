@@ -20,6 +20,43 @@ const CATEGORY_OPTIONS = [
   "Other",
 ];
 
+const TIME_OPTIONS = [
+  "06:00 AM",
+  "06:30 AM",
+  "07:00 AM",
+  "07:30 AM",
+  "08:00 AM",
+  "08:30 AM",
+  "09:00 AM",
+  "09:30 AM",
+  "10:00 AM",
+  "10:30 AM",
+  "11:00 AM",
+  "11:30 AM",
+  "12:00 PM",
+  "12:30 PM",
+  "01:00 PM",
+  "01:30 PM",
+  "02:00 PM",
+  "02:30 PM",
+  "03:00 PM",
+  "03:30 PM",
+  "04:00 PM",
+  "04:30 PM",
+  "05:00 PM",
+  "05:30 PM",
+  "06:00 PM",
+  "06:30 PM",
+  "07:00 PM",
+  "07:30 PM",
+  "08:00 PM",
+  "08:30 PM",
+  "09:00 PM",
+  "09:30 PM",
+  "10:00 PM",
+  "10:30 PM",
+];
+
 const WORKING_DAYS_PRESETS: { key: string; label: string; value: string }[] = [];
 
 const DAY_SHORT_LABELS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
@@ -63,6 +100,8 @@ export function ServiceForm({
   const [customWorkingDays, setCustomWorkingDays] = React.useState<string[]>(
     []
   );
+  const [openingTime, setOpeningTime] = React.useState<string>("");
+  const [closingTime, setClosingTime] = React.useState<string>("");
 
   useEffect(() => {
     if (initialValues) {
@@ -103,11 +142,23 @@ export function ServiceForm({
         setWorkingDaysPresetKey("");
         setCustomWorkingDays([]);
       }
+
+      const wh = initialValues.workingHours ?? "";
+      if (wh && wh.includes("-")) {
+        const [from, to] = wh.split("-").map((part) => part.trim());
+        setOpeningTime(from);
+        setClosingTime(to);
+      } else {
+        setOpeningTime("");
+        setClosingTime("");
+      }
     } else {
       setValues(emptyForm);
       setWorkingDaysMode("preset");
       setWorkingDaysPresetKey("");
       setCustomWorkingDays([]);
+      setOpeningTime("");
+      setClosingTime("");
     }
   }, [initialValues]);
 
@@ -134,7 +185,10 @@ export function ServiceForm({
       state: values.state?.trim() ?? "",
       pincode: values.pincode?.trim() ?? "",
       phoneNumber: values.phoneNumber?.trim() ?? "",
-      workingHours: values.workingHours?.trim() ?? "",
+      workingHours:
+        openingTime && closingTime
+          ? `${openingTime} - ${closingTime}`
+          : values.workingHours?.trim() ?? "",
       workingDays: values.workingDays?.trim() ?? "",
     });
   };
@@ -392,17 +446,67 @@ export function ServiceForm({
             />
           </div>
           <div>
-            <label htmlFor="service-working-hours" className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="service-working-hours-from" className="block text-sm font-medium text-gray-700 mb-1">
               Working Hours
             </label>
-            <input
-              id="service-working-hours"
-              type="text"
-              value={values.workingHours ?? ""}
-              onChange={(e) => setValues((v) => ({ ...v, workingHours: e.target.value }))}
-              className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-[#f8c6d0] focus:border-transparent outline-none transition-all"
-              placeholder="e.g. 10:00 AM - 8:00 PM"
-            />
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <p className="text-xs font-medium text-gray-500 mb-1">From</p>
+                <select
+                  id="service-working-hours-from"
+                  value={openingTime}
+                  onChange={(e) => {
+                    const from = e.target.value;
+                    setOpeningTime(from);
+                    setValues((v) => ({
+                      ...v,
+                      workingHours:
+                        from && closingTime ? `${from} - ${closingTime}` : "",
+                    }));
+                  }}
+                  className="w-full px-3 py-2.5 rounded-xl border border-gray-200 bg-white focus:ring-2 focus:ring-[#f8c6d0] focus:border-transparent outline-none transition-all text-sm"
+                >
+                  <option value="">Opening time</option>
+                  {TIME_OPTIONS.map((time) => (
+                    <option key={time} value={time}>
+                      {time}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <p className="text-xs font-medium text-gray-500 mb-1">To</p>
+                <select
+                  id="service-working-hours-to"
+                  value={closingTime}
+                  onChange={(e) => {
+                    const to = e.target.value;
+                    setClosingTime(to);
+                    setValues((v) => ({
+                      ...v,
+                      workingHours:
+                        openingTime && to ? `${openingTime} - ${to}` : "",
+                    }));
+                  }}
+                  className="w-full px-3 py-2.5 rounded-xl border border-gray-200 bg-white focus:ring-2 focus:ring-[#f8c6d0] focus:border-transparent outline-none transition-all text-sm"
+                >
+                  <option value="">Closing time</option>
+                  {TIME_OPTIONS.map((time) => (
+                    <option key={time} value={time}>
+                      {time}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+            {values.workingHours && (
+              <p className="mt-1 text-xs text-gray-500">
+                Selected:{" "}
+                <span className="font-medium text-gray-700">
+                  {values.workingHours}
+                </span>
+              </p>
+            )}
           </div>
           <div>
             <label htmlFor="service-working-days" className="block text-sm font-medium text-gray-700 mb-1">
