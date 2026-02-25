@@ -308,6 +308,7 @@ export default function OrdersPage() {
             search={search}
             onSearchChange={setSearch}
             searchPlaceholder="Search by Order ID or customer..."
+            searchPlaceholderMobile="Search ..."
             filterOptions={STATUS_FILTER_OPTIONS}
             filterValue={statusFilter}
             onFilterChange={(value) =>
@@ -347,14 +348,13 @@ export default function OrdersPage() {
                     <p className="text-sm font-semibold text-gray-900 truncate">
                       {order.customerName}
                     </p>
-                    <p className="text-sm text-gray-700">
-                      {order.productsCount} items ·{" "}
-                      {formatCurrency(order.totalAmount)}
+                    <p className="text-sm font-medium text-gray-900 flex items-center justify-between gap-2">
+                      <span>{formatCurrency(order.totalAmount)}</span>
+                      <span className="text-sm text-gray-700">
+                        {order.productsCount} items
+                      </span>
                     </p>
-                    <p className="text-xs text-gray-500">
-                      {formatDate(order.createdAt)}
-                    </p>
-                    <div className="flex flex-wrap items-center gap-2 pt-1">
+                    <div className="flex items-center gap-2 pt-1">
                       <span
                         className={`inline-flex px-2.5 py-1 rounded-full text-xs font-medium ${
                           PAYMENT_STATUS_CLASSES[order.paymentStatus] ??
@@ -364,14 +364,19 @@ export default function OrdersPage() {
                         {PAYMENT_STATUS_LABELS[order.paymentStatus] ??
                           order.paymentStatus}
                       </span>
-                      <span
-                        className={`inline-flex px-2.5 py-1 rounded-full text-xs font-medium ${
-                          ORDER_STATUS_CLASSES[order.orderStatus] ??
-                          "bg-gray-50 text-gray-700"
-                        }`}
-                      >
-                        {ORDER_STATUS_LABELS[order.orderStatus] ??
-                          order.orderStatus}
+                      <div className="flex-1 flex justify-center">
+                        <span
+                          className={`inline-flex px-2.5 py-1 rounded-full text-xs font-medium ${
+                            ORDER_STATUS_CLASSES[order.orderStatus] ??
+                            "bg-gray-50 text-gray-700"
+                          }`}
+                        >
+                          {ORDER_STATUS_LABELS[order.orderStatus] ??
+                            order.orderStatus}
+                        </span>
+                      </div>
+                      <span className="text-xs text-gray-500 shrink-0">
+                        {formatDate(order.createdAt)}
                       </span>
                     </div>
                   </div>

@@ -243,16 +243,13 @@ export default function ProductsPage() {
     {
       header: "Stock",
       accessor: (product: Product) => (
-        <div className="flex items-center gap-2">
-          <span className="text-sm text-gray-900 font-medium">{product.stock}</span>
-          <span
-            className={`inline-flex px-2.5 py-1 rounded-full text-xs font-medium ${
-              STOCK_CLASSES[product.stockStatus] ?? "bg-gray-100 text-gray-700"
-            }`}
-          >
-            {STOCK_LABELS[product.stockStatus] ?? product.stockStatus}
-          </span>
-        </div>
+        <span
+          className={`inline-flex px-2.5 py-1 rounded-full text-xs font-medium ${
+            STOCK_CLASSES[product.stockStatus] ?? "bg-gray-100 text-gray-700"
+          }`}
+        >
+          {STOCK_LABELS[product.stockStatus] ?? product.stockStatus}
+        </span>
       ),
     },
     {
@@ -336,6 +333,7 @@ export default function ProductsPage() {
         search={search}
         onSearchChange={setSearch}
         searchPlaceholder="Search by name, category, or description..."
+        searchPlaceholderMobile="Search ..."
         filterOptions={STATUS_OPTIONS}
         filterValue={statusFilter}
         onFilterChange={(value) => setStatusFilter(value as "" | ProductStatus)}
@@ -370,26 +368,32 @@ export default function ProductsPage() {
                     <p className="text-sm font-semibold text-gray-900 truncate">
                       {product.name}
                     </p>
-                    <p className="text-sm text-gray-600 mt-0.5">{product.category}</p>
-                    <p className="text-sm font-medium text-gray-900 mt-0.5">
+                    <p className="text-sm text-gray-600 mt-0.5">
+                      {product.category}
+                    </p>
+                    <p className="text-sm font-medium text-gray-900 mt-0.5 text-right">
                       {formatPrice(product.price)}
                     </p>
-                    <div className="flex items-center gap-2 mt-2 flex-wrap">
-                      <span
-                        className={`inline-flex px-2.5 py-1 rounded-full text-xs font-medium ${
-                          STOCK_CLASSES[product.stockStatus] ?? "bg-gray-100 text-gray-700"
-                        }`}
-                      >
-                        {STOCK_LABELS[product.stockStatus] ?? product.stockStatus}
+                    <div className="flex items-center justify-between gap-2 mt-2 flex-wrap">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span
+                          className={`inline-flex px-2.5 py-1 rounded-full text-xs font-medium ${
+                            STOCK_CLASSES[product.stockStatus] ?? "bg-gray-100 text-gray-700"
+                          }`}
+                        >
+                          {STOCK_LABELS[product.stockStatus] ?? product.stockStatus}
+                        </span>
+                        <span
+                          className={`inline-flex px-2.5 py-1 rounded-full text-xs font-medium ${
+                            STATUS_CLASSES[product.status] ?? "bg-gray-100 text-gray-700"
+                          }`}
+                        >
+                          {STATUS_LABELS[product.status] ?? product.status}
+                        </span>
+                      </div>
+                      <span className="text-xs text-gray-500 shrink-0">
+                        {product.stock} units
                       </span>
-                      <span
-                        className={`inline-flex px-2.5 py-1 rounded-full text-xs font-medium ${
-                          STATUS_CLASSES[product.status] ?? "bg-gray-100 text-gray-700"
-                        }`}
-                      >
-                        {STATUS_LABELS[product.status] ?? product.status}
-                      </span>
-                      <span className="text-xs text-gray-500">{product.stock} units</span>
                     </div>
                   </div>
                   <ProductActionsMenu

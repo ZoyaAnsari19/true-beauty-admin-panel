@@ -165,13 +165,13 @@ export default function AffiliateDetailPage() {
             <h1 className="text-lg font-semibold text-gray-900">
               {affiliate.name}
             </h1>
-            <div className="flex flex-wrap items-center gap-2 text-xs text-gray-600">
-              <span>{affiliate.email}</span>
-              <span className="w-1 h-1 rounded-full bg-gray-400" />
-              <span>{affiliate.phone}</span>
-              <span className="w-1 h-1 rounded-full bg-gray-400" />
-              <span>Joined {formatDate(affiliate.joinedAt)}</span>
+            <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-gray-600">
+              <span className="truncate">{affiliate.email}</span>
+              <span className="shrink-0 ml-4">{affiliate.phone}</span>
             </div>
+            <p className="text-xs text-gray-600">
+              Joined {formatDate(affiliate.joinedAt)}
+            </p>
           </div>
           <div className="flex flex-wrap items-center gap-3">
             <span
@@ -207,7 +207,7 @@ export default function AffiliateDetailPage() {
             </button>
           </div>
         </div>
-        <div className="px-6 py-4 border-t border-gray-100 flex flex-wrap items-center justify-between gap-3 text-xs text-gray-600">
+        <div className="px-6 py-4 border-t border-gray-100 flex flex-wrap items-center gap-3 text-xs text-gray-600">
           <div className="flex items-center gap-2">
             <span className="font-medium text-gray-800">
               Referral code:
@@ -216,43 +216,45 @@ export default function AffiliateDetailPage() {
               {affiliate.referralCode}
             </span>
           </div>
-          <div className="flex items-center gap-4">
-            <span className="inline-flex items-center gap-1.5">
-              <Mail className="w-3.5 h-3.5 text-gray-500" />
-              <span>{affiliate.email}</span>
-            </span>
-            <span className="inline-flex items-center gap-1.5">
-              <Phone className="w-3.5 h-3.5 text-gray-500" />
-              <span>{affiliate.phone}</span>
-            </span>
-          </div>
+          <span className="inline-flex items-center gap-1.5">
+            <Mail className="w-3.5 h-3.5 text-gray-500" />
+            <span>{affiliate.email}</span>
+          </span>
+          <span className="inline-flex items-center gap-1.5 ml-auto">
+            <Phone className="w-3.5 h-3.5 text-gray-500" />
+            <span>{affiliate.phone}</span>
+          </span>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+      <div className="flex gap-4 overflow-x-auto pb-2 -mx-4 px-4 md:mx-0 md:px-0 md:grid md:grid-cols-2 lg:grid-cols-4 md:gap-6">
         <KpiCard
           title="Total Referrals"
           value={affiliate.totalReferrals.toLocaleString()}
           icon="users"
           iconClassName="bg-blue-50 text-blue-600"
+          className="min-w-[260px] md:min-w-0 shrink-0 md:shrink"
         />
         <KpiCard
           title="Total Orders"
           value={affiliate.totalOrders.toLocaleString()}
           icon="shopping-cart"
           iconClassName="bg-amber-50 text-amber-600"
+          className="min-w-[260px] md:min-w-0 shrink-0 md:shrink"
         />
         <KpiCard
           title="Total Commission"
           value={formatCurrency(affiliate.totalCommission)}
           icon="indian-rupee"
           iconClassName="bg-purple-50 text-purple-600"
+          className="min-w-[260px] md:min-w-0 shrink-0 md:shrink"
         />
         <KpiCard
           title="Wallet Balance"
           value={formatCurrency(affiliate.walletBalance)}
           icon="user-check"
           iconClassName="bg-emerald-50 text-emerald-700"
+          className="min-w-[260px] md:min-w-0 shrink-0 md:shrink"
         />
       </div>
 
@@ -265,69 +267,115 @@ export default function AffiliateDetailPage() {
                 Commission Logs
               </h2>
             </div>
-            <div className="p-4 sm:p-6 overflow-x-auto">
+            <div className="p-4 sm:p-6">
               {affiliate.commissionLogs.length === 0 ? (
                 <p className="text-sm text-gray-500">
                   No commission activity recorded yet.
                 </p>
               ) : (
-                <table className="min-w-full text-sm">
-                  <thead>
-                    <tr className="text-xs text-gray-500 uppercase tracking-wider border-b border-gray-100">
-                      <th className="py-2.5 pr-4 text-left font-semibold">
-                        Date
-                      </th>
-                      <th className="py-2.5 px-4 text-left font-semibold">
-                        Description
-                      </th>
-                      <th className="py-2.5 px-4 text-left font-semibold">
-                        Type
-                      </th>
-                      <th className="py-2.5 pl-4 text-right font-semibold">
-                        Amount
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
+                <>
+                  {/* Mobile: card list */}
+                  <div className="md:hidden space-y-3">
                     {affiliate.commissionLogs.map((log) => (
-                      <tr
+                      <div
                         key={log.id}
-                        className="border-b border-gray-50 last:border-0"
+                        className="rounded-xl border border-gray-100 bg-[#fef5f7]/60 p-3"
                       >
-                        <td className="py-2.5 pr-4 whitespace-nowrap text-gray-700">
-                          {formatDate(log.date)}
-                        </td>
-                        <td className="py-2.5 px-4 text-gray-800">
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                            {formatDate(log.date)}
+                          </span>
+                          <span
+                            className={`text-xs font-semibold ${
+                              log.amount >= 0
+                                ? "text-emerald-700"
+                                : "text-red-600"
+                            }`}
+                          >
+                            {log.amount >= 0 ? "+" : "-"}
+                            {formatCurrency(Math.abs(log.amount))}
+                          </span>
+                        </div>
+                        <p className="mt-2 text-sm text-gray-800">
                           {log.description}
                           {log.orderId && (
                             <span className="ml-1 text-xs text-gray-500">
                               (Order {log.orderId})
                             </span>
                           )}
-                        </td>
-                        <td className="py-2.5 px-4 whitespace-nowrap text-xs text-gray-600">
+                        </p>
+                        <p className="mt-1 text-xs text-gray-600">
                           {log.type === "order_commission"
                             ? "Order commission"
                             : log.type === "manual_adjustment"
                               ? "Manual adjustment"
                               : "Withdrawal"}
-                        </td>
-                        <td className="py-2.5 pl-4 text-right whitespace-nowrap">
-                          <span
-                            className={
-                              log.amount >= 0
-                                ? "text-emerald-700 font-semibold"
-                                : "text-red-600 font-semibold"
-                            }
-                          >
-                            {log.amount >= 0 ? "+" : "-"}
-                            {formatCurrency(Math.abs(log.amount))}
-                          </span>
-                        </td>
-                      </tr>
+                        </p>
+                      </div>
                     ))}
-                  </tbody>
-                </table>
+                  </div>
+
+                  {/* Desktop: table */}
+                  <div className="hidden md:block overflow-x-auto">
+                    <table className="min-w-full text-sm">
+                      <thead>
+                        <tr className="text-xs text-gray-500 uppercase tracking-wider border-b border-gray-100">
+                          <th className="py-2.5 pr-4 text-left font-semibold">
+                            Date
+                          </th>
+                          <th className="py-2.5 px-4 text-left font-semibold">
+                            Description
+                          </th>
+                          <th className="py-2.5 px-4 text-left font-semibold">
+                            Type
+                          </th>
+                          <th className="py-2.5 pl-4 text-right font-semibold">
+                            Amount
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {affiliate.commissionLogs.map((log) => (
+                          <tr
+                            key={log.id}
+                            className="border-b border-gray-50 last:border-0"
+                          >
+                            <td className="py-2.5 pr-4 whitespace-nowrap text-gray-700">
+                              {formatDate(log.date)}
+                            </td>
+                            <td className="py-2.5 px-4 text-gray-800">
+                              {log.description}
+                              {log.orderId && (
+                                <span className="ml-1 text-xs text-gray-500">
+                                  (Order {log.orderId})
+                                </span>
+                              )}
+                            </td>
+                            <td className="py-2.5 px-4 whitespace-nowrap text-xs text-gray-600">
+                              {log.type === "order_commission"
+                                ? "Order commission"
+                                : log.type === "manual_adjustment"
+                                  ? "Manual adjustment"
+                                  : "Withdrawal"}
+                            </td>
+                            <td className="py-2.5 pl-4 text-right whitespace-nowrap">
+                              <span
+                                className={
+                                  log.amount >= 0
+                                    ? "text-emerald-700 font-semibold"
+                                    : "text-red-600 font-semibold"
+                                }
+                              >
+                                {log.amount >= 0 ? "+" : "-"}
+                                {formatCurrency(Math.abs(log.amount))}
+                              </span>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </>
               )}
             </div>
           </div>
@@ -339,54 +387,31 @@ export default function AffiliateDetailPage() {
                 Withdrawal History
               </h2>
             </div>
-            <div className="p-4 sm:p-6 overflow-x-auto">
+            <div className="p-4 sm:p-6">
               {affiliate.withdrawals.length === 0 ? (
                 <p className="text-sm text-gray-500">
                   No withdrawal requests yet.
                 </p>
               ) : (
-                <table className="min-w-full text-sm">
-                  <thead>
-                    <tr className="text-xs text-gray-500 uppercase tracking-wider border-b border-gray-100">
-                      <th className="py-2.5 pr-4 text-left font-semibold">
-                        ID
-                      </th>
-                      <th className="py-2.5 px-4 text-left font-semibold">
-                        Amount
-                      </th>
-                      <th className="py-2.5 px-4 text-left font-semibold">
-                        Method
-                      </th>
-                      <th className="py-2.5 px-4 text-left font-semibold">
-                        Requested
-                      </th>
-                      <th className="py-2.5 px-4 text-left font-semibold">
-                        Status
-                      </th>
-                      <th className="py-2.5 pl-4 text-right font-semibold">
-                        Actions
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
+                <>
+                  {/* Mobile: card list */}
+                  <div className="md:hidden space-y-3">
                     {affiliate.withdrawals.map((w) => (
-                      <tr
+                      <div
                         key={w.id}
-                        className="border-b border-gray-50 last:border-0"
+                        className="rounded-xl border border-gray-100 bg-[#fef5f7]/60 p-3"
                       >
-                        <td className="py-2.5 pr-4 whitespace-nowrap text-gray-700">
-                          {w.id}
-                        </td>
-                        <td className="py-2.5 px-4 whitespace-nowrap text-gray-900 font-medium">
-                          {formatCurrency(w.amount)}
-                        </td>
-                        <td className="py-2.5 px-4 text-gray-700">
-                          {w.method}
-                        </td>
-                        <td className="py-2.5 px-4 whitespace-nowrap text-gray-700">
-                          {formatDate(w.requestedAt)}
-                        </td>
-                        <td className="py-2.5 px-4 whitespace-nowrap">
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                            {w.id}
+                          </span>
+                          <span className="text-sm font-semibold text-gray-900">
+                            {formatCurrency(w.amount)}
+                          </span>
+                        </div>
+                        <p className="mt-1 text-xs text-gray-600">{w.method}</p>
+                        <div className="mt-1 flex items-center justify-between gap-2 text-xs text-gray-600">
+                          <span>Requested {formatDate(w.requestedAt)}</span>
                           <span
                             className={`inline-flex px-2.5 py-1 rounded-full text-xs font-medium ${
                               WITHDRAWAL_STATUS_CLASSES[w.status] ??
@@ -395,16 +420,16 @@ export default function AffiliateDetailPage() {
                           >
                             {WITHDRAWAL_STATUS_LABELS[w.status] ?? w.status}
                           </span>
-                        </td>
-                        <td className="py-2.5 pl-4 whitespace-nowrap text-right">
+                        </div>
+                        <div className="mt-2">
                           {w.status === "pending" ? (
-                            <div className="inline-flex gap-1.5">
+                            <div className="flex gap-2">
                               <button
                                 type="button"
                                 onClick={() =>
                                   handleWithdrawalAction(w.id, "approve")
                                 }
-                                className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium text-emerald-700 bg-emerald-50 hover:bg-emerald-100 transition-colors"
+                                className="flex-1 inline-flex items-center justify-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium text-emerald-700 bg-emerald-50 hover:bg-emerald-100 transition-colors"
                               >
                                 <CheckCircle2 className="w-3.5 h-3.5" />
                                 Approve
@@ -414,7 +439,7 @@ export default function AffiliateDetailPage() {
                                 onClick={() =>
                                   handleWithdrawalAction(w.id, "reject")
                                 }
-                                className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium text-red-700 bg-red-50 hover:bg-red-100 transition-colors"
+                                className="flex-1 inline-flex items-center justify-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium text-red-700 bg-red-50 hover:bg-red-100 transition-colors"
                               >
                                 <XCircle className="w-3.5 h-3.5" />
                                 Reject
@@ -427,11 +452,102 @@ export default function AffiliateDetailPage() {
                                 : "-"}
                             </span>
                           )}
-                        </td>
-                      </tr>
+                        </div>
+                      </div>
                     ))}
-                  </tbody>
-                </table>
+                  </div>
+
+                  {/* Desktop: table */}
+                  <div className="hidden md:block overflow-x-auto">
+                    <table className="min-w-full text-sm">
+                      <thead>
+                        <tr className="text-xs text-gray-500 uppercase tracking-wider border-b border-gray-100">
+                          <th className="py-2.5 pr-4 text-left font-semibold">
+                            ID
+                          </th>
+                          <th className="py-2.5 px-4 text-left font-semibold">
+                            Amount
+                          </th>
+                          <th className="py-2.5 px-4 text-left font-semibold">
+                            Method
+                          </th>
+                          <th className="py-2.5 px-4 text-left font-semibold">
+                            Requested
+                          </th>
+                          <th className="py-2.5 px-4 text-left font-semibold">
+                            Status
+                          </th>
+                          <th className="py-2.5 pl-4 text-right font-semibold">
+                            Actions
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {affiliate.withdrawals.map((w) => (
+                          <tr
+                            key={w.id}
+                            className="border-b border-gray-50 last:border-0"
+                          >
+                            <td className="py-2.5 pr-4 whitespace-nowrap text-gray-700">
+                              {w.id}
+                            </td>
+                            <td className="py-2.5 px-4 whitespace-nowrap text-gray-900 font-medium">
+                              {formatCurrency(w.amount)}
+                            </td>
+                            <td className="py-2.5 px-4 text-gray-700">
+                              {w.method}
+                            </td>
+                            <td className="py-2.5 px-4 whitespace-nowrap text-gray-700">
+                              {formatDate(w.requestedAt)}
+                            </td>
+                            <td className="py-2.5 px-4 whitespace-nowrap">
+                              <span
+                                className={`inline-flex px-2.5 py-1 rounded-full text-xs font-medium ${
+                                  WITHDRAWAL_STATUS_CLASSES[w.status] ??
+                                  "bg-gray-50 text-gray-700"
+                                }`}
+                              >
+                                {WITHDRAWAL_STATUS_LABELS[w.status] ?? w.status}
+                              </span>
+                            </td>
+                            <td className="py-2.5 pl-4 whitespace-nowrap text-right">
+                              {w.status === "pending" ? (
+                                <div className="inline-flex gap-1.5">
+                                  <button
+                                    type="button"
+                                    onClick={() =>
+                                      handleWithdrawalAction(w.id, "approve")
+                                    }
+                                    className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium text-emerald-700 bg-emerald-50 hover:bg-emerald-100 transition-colors"
+                                  >
+                                    <CheckCircle2 className="w-3.5 h-3.5" />
+                                    Approve
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() =>
+                                      handleWithdrawalAction(w.id, "reject")
+                                    }
+                                    className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium text-red-700 bg-red-50 hover:bg-red-100 transition-colors"
+                                  >
+                                    <XCircle className="w-3.5 h-3.5" />
+                                    Reject
+                                  </button>
+                                </div>
+                              ) : (
+                                <span className="text-xs text-gray-500">
+                                  {w.processedAt
+                                    ? `Processed on ${formatDate(w.processedAt)}`
+                                    : "-"}
+                                </span>
+                              )}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </>
               )}
               {affiliate.withdrawals.length > 0 && (
                 <p className="mt-3 text-xs text-gray-500">

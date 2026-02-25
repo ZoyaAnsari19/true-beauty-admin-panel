@@ -176,6 +176,7 @@ export default function UsersPage() {
         search={search}
         onSearchChange={setSearch}
         searchPlaceholder="Search by name, email, mobile, or address..."
+        searchPlaceholderMobile="Search ..."
         filterOptions={STATUS_OPTIONS}
         filterValue={statusFilter}
         onFilterChange={(value) => setStatusFilter(value as "" | UserStatus)}
@@ -198,11 +199,12 @@ export default function UsersPage() {
                   <p className="text-sm font-semibold text-gray-900 truncate">
                     {user.name}
                   </p>
-                  <p className="text-sm text-gray-600 truncate mt-0.5">
-                    {user.email}
+                  <p className="text-sm text-gray-600 truncate mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-0">
+                    <span className="truncate">{user.email}</span>
+                    <span className="text-gray-400 shrink-0">·</span>
+                    <span className="truncate">{user.mobile}</span>
                   </p>
-                  <p className="text-sm text-gray-600 mt-0.5">{user.mobile}</p>
-                  <div className="flex items-center gap-2 mt-2 flex-wrap">
+                  <div className="flex items-center justify-between gap-2 mt-2 flex-wrap">
                     <span
                       className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${
                         user.status === "active"
@@ -212,7 +214,7 @@ export default function UsersPage() {
                     >
                       {user.status === "active" ? "Active" : "Blocked"}
                     </span>
-                    <span className="text-xs text-gray-500">
+                    <span className="text-xs text-gray-500 ml-auto">
                       {formatDate(user.joinedDate)}
                     </span>
                   </div>

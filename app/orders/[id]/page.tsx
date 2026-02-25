@@ -16,6 +16,7 @@ import {
   CheckCircle2,
   XCircle,
   BadgeCheck,
+  User,
 } from "lucide-react";
 import { useOrders } from "@/lib/orders-context";
 import type { OrderStatus, PaymentStatus } from "@/lib/orders-data";
@@ -257,13 +258,16 @@ export default function OrderDetailPage() {
             </div>
             <div className="p-6 space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div>
-                  <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Name
-                  </p>
-                  <p className="text-sm font-medium text-gray-900 mt-0.5">
-                    {order.customerName}
-                  </p>
+                <div className="flex items-center gap-2">
+                  <User className="w-4 h-4 text-gray-500" />
+                  <div>
+                    <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Name
+                    </p>
+                    <p className="text-sm font-medium text-gray-900 mt-0.5">
+                      {order.customerName}
+                    </p>
+                  </div>
                 </div>
                 <div className="flex items-center gap-2">
                   <Mail className="w-4 h-4 text-gray-500" />
@@ -416,17 +420,17 @@ export default function OrderDetailPage() {
                   </p>
                 </div>
                 {order.refundStatus === "requested" && (
-                  <span className="inline-flex px-2.5 py-1 rounded-full text-xs font-medium bg-amber-50 text-amber-700">
+                  <span className="inline-flex px-2.5 py-1 rounded-full text-xs font-medium bg-amber-50 text-amber-700 whitespace-nowrap">
                     Refund requested
                   </span>
                 )}
                 {order.refundStatus === "approved" && (
-                  <span className="inline-flex px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700">
+                  <span className="inline-flex px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 whitespace-nowrap">
                     Refund approved
                   </span>
                 )}
                 {order.refundStatus === "rejected" && (
-                  <span className="inline-flex px-2.5 py-1 rounded-full text-xs font-medium bg-red-50 text-red-700">
+                  <span className="inline-flex px-2.5 py-1 rounded-full text-xs font-medium bg-red-50 text-red-700 whitespace-nowrap">
                     Refund rejected
                   </span>
                 )}

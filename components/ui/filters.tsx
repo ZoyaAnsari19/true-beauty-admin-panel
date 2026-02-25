@@ -3,6 +3,19 @@
 import { useState, useEffect } from "react";
 import { Search, ChevronDown, SlidersHorizontal } from "lucide-react";
 
+const MOBILE_BREAKPOINT = 768;
+
+function useIsMobile() {
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    const check = () => setIsMobile(typeof window !== "undefined" && window.innerWidth < MOBILE_BREAKPOINT);
+    check();
+    window.addEventListener("resize", check);
+    return () => window.removeEventListener("resize", check);
+  }, []);
+  return isMobile;
+}
+
 export interface FilterOption {
   value: string;
   label: string;
@@ -12,6 +25,8 @@ interface FiltersProps {
   search: string;
   onSearchChange: (value: string) => void;
   searchPlaceholder?: string;
+  /** On viewport < md, this placeholder is used instead of searchPlaceholder */
+  searchPlaceholderMobile?: string;
   filterOptions?: FilterOption[];
   filterValue?: string;
   onFilterChange?: (value: string) => void;
@@ -24,6 +39,7 @@ export function Filters({
   search,
   onSearchChange,
   searchPlaceholder = "Search...",
+  searchPlaceholderMobile,
   filterOptions,
   filterValue,
   onFilterChange,
@@ -31,6 +47,7 @@ export function Filters({
   categoryValue,
   onCategoryChange,
 }: FiltersProps) {
+  const isMobile = useIsMobile();
   const [open, setOpen] = useState(false);
   const [categoryOpen, setCategoryOpen] = useState(false);
   const [sheetOpen, setSheetOpen] = useState(false);
@@ -78,7 +95,7 @@ export function Filters({
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
         <input
           type="text"
-          placeholder={searchPlaceholder}
+          placeholder={isMobile && searchPlaceholderMobile != null ? searchPlaceholderMobile : searchPlaceholder}
           value={search}
           onChange={(e) => onSearchChange(e.target.value)}
           className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-[#f8c6d0] focus:border-transparent transition-all"

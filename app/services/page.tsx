@@ -311,6 +311,7 @@ export default function ServicesPage() {
         search={search}
         onSearchChange={setSearch}
         searchPlaceholder="Search by name, category, or description..."
+        searchPlaceholderMobile="Search ..."
         filterOptions={STATUS_OPTIONS}
         filterValue={statusFilter}
         onFilterChange={(value) => setStatusFilter(value as "" | ServiceStatus)}
@@ -343,14 +344,16 @@ export default function ServicesPage() {
                     <p className="text-sm font-semibold text-gray-900 truncate">
                       {service.name}
                     </p>
-                    <p className="text-sm text-gray-600 mt-0.5">
-                      {service.category}
+                    <p className="text-sm text-gray-600 mt-0.5 flex items-center justify-between gap-2 min-w-0">
+                      <span className="truncate">{service.category}</span>
+                      <span className="shrink-0 font-medium text-gray-900">
+                        {formatDuration(service.durationMinutes)}
+                      </span>
                     </p>
                     <p className="text-sm font-medium text-gray-900 mt-0.5">
-                      {formatPrice(service.price)} ·{" "}
-                      {formatDuration(service.durationMinutes)}
+                      {formatPrice(service.price)}
                     </p>
-                    <div className="flex items-center gap-2 mt-2 flex-wrap">
+                    <div className="flex items-center justify-between gap-2 mt-2 flex-wrap">
                       <span
                         className={`inline-flex px-2.5 py-1 rounded-full text-xs font-medium ${
                           STATUS_CLASSES[service.status] ??
@@ -359,7 +362,7 @@ export default function ServicesPage() {
                       >
                         {STATUS_LABELS[service.status] ?? service.status}
                       </span>
-                      <span className="text-xs text-gray-500">
+                      <span className="text-xs text-gray-500 shrink-0">
                         {formatDate(service.createdAt)}
                       </span>
                     </div>

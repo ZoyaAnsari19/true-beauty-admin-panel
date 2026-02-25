@@ -257,6 +257,7 @@ export default function AffiliatesPage() {
             search={search}
             onSearchChange={setSearch}
             searchPlaceholder="Search by name, referral code, email or phone..."
+            searchPlaceholderMobile="Search ..."
             filterOptions={STATUS_FILTER_OPTIONS}
             filterValue={statusFilter}
             onFilterChange={(value) =>
@@ -305,12 +306,7 @@ export default function AffiliatesPage() {
                         {affiliate.totalOrders.toLocaleString()} orders
                       </span>
                     </div>
-                    <div className="flex items-center justify-between gap-3 text-[11px] text-gray-600">
-                      <span className="text-gray-500 text-right">
-                        Joined {formatDate(affiliate.joinedAt)}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-2 pt-1.5">
+                    <div className="flex items-center justify-between gap-3 text-[11px] text-gray-600 pt-1.5">
                       <span
                         className={`inline-flex px-2.5 py-1 rounded-full text-[11px] font-medium ${
                           AFFILIATE_STATUS_CLASSES[affiliate.status] ??
@@ -319,6 +315,9 @@ export default function AffiliatesPage() {
                       >
                         {AFFILIATE_STATUS_LABELS[affiliate.status] ??
                           affiliate.status}
+                      </span>
+                      <span className="text-gray-500 text-right shrink-0">
+                        Joined {formatDate(affiliate.joinedAt)}
                       </span>
                     </div>
                   </div>
