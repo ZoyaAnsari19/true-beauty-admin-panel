@@ -6,8 +6,12 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import SideBar from "@/components/SideBar";
 import TopBar from "@/components/TopBar";
+import { SidebarProvider } from "@/lib/sidebar-context";
 import { UsersProvider } from "@/lib/users-context";
 import { ProductsProvider } from "@/lib/products-context";
+import { ServicesProvider } from "@/lib/services-context";
+import { OrdersProvider } from "@/lib/orders-context";
+import { AffiliatesProvider } from "@/lib/affiliates-context";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -21,13 +25,14 @@ const geistMono = Geist_Mono({
 
 const pageTitles: Record<string, string> = {
   "/": "Dashboard",
-  "/users": "Users",
+  "/users": "User Management",
   "/products": "Products",
   "/services": "Services",
-  "/orders": "Orders",
-  "/affiliates": "Affiliates",
-  "/withdrawals": "Withdrawals",
-  "/commission": "Commission & Coupons",
+  "/orders": "Order Management",
+  "/affiliates": "Affiliate Users",
+  "/withdrawals": "Withdraw Request",
+  "/commission": "Add Commissions",
+  "/coupons": "Add Coupons",
   "/theme": "Web Theme",
   "/inventory": "Inventory",
   "/settings": "Settings",
@@ -47,11 +52,23 @@ export default function RootLayout({
     typeof pathname === "string" &&
     pathname.startsWith("/products/") &&
     pathname !== "/products";
+  const isServiceDetail =
+    typeof pathname === "string" &&
+    pathname.startsWith("/services/") &&
+    pathname !== "/services";
+  const isAffiliateDetail =
+    typeof pathname === "string" &&
+    pathname.startsWith("/affiliates/") &&
+    pathname !== "/affiliates";
   const pageTitle = isUserDetail
     ? "User Details"
     : isProductDetail
       ? "Product Details"
-      : (pageTitles[pathname] || "Dashboard");
+      : isServiceDetail
+        ? "Service Details"
+        : isAffiliateDetail
+          ? "Affiliate Details"
+          : (pageTitles[pathname] || "Dashboard");
 
   return (
     <html lang="en">
@@ -64,6 +81,10 @@ export default function RootLayout({
       >
         <UsersProvider>
         <ProductsProvider>
+        <ServicesProvider>
+        <OrdersProvider>
+        <AffiliatesProvider>
+        <SidebarProvider>
         <div className="flex h-screen bg-[#fef5f7]">
           <SideBar />
           <div className="flex-1 flex flex-col md:ml-64 overflow-hidden">
@@ -73,6 +94,10 @@ export default function RootLayout({
             </main>
           </div>
         </div>
+        </SidebarProvider>
+        </AffiliatesProvider>
+        </OrdersProvider>
+        </ServicesProvider>
         </ProductsProvider>
         </UsersProvider>
       </body>

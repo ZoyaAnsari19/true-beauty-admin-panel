@@ -13,11 +13,11 @@ import {
   Palette,
   Boxes,
   Settings,
-  Menu,
   X,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useSidebar } from "@/lib/sidebar-context";
 
 interface MenuItem {
   label: string;
@@ -27,20 +27,21 @@ interface MenuItem {
 
 const menuItems: MenuItem[] = [
   { label: "Dashboard", icon: LayoutDashboard, href: "/" },
-  { label: "Users", icon: Users, href: "/users" },
-  { label: "Products", icon: Package, href: "/products" },
-  { label: "Services", icon: Scissors, href: "/services" },
-  { label: "Orders", icon: ShoppingCart, href: "/orders" },
-  { label: "Affiliates", icon: UserCheck, href: "/affiliates" },
-  { label: "Withdrawals", icon: Wallet, href: "/withdrawals" },
-  { label: "Commission/Coupons", icon: Gift, href: "/commission" },
+  { label: "User Management", icon: Users, href: "/users" },
+  { label: "Add Product", icon: Package, href: "/products" },
+  { label: "Add Service", icon: Scissors, href: "/services" },
+  { label: "Order Management", icon: ShoppingCart, href: "/orders" },
+  { label: "Affiliate Users", icon: UserCheck, href: "/affiliates" },
+  { label: "Withdraw Request", icon: Wallet, href: "/withdrawals" },
+  { label: "Add Commissions", icon: Gift, href: "/commission" },
+  { label: "Add Coupons", icon: Gift, href: "/coupons" },
   { label: "Web Theme", icon: Palette, href: "/theme" },
   { label: "Inventory", icon: Boxes, href: "/inventory" },
   { label: "Settings", icon: Settings, href: "/settings" },
 ];
 
 export default function SideBar() {
-  const [isOpen, setIsOpen] = useState(false);
+  const { isOpen, setOpen } = useSidebar();
   const [isMobile, setIsMobile] = useState(false);
   const pathname = usePathname();
 
@@ -48,18 +49,18 @@ export default function SideBar() {
     const checkMobile = () => {
       setIsMobile(window.innerWidth < 768);
       if (window.innerWidth >= 768) {
-        setIsOpen(true);
+        setOpen(true);
       } else {
-        setIsOpen(false);
+        setOpen(false);
       }
     };
 
     checkMobile();
     window.addEventListener("resize", checkMobile);
     return () => window.removeEventListener("resize", checkMobile);
-  }, []);
+  }, [setOpen]);
 
-  const toggleSidebar = () => setIsOpen(!isOpen);
+  const toggleSidebar = () => setOpen(!isOpen);
 
   return (
     <>
@@ -67,7 +68,7 @@ export default function SideBar() {
       {isMobile && isOpen && (
         <div
           className="fixed inset-0 bg-black/20 z-40 md:hidden"
-          onClick={() => setIsOpen(false)}
+          onClick={() => setOpen(false)}
         />
       )}
 
@@ -88,6 +89,7 @@ export default function SideBar() {
             <button
               onClick={toggleSidebar}
               className="md:hidden p-2 rounded-lg hover:bg-[#f8c6d0] transition-colors"
+              aria-label="Close menu"
             >
               <X className="w-5 h-5 text-gray-600" />
             </button>
@@ -100,12 +102,16 @@ export default function SideBar() {
               const isActive =
                 pathname === item.href ||
                 (item.href === "/users" && pathname.startsWith("/users/")) ||
-                (item.href === "/products" && pathname.startsWith("/products"));
+                (item.href === "/products" && pathname.startsWith("/products")) ||
+                (item.href === "/services" && pathname.startsWith("/services")) ||
+                (item.href === "/orders" && pathname.startsWith("/orders")) ||
+                (item.href === "/affiliates" && pathname.startsWith("/affiliates/")) ||
+                (item.href === "/coupons" && pathname.startsWith("/coupons"));
               return (
                 <Link
                   key={item.href}
                   href={item.href}
-                  onClick={() => isMobile && setIsOpen(false)}
+                  onClick={() => isMobile && setOpen(false)}
                   className={`
                     flex items-center gap-3 px-4 py-3 rounded-xl
                     transition-all duration-200
@@ -127,15 +133,6 @@ export default function SideBar() {
         </div>
       </aside>
 
-      {/* Mobile menu button */}
-      {isMobile && (
-        <button
-          onClick={toggleSidebar}
-          className="fixed top-4 left-4 z-50 p-2 bg-[#fef5f7] rounded-lg shadow-md border border-gray-200 md:hidden hover:bg-[#f8c6d0] transition-colors"
-        >
-          <Menu className="w-5 h-5 text-gray-700" />
-        </button>
-      )}
     </>
   );
 }

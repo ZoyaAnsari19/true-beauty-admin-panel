@@ -3,58 +3,30 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { Eye, MoreVertical, Pencil, Plus, Trash2 } from "lucide-react";
-import { useProducts } from "@/lib/products-context";
-import type { Product, ProductStatus } from "@/lib/products-data";
-import type { ProductFormValues } from "@/lib/products-context";
+import { useServices } from "@/lib/services-context";
+import type { Service, ServiceStatus } from "@/lib/services-data";
+import type { ServiceFormValues } from "@/lib/services-context";
 import { Drawer } from "@/components/ui/Drawer";
-import { ProductForm } from "@/components/ui/ProductForm";
+import { ServiceForm } from "@/components/ui/ServiceForm";
 import Table from "@/components/Table";
 import { Filters, type FilterOption } from "@/components/ui/filters";
 import { KpiCard } from "@/components/ui/kpiCard";
 
-const STOCK_LABELS: Record<string, string> = {
-  in_stock: "In stock",
-  low_stock: "Low stock",
-  out_of_stock: "Out of stock",
-};
-
-const STOCK_CLASSES: Record<string, string> = {
-  in_stock: "bg-green-50 text-green-700",
-  low_stock: "bg-amber-50 text-amber-700",
-  out_of_stock: "bg-red-50 text-red-700",
-};
-
 const STATUS_LABELS: Record<string, string> = {
   active: "Active",
-  draft: "Draft",
   inactive: "Inactive",
+};
+
+const STATUS_CLASSES: Record<string, string> = {
+  active: "bg-emerald-50 text-emerald-700",
+  inactive: "bg-red-50 text-red-700",
 };
 
 const STATUS_OPTIONS: FilterOption[] = [
   { value: "", label: "All statuses" },
   { value: "active", label: STATUS_LABELS.active },
-  { value: "draft", label: STATUS_LABELS.draft },
   { value: "inactive", label: STATUS_LABELS.inactive },
 ];
-
-const CATEGORY_OPTIONS: FilterOption[] = [
-  { value: "", label: "All categories" },
-  { value: "Skincare", label: "Skincare" },
-  { value: "Makeup", label: "Makeup" },
-  { value: "Bath & Body", label: "Bath & Body" },
-  { value: "Haircare", label: "Haircare" },
-  { value: "Fragrance", label: "Fragrance" },
-  { value: "Wellness", label: "Wellness" },
-  { value: "Gifting", label: "Gifting" },
-  { value: "Jewellery", label: "Jewellery" },
-  { value: "Offers", label: "Offers" },
-];
-
-const STATUS_CLASSES: Record<string, string> = {
-  active: "bg-emerald-50 text-emerald-700",
-  draft: "bg-gray-100 text-gray-700",
-  inactive: "bg-red-50 text-red-700",
-};
 
 function formatPrice(amount: number) {
   return new Intl.NumberFormat("en-IN", {
@@ -63,14 +35,29 @@ function formatPrice(amount: number) {
   }).format(amount);
 }
 
-function ProductActionsMenu({
-  product,
+function formatDate(dateStr: string) {
+  return new Date(dateStr).toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  });
+}
+
+function formatDuration(minutes: number) {
+  if (minutes < 60) return `${minutes} min`;
+  const h = Math.floor(minutes / 60);
+  const m = minutes % 60;
+  return m ? `${h}h ${m}m` : `${h}h`;
+}
+
+function ServiceActionsMenu({
+  service,
   onEdit,
   onDelete,
 }: {
-  product: Product;
-  onEdit: (product: Product) => void;
-  onDelete: (product: Product) => void;
+  service: Service;
+  onEdit: (service: Service) => void;
+  onDelete: (service: Service) => void;
 }) {
   const [open, setOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement | null>(null);
@@ -100,7 +87,7 @@ function ProductActionsMenu({
       {open && (
         <div className="absolute right-0 mt-2 w-40 bg-white rounded-xl shadow-lg border border-gray-200 py-1 z-20">
           <Link
-            href={`/products/${product.id}`}
+            href={`/services/${service.id}`}
             onClick={() => setOpen(false)}
             className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-[#fef5f7] transition-colors text-left"
           >
@@ -111,7 +98,7 @@ function ProductActionsMenu({
             type="button"
             onClick={() => {
               setOpen(false);
-              onEdit(product);
+              onEdit(service);
             }}
             className="flex w-full items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-[#fef5f7] transition-colors text-left"
           >
@@ -122,7 +109,7 @@ function ProductActionsMenu({
             type="button"
             onClick={() => {
               setOpen(false);
-              onDelete(product);
+              onDelete(service);
             }}
             className="flex w-full items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors text-left"
           >
@@ -135,142 +122,134 @@ function ProductActionsMenu({
   );
 }
 
-export default function ProductsPage() {
-  const { products, addProduct, updateProduct, softDeleteProduct } = useProducts();
+export default function ServicesPage() {
+  const { services, addService, updateService, softDeleteService } = useServices();
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const [editingService, setEditingService] = useState<Service | null>(null);
   const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState<"" | ProductStatus>("");
-  const [categoryFilter, setCategoryFilter] = useState("");
+  const [statusFilter, setStatusFilter] = useState<"" | ServiceStatus>("");
 
-  const kpis = useMemo(() => {
-    const totalProducts = products.length;
-    const activeCount = products.filter((p) => p.status === "active").length;
-    const draftCount = products.filter((p) => p.status === "draft").length;
-    const inactiveCount = products.filter((p) => p.status === "inactive").length;
-    const lowStockCount = products.filter((p) => p.stockStatus === "low_stock").length;
-    const outOfStockCount = products.filter((p) => p.stockStatus === "out_of_stock").length;
-    const totalInventoryValue = products.reduce(
-      (sum, p) => sum + p.price * p.stock,
-      0
-    );
-
-    return {
-      totalProducts,
-      activeCount,
-      draftCount,
-      inactiveCount,
-      lowStockCount,
-      outOfStockCount,
-      totalInventoryValue,
-    };
-  }, [products]);
-
-  const filteredProducts = useMemo(() => {
-    let list = [...products];
+  const filteredServices = useMemo(() => {
+    let list = [...services];
     const q = search.trim().toLowerCase();
-
     if (q) {
       list = list.filter(
-        (p) =>
-          p.name.toLowerCase().includes(q) ||
-          p.category.toLowerCase().includes(q) ||
-          p.description.toLowerCase().includes(q)
+        (s) =>
+          s.name.toLowerCase().includes(q) ||
+          s.category.toLowerCase().includes(q) ||
+          (s.description && s.description.toLowerCase().includes(q))
       );
     }
-
-    if (categoryFilter) {
-      list = list.filter((p) => p.category === categoryFilter);
-    }
-
     if (statusFilter) {
-      list = list.filter((p) => p.status === statusFilter);
+      list = list.filter((s) => s.status === statusFilter);
     }
-
     return list;
-  }, [products, search, categoryFilter, statusFilter]);
+  }, [services, search, statusFilter]);
+
+  const kpis = useMemo(() => {
+    const totalServices = services.length;
+    const activeCount = services.filter((s) => s.status === "active").length;
+    const inactiveCount = services.filter((s) => s.status === "inactive").length;
+    const categoriesCount = new Set(services.map((s) => s.category)).size;
+    return {
+      totalServices,
+      activeCount,
+      inactiveCount,
+      categoriesCount,
+    };
+  }, [services]);
 
   const handleAdd = () => {
-    setEditingProduct(null);
+    setEditingService(null);
     setDrawerOpen(true);
   };
 
-  const handleEdit = (product: Product) => {
-    setEditingProduct(product);
+  const handleEdit = (service: Service) => {
+    setEditingService(service);
     setDrawerOpen(true);
   };
 
-  const handleDelete = (product: Product) => {
-    if (window.confirm(`Remove "${product.name}" from the list? This can be restored later.`)) {
-      softDeleteProduct(product.id);
+  const handleDelete = (service: Service) => {
+    if (
+      window.confirm(
+        `Remove "${service.name}" from the list? This can be restored later.`
+      )
+    ) {
+      softDeleteService(service.id);
     }
   };
 
-  const handleFormSubmit = (values: ProductFormValues) => {
-    if (editingProduct) {
-      updateProduct(editingProduct.id, values);
+  const handleFormSubmit = (values: ServiceFormValues) => {
+    if (editingService) {
+      updateService(editingService.id, values);
     } else {
-      addProduct(values);
+      addService(values);
     }
     setDrawerOpen(false);
-    setEditingProduct(null);
+    setEditingService(null);
   };
 
   const handleFormCancel = () => {
     setDrawerOpen(false);
-    setEditingProduct(null);
+    setEditingService(null);
   };
 
   const columns = [
     {
-      header: "Product name",
-      accessor: (product: Product) => (
-        <div className="font-medium text-gray-900">{product.name}</div>
+      header: "Service Name",
+      accessor: (service: Service) => (
+        <div className="font-medium text-gray-900">{service.name}</div>
       ),
     },
     {
       header: "Category",
-      accessor: (product: Product) => (
-        <span className="text-sm text-gray-700">{product.category}</span>
+      accessor: (service: Service) => (
+        <span className="text-sm text-gray-700">{service.category}</span>
       ),
     },
     {
       header: "Price",
-      accessor: (product: Product) => (
-        <span className="font-medium text-gray-900">{formatPrice(product.price)}</span>
+      accessor: (service: Service) => (
+        <span className="font-medium text-gray-900">
+          {formatPrice(service.price)}
+        </span>
       ),
     },
     {
-      header: "Stock",
-      accessor: (product: Product) => (
-        <span
-          className={`inline-flex px-2.5 py-1 rounded-full text-xs font-medium ${
-            STOCK_CLASSES[product.stockStatus] ?? "bg-gray-100 text-gray-700"
-          }`}
-        >
-          {STOCK_LABELS[product.stockStatus] ?? product.stockStatus}
+      header: "Duration",
+      accessor: (service: Service) => (
+        <span className="text-sm text-gray-700">
+          {formatDuration(service.durationMinutes)}
         </span>
       ),
     },
     {
       header: "Status",
-      accessor: (product: Product) => (
+      accessor: (service: Service) => (
         <span
           className={`inline-flex px-2.5 py-1 rounded-full text-xs font-medium ${
-            STATUS_CLASSES[product.status] ?? "bg-gray-100 text-gray-700"
+            STATUS_CLASSES[service.status] ?? "bg-gray-100 text-gray-700"
           }`}
         >
-          {STATUS_LABELS[product.status] ?? product.status}
+          {STATUS_LABELS[service.status] ?? service.status}
+        </span>
+      ),
+    },
+    {
+      header: "Created Date",
+      accessor: (service: Service) => (
+        <span className="text-sm text-gray-600">
+          {formatDate(service.createdAt)}
         </span>
       ),
     },
     {
       header: "Actions",
       cellClassName: "text-center",
-      accessor: (product: Product) => (
+      accessor: (service: Service) => (
         <div className="inline-flex justify-center w-full">
-          <ProductActionsMenu
-            product={product}
+          <ServiceActionsMenu
+            service={service}
             onEdit={handleEdit}
             onDelete={handleDelete}
           />
@@ -281,10 +260,9 @@ export default function ProductsPage() {
 
   return (
     <div className="space-y-6">
-      {/* Header — heading left, Add button right (same row on mobile) */}
       <div className="flex items-center justify-between gap-3">
         <h1 className="text-xl sm:text-2xl font-semibold text-gray-900 truncate min-w-0">
-          My Products
+          My Services
         </h1>
         <button
           type="button"
@@ -293,38 +271,38 @@ export default function ProductsPage() {
         >
           <Plus className="w-4 h-4 sm:w-5 sm:h-5" />
           <span>Add</span>
-          <span className="hidden sm:inline">Product</span>
+          <span className="hidden sm:inline">Service</span>
         </button>
       </div>
 
       {/* KPI Cards — horizontal scroll on mobile, grid on desktop */}
       <div className="flex gap-4 overflow-x-auto pb-2 -mx-4 px-4 md:mx-0 md:px-0 md:grid md:grid-cols-2 lg:grid-cols-4 md:gap-6">
         <KpiCard
-          title="Total Products"
-          value={kpis.totalProducts.toLocaleString()}
+          title="Total Services"
+          value={kpis.totalServices.toLocaleString()}
           icon="shopping-cart"
           iconClassName="bg-blue-50 text-blue-600"
           className="min-w-[260px] md:min-w-0 shrink-0 md:shrink"
         />
         <KpiCard
-          title="Active Products"
+          title="Active Services"
           value={kpis.activeCount.toLocaleString()}
           icon="user-check"
           iconClassName="bg-emerald-50 text-emerald-600"
           className="min-w-[260px] md:min-w-0 shrink-0 md:shrink"
         />
         <KpiCard
-          title="Draft Products"
-          value={kpis.draftCount.toLocaleString()}
-          icon="users"
-          iconClassName="bg-gray-100 text-gray-700"
+          title="Inactive Services"
+          value={kpis.inactiveCount.toLocaleString()}
+          icon="user-x"
+          iconClassName="bg-red-50 text-red-600"
           className="min-w-[260px] md:min-w-0 shrink-0 md:shrink"
         />
         <KpiCard
-          title="Out of Stock"
-          value={kpis.outOfStockCount.toLocaleString()}
-          icon="user-x"
-          iconClassName="bg-red-50 text-red-600"
+          title="Categories"
+          value={kpis.categoriesCount.toLocaleString()}
+          icon="trending-up"
+          iconClassName="bg-orange-50 text-orange-600"
           className="min-w-[260px] md:min-w-0 shrink-0 md:shrink"
         />
       </div>
@@ -336,68 +314,61 @@ export default function ProductsPage() {
         searchPlaceholderMobile="Search ..."
         filterOptions={STATUS_OPTIONS}
         filterValue={statusFilter}
-        onFilterChange={(value) => setStatusFilter(value as "" | ProductStatus)}
-        categoryOptions={CATEGORY_OPTIONS}
-        categoryValue={categoryFilter}
-        onCategoryChange={setCategoryFilter}
+        onFilterChange={(value) => setStatusFilter(value as "" | ServiceStatus)}
       />
 
-      {filteredProducts.length === 0 ? (
+      {filteredServices.length === 0 ? (
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-8 sm:p-12 text-center">
-          <p className="text-gray-500 mb-4 text-sm sm:text-base">No products match your filters.</p>
+          <p className="text-gray-500 mb-4 text-sm sm:text-base">
+            No services match your filters.
+          </p>
           <button
             type="button"
             onClick={handleAdd}
             className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl font-medium text-white bg-[#D96A86] hover:bg-[#C85A76] transition-colors text-sm sm:text-base"
           >
             <Plus className="w-4 h-4 sm:w-5 sm:h-5" />
-            Add Product
+            Add Service
           </button>
         </div>
       ) : (
         <>
-          {/* Mobile: Product cards */}
           <div className="md:hidden space-y-3">
-            {filteredProducts.map((product) => (
+            {filteredServices.map((service) => (
               <div
-                key={product.id}
+                key={service.id}
                 className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4"
               >
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0 flex-1">
                     <p className="text-sm font-semibold text-gray-900 truncate">
-                      {product.name}
+                      {service.name}
                     </p>
-                    <p className="text-sm text-gray-600 mt-0.5">
-                      {product.category}
+                    <p className="text-sm text-gray-600 mt-0.5 flex items-center justify-between gap-2 min-w-0">
+                      <span className="truncate">{service.category}</span>
+                      <span className="shrink-0 font-medium text-gray-900">
+                        {formatDuration(service.durationMinutes)}
+                      </span>
                     </p>
-                    <p className="text-sm font-medium text-gray-900 mt-0.5 text-right">
-                      {formatPrice(product.price)}
+                    <p className="text-sm font-medium text-gray-900 mt-0.5">
+                      {formatPrice(service.price)}
                     </p>
                     <div className="flex items-center justify-between gap-2 mt-2 flex-wrap">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <span
-                          className={`inline-flex px-2.5 py-1 rounded-full text-xs font-medium ${
-                            STOCK_CLASSES[product.stockStatus] ?? "bg-gray-100 text-gray-700"
-                          }`}
-                        >
-                          {STOCK_LABELS[product.stockStatus] ?? product.stockStatus}
-                        </span>
-                        <span
-                          className={`inline-flex px-2.5 py-1 rounded-full text-xs font-medium ${
-                            STATUS_CLASSES[product.status] ?? "bg-gray-100 text-gray-700"
-                          }`}
-                        >
-                          {STATUS_LABELS[product.status] ?? product.status}
-                        </span>
-                      </div>
+                      <span
+                        className={`inline-flex px-2.5 py-1 rounded-full text-xs font-medium ${
+                          STATUS_CLASSES[service.status] ??
+                          "bg-gray-100 text-gray-700"
+                        }`}
+                      >
+                        {STATUS_LABELS[service.status] ?? service.status}
+                      </span>
                       <span className="text-xs text-gray-500 shrink-0">
-                        {product.stock} units
+                        {formatDate(service.createdAt)}
                       </span>
                     </div>
                   </div>
-                  <ProductActionsMenu
-                    product={product}
+                  <ServiceActionsMenu
+                    service={service}
                     onEdit={handleEdit}
                     onDelete={handleDelete}
                   />
@@ -406,10 +377,9 @@ export default function ProductsPage() {
             ))}
           </div>
 
-          {/* Desktop: Product table */}
           <div className="hidden md:block">
-            <Table<Product>
-              data={filteredProducts}
+            <Table<Service>
+              data={filteredServices}
               columns={columns}
               searchable={false}
               filterable={false}
@@ -419,15 +389,14 @@ export default function ProductsPage() {
         </>
       )}
 
-      {/* Add/Edit drawer */}
       <Drawer
         open={drawerOpen}
         onClose={handleFormCancel}
-        title={editingProduct ? "Edit Product" : "Add Product"}
+        title={editingService ? "Edit Service" : "Add Service"}
         width="lg"
       >
-        <ProductForm
-          initialValues={editingProduct}
+        <ServiceForm
+          initialValues={editingService}
           onSubmit={handleFormSubmit}
           onCancel={handleFormCancel}
         />

@@ -1,7 +1,8 @@
 "use client";
 
 import React, { useState } from "react";
-import { Search, Bell, User, ChevronDown } from "lucide-react";
+import { Search, Bell, User, ChevronDown, Menu } from "lucide-react";
+import { useSidebar } from "@/lib/sidebar-context";
 
 interface TopBarProps {
   pageTitle?: string;
@@ -10,17 +11,28 @@ interface TopBarProps {
 export default function TopBar({ pageTitle = "Dashboard" }: TopBarProps) {
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
+  const { toggle: toggleSidebar } = useSidebar();
 
   return (
     <header className="sticky top-0 z-30 bg-[#fef5f7] border-b border-gray-200 shadow-sm">
-      <div className="flex items-center justify-between px-6 py-4">
-        {/* Page Title */}
-        <div>
-          <h1 className="text-2xl font-semibold text-gray-900">{pageTitle}</h1>
+      <div className="flex items-center justify-between gap-3 px-4 py-3 md:px-6 md:py-4">
+        {/* Left: Hamburger (mobile) + Title */}
+        <div className="flex min-w-0 flex-1 items-center gap-3">
+          <button
+            type="button"
+            onClick={toggleSidebar}
+            className="shrink-0 rounded-xl border border-gray-200 bg-white p-2.5 shadow-sm hover:bg-[#f8c6d0] transition-colors md:hidden"
+            aria-label="Open menu"
+          >
+            <Menu className="h-5 w-5 text-gray-700" />
+          </button>
+          <h1 className="truncate text-lg font-semibold text-gray-900 md:text-2xl" title={pageTitle}>
+            {pageTitle}
+          </h1>
         </div>
 
         {/* Right side: Search, Notifications, Profile */}
-        <div className="flex items-center gap-4">
+        <div className="flex shrink-0 items-center gap-2 md:gap-4">
           {/* Search */}
           <div className="relative hidden md:block">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
@@ -47,7 +59,7 @@ export default function TopBar({ pageTitle = "Dashboard" }: TopBarProps) {
                   className="fixed inset-0 z-10"
                   onClick={() => setShowNotifications(false)}
                 />
-                <div className="absolute right-0 mt-2 w-80 bg-white rounded-xl shadow-lg border border-gray-200 py-2 z-20">
+                <div className="absolute right-0 mt-2 w-80 max-w-[calc(100vw-2rem)] bg-white rounded-xl shadow-lg border border-gray-200 py-2 z-20">
                   <div className="px-4 py-3 border-b border-gray-200">
                     <h3 className="font-semibold text-gray-900">Notifications</h3>
                   </div>

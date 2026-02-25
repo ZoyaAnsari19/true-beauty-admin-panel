@@ -34,14 +34,10 @@ export interface KpiCardProps {
   title: string;
   /** Main metric value (e.g. "12,543", "₹45,231") */
   value: string;
-  /** Change text, usually a percentage (e.g. "+12.5%") */
-  change: string;
   /** Icon name (serializable; use when rendering from a Server Component). */
   icon: KpiIconName;
   /** Tailwind classes for icon container: background + icon color (e.g. "bg-blue-50 text-blue-600") */
   iconClassName?: string;
-  /** Whether change is positive; if false, change uses red. Default true */
-  changePositive?: boolean;
   /** Optional extra class for the card root */
   className?: string;
 }
@@ -49,10 +45,8 @@ export interface KpiCardProps {
 export function KpiCard({
   title,
   value,
-  change,
   icon: iconName,
   iconClassName = "bg-gray-100 text-gray-600",
-  changePositive = true,
   className = "",
 }: KpiCardProps) {
   const Icon = KPI_ICONS[iconName];
@@ -64,13 +58,6 @@ export function KpiCard({
         <div className="min-w-0 flex-1">
           <p className="text-sm text-gray-600 mb-1">{title}</p>
           <p className="text-2xl font-semibold text-gray-900">{value}</p>
-          <p
-            className={`text-xs mt-2 font-medium ${
-              changePositive ? "text-green-600" : "text-red-600"
-            }`}
-          >
-            {change}
-          </p>
         </div>
         <div
           className={`shrink-0 p-3 rounded-xl ${iconClassName}`}
