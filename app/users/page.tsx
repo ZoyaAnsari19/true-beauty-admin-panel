@@ -2,14 +2,16 @@
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import { Ban, Eye, MoreVertical } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { Ban, Eye, MoreVertical, Trash2 } from "lucide-react";
 import { useUsers } from "@/lib/users-context";
 import { type User, type UserStatus } from "@/lib/users-data";
 import { KpiCard } from "@/components/ui/kpiCard";
 import { Filters, type FilterOption } from "@/components/ui/filters";
+import Table from "@/components/Table";
 
 function UserActionsMenu({ user }: { user: User }) {
-  const { setUserStatus } = useUsers();
+  const { setUserStatus, deleteUser } = useUsers();
   const [open, setOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement | null>(null);
 
@@ -34,7 +36,10 @@ function UserActionsMenu({ user }: { user: User }) {
     <div className="relative inline-block text-left" ref={menuRef}>
       <button
         type="button"
-        onClick={() => setOpen((prev) => !prev)}
+        onClick={(e) => {
+          e.stopPropagation();
+          setOpen((prev) => !prev);
+        }}
         className="p-2 rounded-lg border border-gray-200 bg-white hover:bg-[#fef5f7] transition-colors"
         aria-haspopup="menu"
         aria-expanded={open}
@@ -45,7 +50,10 @@ function UserActionsMenu({ user }: { user: User }) {
         <div className="absolute right-0 mt-2 w-40 bg-white rounded-xl shadow-lg border border-gray-200 py-1 z-20">
           <Link
             href={`/users/${user.id}`}
-            onClick={() => setOpen(false)}
+            onClick={(e) => {
+              e.stopPropagation();
+              setOpen(false);
+            }}
             className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-[#fef5f7] transition-colors"
           >
             <Eye className="w-4 h-4" />
@@ -53,7 +61,8 @@ function UserActionsMenu({ user }: { user: User }) {
           </Link>
           <button
             type="button"
-            onClick={() => {
+            onClick={(e) => {
+              e.stopPropagation();
               toggleStatus();
               setOpen(false);
             }}
@@ -65,6 +74,23 @@ function UserActionsMenu({ user }: { user: User }) {
           >
             <Ban className="w-4 h-4 shrink-0" />
             <span>{isActive ? "Block" : "Unblock"}</span>
+          </button>
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              const confirmed = window.confirm(
+                `Delete user "${user.name}"? This action cannot be undone.`
+              );
+              if (confirmed) {
+                deleteUser(user.id);
+              }
+              setOpen(false);
+            }}
+            className="flex w-full items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors text-left"
+          >
+            <Trash2 className="w-4 h-4 shrink-0" />
+            <span>Delete</span>
           </button>
         </div>
       )}
@@ -88,6 +114,7 @@ function formatDate(dateStr: string) {
 
 export default function UsersPage() {
   const { users } = useUsers();
+  const router = useRouter();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<"" | UserStatus>("");
 
@@ -108,6 +135,54 @@ export default function UsersPage() {
     }
     return list;
   }, [users, search, statusFilter]);
+
+  const columns = [
+    {
+      header: "Name",
+      accessor: (user: User) => (
+        <div className="font-medium text-gray-900">{user.name}</div>
+      ),
+    },
+    {
+      header: "Email",
+      accessor: (user: User) => (
+        <span className="text-sm text-gray-600">{user.email}</span>
+      ),
+    },
+    {
+      header: "Mobile",
+      accessor: (user: User) => (
+        <span className="text-sm text-gray-600">{user.mobile}</span>
+      ),
+    },
+    {
+      header: "Status",
+      accessor: (user: User) => (
+        <span
+          className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${
+            user.status === "active"
+              ? "bg-green-50 text-green-700"
+              : "bg-red-50 text-red-700"
+          }`}
+        >
+          {user.status === "active" ? "Active" : "Blocked"}
+        </span>
+      ),
+    },
+    {
+      header: "Joined Date",
+      accessor: (user: User) => (
+        <span className="text-sm text-gray-600">
+          {formatDate(user.joinedDate)}
+        </span>
+      ),
+    },
+    {
+      header: "Actions",
+      accessor: (user: User) => <UserActionsMenu user={user} />,
+      cellClassName: "text-center",
+    },
+  ];
 
   const kpis = useMemo(() => {
     const totalUsers = users.length;
@@ -227,79 +302,15 @@ export default function UsersPage() {
       </div>
 
       {/* Desktop: Table */}
-      <div className="hidden md:block bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full min-w-[640px]">
-            <thead>
-              <tr className="border-b border-gray-200 bg-[#fef5f7]">
-                <th className="text-left py-4 px-4 text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                  Name
-                </th>
-                <th className="text-left py-4 px-4 text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                  Email
-                </th>
-                <th className="text-left py-4 px-4 text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                  Mobile
-                </th>
-                <th className="text-left py-4 px-4 text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                  Status
-                </th>
-                <th className="text-left py-4 px-4 text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                  Joined Date
-                </th>
-                <th className="text-center py-4 px-4 text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.length === 0 ? (
-                <tr>
-                  <td
-                    colSpan={6}
-                    className="py-12 text-center text-gray-500 text-sm"
-                  >
-                    No users match your filters.
-                  </td>
-                </tr>
-              ) : (
-                filtered.map((user) => (
-                  <tr
-                    key={user.id}
-                    className="border-b border-gray-100 hover:bg-[#fef5f7]/50 transition-colors"
-                  >
-                    <td className="py-4 px-4 text-sm font-medium text-gray-900">
-                      {user.name}
-                    </td>
-                    <td className="py-4 px-4 text-sm text-gray-600">
-                      {user.email}
-                    </td>
-                    <td className="py-4 px-4 text-sm text-gray-600">
-                      {user.mobile}
-                    </td>
-                    <td className="py-4 px-4">
-                      <span
-                        className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${
-                          user.status === "active"
-                            ? "bg-green-50 text-green-700"
-                            : "bg-red-50 text-red-700"
-                        }`}
-                      >
-                        {user.status === "active" ? "Active" : "Blocked"}
-                      </span>
-                    </td>
-                    <td className="py-4 px-4 text-sm text-gray-600">
-                      {formatDate(user.joinedDate)}
-                    </td>
-                    <td className="py-4 px-4 text-center">
-                      <UserActionsMenu user={user} />
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
+      <div className="hidden md:block">
+        <Table<User>
+          data={filtered}
+          columns={columns}
+          searchable={false}
+          filterable={false}
+          itemsPerPage={10}
+          onRowClick={(user) => router.push(`/users/${user.id}`)}
+        />
       </div>
     </div>
   );

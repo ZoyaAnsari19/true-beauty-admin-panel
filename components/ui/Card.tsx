@@ -13,6 +13,7 @@ export interface ProductOrderCardProps {
   orderStatus: string;
   currency?: string;
   formatDate?: (dateStr: string) => string;
+  onClick?: () => void;
 }
 
 function defaultFormatCurrency(amount: number, currency: string = "INR") {
@@ -40,6 +41,7 @@ export function ProductOrderCard({
   orderStatus,
   currency = "INR",
   formatDate = defaultFormatDate,
+  onClick,
 }: ProductOrderCardProps) {
   const statusColors: Record<string, string> = {
     delivered: "bg-green-50 text-green-700",
@@ -56,7 +58,12 @@ export function ProductOrderCard({
   const statusClass = statusColors[statusKey] ?? "bg-gray-50 text-gray-700";
 
   return (
-    <div className="flex flex-col sm:flex-row gap-4 p-4 rounded-2xl border border-[#f8c6d0]/60 bg-white shadow-sm hover:shadow-md transition-shadow">
+    <div
+      className={`flex flex-col sm:flex-row gap-4 p-4 rounded-2xl border border-[#f8c6d0]/60 bg-white shadow-sm hover:shadow-md transition-shadow ${
+        onClick ? "cursor-pointer" : ""
+      }`}
+      onClick={onClick}
+    >
       {/* Product image */}
       <div className="shrink-0 w-full sm:w-24 h-24 sm:h-24 rounded-xl bg-[#fef5f7] overflow-hidden flex items-center justify-center">
         {productImage ? (

@@ -2,7 +2,7 @@
 
 import React from "react";
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import {
   ArrowLeft,
   Ban,
@@ -20,6 +20,7 @@ import {
   Globe,
 } from "lucide-react";
 import { useUsers } from "@/lib/users-context";
+import { useOrders } from "@/lib/orders-context";
 import { Tabination, type TabItem } from "@/components/ui/Tabination";
 import { ProductOrderCard } from "@/components/ui/Card";
 import { KpiCard } from "@/components/ui/kpiCard";
@@ -80,6 +81,30 @@ function OrdersTabSummary({
 }
 
 function OrderCardsList({ items }: { items: OrderItem[] }) {
+  const router = useRouter();
+  const { orders } = useOrders();
+
+  const resolveOrderId = (item: OrderItem): string | undefined => {
+    const byId = orders.find((o) => o.id === item.orderId);
+    if (byId) return byId.id;
+
+    const byProductMatch = orders.find((o) =>
+      o.items.some(
+        (orderItem) =>
+          orderItem.productName === item.productName &&
+          orderItem.totalAmount === item.totalAmount
+      )
+    );
+
+    return byProductMatch?.id;
+  };
+
+  const handleCardClick = (item: OrderItem) => {
+    const orderId = resolveOrderId(item);
+    if (!orderId) return;
+    router.push(`/orders/${orderId}`);
+  };
+
   if (items.length === 0) {
     return (
       <p className="text-center text-gray-500 py-8 text-sm">No items to show.</p>
@@ -104,6 +129,7 @@ function OrderCardsList({ items }: { items: OrderItem[] }) {
               day: "numeric",
             })
           }
+          onClick={() => handleCardClick(item)}
         />
       ))}
     </div>
@@ -283,7 +309,7 @@ export default function UserDetailPage() {
       <OrdersTabSummary
         count={user.purchases.length}
         total={totalAmount(user.purchases)}
-        countLabel="Total Purchases"
+        countLabel="Total Orders"
         amountLabel="Total Amount"
       />
       <OrderCardsList items={user.purchases} />
@@ -328,7 +354,7 @@ export default function UserDetailPage() {
 
   const tabs: TabItem[] = [
     { id: "basic", label: "Basic Info", content: basicInfoContent },
-    { id: "purchases", label: "Purchases", content: purchasesContent },
+    { id: "purchases", label: "Orders", content: purchasesContent },
     { id: "returns", label: "Returns", content: returnsContent },
     { id: "cancelled", label: "Cancelled", content: cancelledContent },
     { id: "refunds", label: "Refunds", content: refundsContent },

@@ -18,6 +18,7 @@ interface TableProps<T> {
   filterable?: boolean;
   pagination?: boolean;
   itemsPerPage?: number;
+  onRowClick?: (row: T) => void;
 }
 
 export default function Table<T extends Record<string, any>>({
@@ -27,6 +28,7 @@ export default function Table<T extends Record<string, any>>({
   filterable = true,
   pagination = true,
   itemsPerPage = 10,
+  onRowClick,
 }: TableProps<T>) {
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
@@ -100,6 +102,9 @@ export default function Table<T extends Record<string, any>>({
         <table className="w-full">
           <thead className="bg-[#fef5f7] border-b border-gray-200">
             <tr>
+              <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                Sr No
+              </th>
               {columns.map((column, index) => (
                 <th
                   key={index}
@@ -125,7 +130,7 @@ export default function Table<T extends Record<string, any>>({
             {paginatedData.length === 0 ? (
               <tr>
                 <td
-                  colSpan={columns.length}
+                  colSpan={columns.length + 1}
                   className="px-6 py-12 text-center text-gray-500"
                 >
                   No data available
@@ -135,8 +140,14 @@ export default function Table<T extends Record<string, any>>({
               paginatedData.map((row, rowIndex) => (
                 <tr
                   key={rowIndex}
-                  className="border-b border-gray-100 hover:bg-[#fef5f7]/50 transition-colors"
+                  className={`border-b border-gray-100 hover:bg-[#fef5f7]/50 transition-colors ${
+                    onRowClick ? "cursor-pointer" : ""
+                  }`}
+                  onClick={() => onRowClick?.(row)}
                 >
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    {startIndex + rowIndex + 1}
+                  </td>
                   {columns.map((column, colIndex) => (
                     <td
                       key={colIndex}

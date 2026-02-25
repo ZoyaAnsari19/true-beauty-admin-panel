@@ -2,6 +2,7 @@
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Eye, MoreVertical, Pencil, Plus, Trash2 } from "lucide-react";
 import { useProducts } from "@/lib/products-context";
 import type { Product, ProductStatus } from "@/lib/products-data";
@@ -90,7 +91,10 @@ function ProductActionsMenu({
     <div className="relative inline-block text-left" ref={menuRef}>
       <button
         type="button"
-        onClick={() => setOpen((prev) => !prev)}
+        onClick={(e) => {
+          e.stopPropagation();
+          setOpen((prev) => !prev);
+        }}
         className="p-2 rounded-lg border border-gray-200 bg-white hover:bg-[#fef5f7] transition-colors"
         aria-haspopup="menu"
         aria-expanded={open}
@@ -101,7 +105,10 @@ function ProductActionsMenu({
         <div className="absolute right-0 mt-2 w-40 bg-white rounded-xl shadow-lg border border-gray-200 py-1 z-20">
           <Link
             href={`/products/${product.id}`}
-            onClick={() => setOpen(false)}
+            onClick={(e) => {
+              e.stopPropagation();
+              setOpen(false);
+            }}
             className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-[#fef5f7] transition-colors text-left"
           >
             <Eye className="w-4 h-4" />
@@ -109,7 +116,8 @@ function ProductActionsMenu({
           </Link>
           <button
             type="button"
-            onClick={() => {
+            onClick={(e) => {
+              e.stopPropagation();
               setOpen(false);
               onEdit(product);
             }}
@@ -120,7 +128,8 @@ function ProductActionsMenu({
           </button>
           <button
             type="button"
-            onClick={() => {
+            onClick={(e) => {
+              e.stopPropagation();
               setOpen(false);
               onDelete(product);
             }}
@@ -137,6 +146,7 @@ function ProductActionsMenu({
 
 export default function ProductsPage() {
   const { products, addProduct, updateProduct, softDeleteProduct } = useProducts();
+  const router = useRouter();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [search, setSearch] = useState("");
@@ -414,6 +424,7 @@ export default function ProductsPage() {
               searchable={false}
               filterable={false}
               itemsPerPage={10}
+              onRowClick={(product) => router.push(`/products/${product.id}`)}
             />
           </div>
         </>

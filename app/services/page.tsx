@@ -2,6 +2,7 @@
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Eye, MoreVertical, Pencil, Plus, Trash2 } from "lucide-react";
 import { useServices } from "@/lib/services-context";
 import type { Service, ServiceStatus } from "@/lib/services-data";
@@ -77,7 +78,10 @@ function ServiceActionsMenu({
     <div className="relative inline-block text-left" ref={menuRef}>
       <button
         type="button"
-        onClick={() => setOpen((prev) => !prev)}
+        onClick={(e) => {
+          e.stopPropagation();
+          setOpen((prev) => !prev);
+        }}
         className="p-2 rounded-lg border border-gray-200 bg-white hover:bg-[#fef5f7] transition-colors"
         aria-haspopup="menu"
         aria-expanded={open}
@@ -88,7 +92,10 @@ function ServiceActionsMenu({
         <div className="absolute right-0 mt-2 w-40 bg-white rounded-xl shadow-lg border border-gray-200 py-1 z-20">
           <Link
             href={`/services/${service.id}`}
-            onClick={() => setOpen(false)}
+            onClick={(e) => {
+              e.stopPropagation();
+              setOpen(false);
+            }}
             className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-[#fef5f7] transition-colors text-left"
           >
             <Eye className="w-4 h-4" />
@@ -96,7 +103,8 @@ function ServiceActionsMenu({
           </Link>
           <button
             type="button"
-            onClick={() => {
+            onClick={(e) => {
+              e.stopPropagation();
               setOpen(false);
               onEdit(service);
             }}
@@ -107,7 +115,8 @@ function ServiceActionsMenu({
           </button>
           <button
             type="button"
-            onClick={() => {
+            onClick={(e) => {
+              e.stopPropagation();
               setOpen(false);
               onDelete(service);
             }}
@@ -124,6 +133,7 @@ function ServiceActionsMenu({
 
 export default function ServicesPage() {
   const { services, addService, updateService, softDeleteService } = useServices();
+  const router = useRouter();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [editingService, setEditingService] = useState<Service | null>(null);
   const [search, setSearch] = useState("");
@@ -384,6 +394,7 @@ export default function ServicesPage() {
               searchable={false}
               filterable={false}
               itemsPerPage={10}
+              onRowClick={(service) => router.push(`/services/${service.id}`)}
             />
           </div>
         </>
