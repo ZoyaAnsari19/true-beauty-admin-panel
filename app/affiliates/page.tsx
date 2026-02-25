@@ -2,7 +2,7 @@
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import { Eye, MoreVertical, Ban, CheckCircle2 } from "lucide-react";
+import { Eye, MoreVertical, Ban } from "lucide-react";
 import Table from "@/components/Table";
 import { Filters, type FilterOption } from "@/components/ui/filters";
 import { KpiCard } from "@/components/ui/kpiCard";
@@ -16,13 +16,11 @@ import type { AffiliateStatus, Affiliate } from "@/lib/affiliates-data";
 interface AffiliateActionsMenuProps {
   affiliate: Affiliate;
   onToggleBlock: (affiliate: Affiliate) => void;
-  onApproveWithdrawals: (affiliate: Affiliate) => void;
 }
 
 function AffiliateActionsMenu({
   affiliate,
   onToggleBlock,
-  onApproveWithdrawals,
 }: AffiliateActionsMenuProps) {
   const [open, setOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement | null>(null);
@@ -39,9 +37,6 @@ function AffiliateActionsMenu({
   }, [open]);
 
   const isBlocked = affiliate.status === "blocked";
-  const hasPendingWithdrawals = affiliate.withdrawals.some(
-    (w) => w.status === "pending"
-  );
 
   return (
     <div className="relative inline-block text-left" ref={menuRef}>
@@ -78,26 +73,6 @@ function AffiliateActionsMenu({
           >
         <Ban className="w-4 h-4" />
         <span>{isBlocked ? "Unblock affiliate" : "Block affiliate"}</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              if (!hasPendingWithdrawals) return;
-              setOpen(false);
-              onApproveWithdrawals(affiliate);
-            }}
-            disabled={!hasPendingWithdrawals}
-            className={`flex w-full items-center gap-2 px-4 py-2 text-sm text-left transition-colors ${
-              hasPendingWithdrawals
-                ? "text-gray-700 hover:bg-[#fef5f7]"
-                : "text-gray-400 cursor-not-allowed"
-            }`}
-          >
-        <CheckCircle2 className="w-4 h-4" />
-            <span>
-              Approve withdrawals
-              {hasPendingWithdrawals ? "" : " (none pending)"}
-            </span>
           </button>
         </div>
       )}
@@ -188,25 +163,6 @@ export default function AffiliatesPage() {
     setAffiliateStatus(affiliate.id, nextStatus);
   };
 
-  const handleApproveWithdrawals = (affiliate: Affiliate) => {
-    const pending = affiliate.withdrawals.filter(
-      (w) => w.status === "pending"
-    );
-    if (pending.length === 0) return;
-
-    const totalAmount = pending.reduce((sum, w) => sum + w.amount, 0);
-    const confirmed = window.confirm(
-      `Approve ${pending.length} pending withdrawal${
-        pending.length > 1 ? "s" : ""
-      } for a total of ${formatCurrency(totalAmount)}?`
-    );
-    if (!confirmed) return;
-
-    pending.forEach((w) =>
-      updateWithdrawalStatus(affiliate.id, w.id, "approved")
-    );
-  };
-
   const columns = [
     {
       header: "Name",
@@ -242,22 +198,6 @@ export default function AffiliatesPage() {
       ),
     },
     {
-      header: "Total Commission",
-      accessor: (affiliate: (typeof affiliates)[number]) => (
-        <span className="font-semibold text-gray-900">
-          {formatCurrency(affiliate.totalCommission)}
-        </span>
-      ),
-    },
-    {
-      header: "Wallet Balance",
-      accessor: (affiliate: (typeof affiliates)[number]) => (
-        <span className="font-semibold text-gray-900">
-          {formatCurrency(affiliate.walletBalance)}
-        </span>
-      ),
-    },
-    {
       header: "Status",
       accessor: (affiliate: (typeof affiliates)[number]) => (
         <span
@@ -286,7 +226,6 @@ export default function AffiliatesPage() {
           <AffiliateActionsMenu
             affiliate={affiliate}
             onToggleBlock={handleToggleBlock}
-            onApproveWithdrawals={handleApproveWithdrawals}
           />
         </div>
       ),
@@ -295,7 +234,7 @@ export default function AffiliatesPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex gap-4 overflow-x-auto pb-2 -mx-4 px-4 md:mx-0 md:px-0 md:grid md:grid-cols-2 lg:grid-cols-4 md:gap-6">
+      <div className="flex gap-4 overflow-x-auto pb-2 -mx-4 px-4 md:mx-0 md:px-0 md:grid md:grid-cols-2 md:gap-6">
         <KpiCard
           title="Total Affiliates"
           value={kpis.totalAffiliates.toLocaleString()}
@@ -308,20 +247,6 @@ export default function AffiliatesPage() {
           value={kpis.activeAffiliates.toLocaleString()}
           icon="user-check"
           iconClassName="bg-emerald-50 text-emerald-700"
-          className="min-w-[260px] md:min-w-0 shrink-0 md:shrink"
-        />
-        <KpiCard
-          title="Total Commission"
-          value={formatCurrency(kpis.totalCommission)}
-          icon="indian-rupee"
-          iconClassName="bg-purple-50 text-purple-600"
-          className="min-w-[260px] md:min-w-0 shrink-0 md:shrink"
-        />
-        <KpiCard
-          title="Wallet Balance"
-          value={formatCurrency(kpis.totalWalletBalance)}
-          icon="trending-up"
-          iconClassName="bg-amber-50 text-amber-600"
           className="min-w-[260px] md:min-w-0 shrink-0 md:shrink"
         />
       </div>
@@ -381,9 +306,6 @@ export default function AffiliatesPage() {
                       </span>
                     </div>
                     <div className="flex items-center justify-between gap-3 text-[11px] text-gray-600">
-                      <span className="text-gray-800">
-                        Wallet: {formatCurrency(affiliate.walletBalance)}
-                      </span>
                       <span className="text-gray-500 text-right">
                         Joined {formatDate(affiliate.joinedAt)}
                       </span>
@@ -403,7 +325,6 @@ export default function AffiliatesPage() {
                   <AffiliateActionsMenu
                     affiliate={affiliate}
                     onToggleBlock={handleToggleBlock}
-                    onApproveWithdrawals={handleApproveWithdrawals}
                   />
                 </div>
               </div>

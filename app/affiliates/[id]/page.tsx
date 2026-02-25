@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import {
@@ -53,11 +53,18 @@ export default function AffiliateDetailPage() {
     typeof params.id === "string" ? params.id : (params.id?.[0] as string);
   const affiliate = id ? getAffiliateById(id) : undefined;
 
-  const [commissionRateDraft, setCommissionRateDraft] = useState(
-    affiliate?.commissionRate ?? 0
+  const [commissionRateDraft, setCommissionRateDraft] = useState<string>(() =>
+    affiliate != null ? String(Number(affiliate.commissionRate)) : "0"
   );
   const [adjustAmount, setAdjustAmount] = useState<string>("");
   const [adjustReason, setAdjustReason] = useState<string>("");
+
+  useEffect(() => {
+    if (affiliate != null) {
+      const normalized = String(Number(affiliate.commissionRate));
+      setCommissionRateDraft(normalized === "NaN" ? "0" : normalized);
+    }
+  }, [affiliate?.id, affiliate?.commissionRate]);
 
   if (!id || !affiliate) {
     return (
@@ -87,9 +94,31 @@ export default function AffiliateDetailPage() {
     setAffiliateStatus(affiliate.id, nextStatus);
   };
 
+  const handleCommissionInputChange = (raw: string) => {
+    let s = raw.replace(/[^\d.]/g, "");
+    const parts = s.split(".");
+    if (parts.length > 2) s = parts[0] + "." + parts.slice(1).join("");
+    else if (parts.length === 2) s = parts[0] + "." + parts[1].slice(0, 2);
+    if (s === "" || s === ".") {
+      setCommissionRateDraft(s);
+      return;
+    }
+    if (s.endsWith(".") || s === "0.") {
+      setCommissionRateDraft(s);
+      return;
+    }
+    const num = parseFloat(s);
+    if (Number.isNaN(num)) {
+      setCommissionRateDraft("0");
+      return;
+    }
+    const clamped = Math.min(100, Math.max(0, num));
+    setCommissionRateDraft(clamped.toString());
+  };
+
   const handleCommissionSave = () => {
-    const value = Number(commissionRateDraft);
-    if (!Number.isFinite(value) || value < 0) return;
+    const value = parseFloat(commissionRateDraft);
+    if (!Number.isFinite(value) || value < 0 || value > 100) return;
     updateCommissionRate(affiliate.id, value);
   };
 
@@ -439,21 +468,28 @@ export default function AffiliateDetailPage() {
             <div className="flex items-center gap-3">
               <div className="flex items-center gap-2 flex-1">
                 <input
-                  type="number"
+                  type="text"
+                  inputMode="decimal"
                   min={0}
-                  step={0.5}
+                  max={100}
                   value={commissionRateDraft}
-                  onChange={(e) =>
-                    setCommissionRateDraft(Number(e.target.value) || 0)
-                  }
+                  onChange={(e) => handleCommissionInputChange(e.target.value)}
+                  onFocus={(e) => e.target.select()}
                   className="w-full px-3 py-2.5 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-[#f8c6d0] focus:border-transparent"
+                  aria-label="Commission percentage"
                 />
                 <span className="text-sm font-medium text-gray-700">%</span>
               </div>
               <button
                 type="button"
                 onClick={handleCommissionSave}
-                className="inline-flex items-center justify-center px-4 py-2.5 rounded-xl text-sm font-medium text-white bg-[#D96A86] hover:bg-[#C85A76] transition-colors"
+                disabled={
+                  commissionRateDraft === "" ||
+                  Number.isNaN(parseFloat(commissionRateDraft)) ||
+                  parseFloat(commissionRateDraft) < 0 ||
+                  parseFloat(commissionRateDraft) > 100
+                }
+                className="inline-flex items-center justify-center px-4 py-2.5 rounded-xl text-sm font-medium text-white bg-[#D96A86] hover:bg-[#C85A76] transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
               >
                 Save
               </button>
