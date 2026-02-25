@@ -146,86 +146,104 @@ export default function UserDetailPage() {
           <h2 className="text-lg font-semibold text-gray-900">Basic Info</h2>
           <p className="text-xs text-gray-500 mt-0.5">View only — not editable</p>
         </div>
-        <div className="p-6 grid grid-cols-1 sm:grid-cols-2 gap-6 bg-white">
-          <div className="flex items-start gap-3">
-            <div className="p-2 rounded-lg bg-[#fef5f7]">
-              <User className="w-5 h-5 text-gray-600" />
+        <div className="p-6 bg-white space-y-6">
+          {/* Name, Email, Mobile — single row */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
+            <div className="flex items-start gap-3">
+              <div className="p-2 rounded-lg bg-[#fef5f7] shrink-0">
+                <User className="w-5 h-5 text-gray-600" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">Name</p>
+                <p className="text-gray-900 font-medium mt-0.5 truncate">{user.name}</p>
+              </div>
             </div>
-            <div>
-              <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">Name</p>
-              <p className="text-gray-900 font-medium mt-0.5">{user.name}</p>
+            <div className="flex items-start gap-3">
+              <div className="p-2 rounded-lg bg-[#fef5f7] shrink-0">
+                <Mail className="w-5 h-5 text-gray-600" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">Email</p>
+                <p className="text-gray-900 font-medium mt-0.5 truncate">{user.email}</p>
+              </div>
             </div>
-          </div>
-          <div className="flex items-start gap-3">
-            <div className="p-2 rounded-lg bg-[#fef5f7]">
-              <Mail className="w-5 h-5 text-gray-600" />
-            </div>
-            <div>
-              <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">Email</p>
-              <p className="text-gray-900 font-medium mt-0.5">{user.email}</p>
-            </div>
-          </div>
-          <div className="flex items-start gap-3">
-            <div className="p-2 rounded-lg bg-[#fef5f7]">
-              <Phone className="w-5 h-5 text-gray-600" />
-            </div>
-            <div>
-              <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">Mobile</p>
-              <p className="text-gray-900 font-medium mt-0.5">{user.mobile}</p>
-            </div>
-          </div>
-          <div className="flex items-start gap-3">
-            <div className="p-2 rounded-lg bg-[#fef5f7]">
-              <Cake className="w-5 h-5 text-gray-600" />
-            </div>
-            <div>
-              <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">Date of birth</p>
-              <p className="text-gray-900 font-medium mt-0.5">{formatDate(user.dob)}</p>
+            <div className="flex items-start gap-3">
+              <div className="p-2 rounded-lg bg-[#fef5f7] shrink-0">
+                <Phone className="w-5 h-5 text-gray-600" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">Mobile</p>
+                <p className="text-gray-900 font-medium mt-0.5">{user.mobile}</p>
+              </div>
             </div>
           </div>
-          <div className="flex items-start gap-3">
-            <div className="p-2 rounded-lg bg-[#fef5f7]">
-              <VenusAndMars className="w-5 h-5 text-gray-600" />
+          {/* DOB, Gender — same 3-col grid as Name/Email/Mobile so Gender aligns with Email */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6 pt-2 border-t border-gray-100">
+            <div className="flex items-start gap-3">
+              <div className="p-2 rounded-lg bg-[#fef5f7] shrink-0">
+                <Cake className="w-5 h-5 text-gray-600" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">Date of birth</p>
+                <p className="text-gray-900 font-medium mt-0.5">{formatDate(user.dob)}</p>
+              </div>
             </div>
-            <div>
-              <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">Gender</p>
-              <p className="text-gray-900 font-medium mt-0.5">{user.gender}</p>
+            <div className="flex items-start gap-3">
+              <div className="p-2 rounded-lg bg-[#fef5f7] shrink-0">
+                <VenusAndMars className="w-5 h-5 text-gray-600" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">Gender</p>
+                <p className="text-gray-900 font-medium mt-0.5">{user.gender}</p>
+              </div>
+            </div>
+            <div />
+          </div>
+          {/* Divider after DOB / Gender */}
+          <div className="border-t border-gray-200 my-0" role="separator" aria-hidden="true" />
+          {/* City, State, Pincode — single row with equal spacing */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 lg:gap-8 pt-6">
+            <div className="flex items-start gap-3">
+              <div className="p-2 rounded-lg bg-[#fef5f7] shrink-0">
+                <Building2 className="w-5 h-5 text-gray-600" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">City</p>
+                <p className="text-gray-900 font-medium mt-0.5 truncate">{user.city}</p>
+              </div>
+            </div>
+            <div className="flex items-start gap-3">
+              <div className="p-2 rounded-lg bg-[#fef5f7] shrink-0">
+                <Globe className="w-5 h-5 text-gray-600" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">State</p>
+                <p className="text-gray-900 font-medium mt-0.5">{user.state}</p>
+              </div>
+            </div>
+            <div className="flex items-start gap-3">
+              <div className="p-2 rounded-lg bg-[#fef5f7] shrink-0">
+                <Hash className="w-5 h-5 text-gray-600" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">Pincode</p>
+                <p className="text-gray-900 font-medium mt-0.5">{user.pincode}</p>
+              </div>
             </div>
           </div>
+        </div>
+      </div>
+
+      {/* Address — separate card below City row */}
+      <div className="rounded-2xl border border-gray-100 overflow-hidden bg-white">
+        <div className="p-6">
           <div className="flex items-start gap-3">
-            <div className="p-2 rounded-lg bg-[#fef5f7]">
+            <div className="p-2 rounded-lg bg-[#fef5f7] shrink-0">
               <MapPin className="w-5 h-5 text-gray-600" />
             </div>
-            <div className="min-w-0">
+            <div className="min-w-0 flex-1">
               <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">Address</p>
               <p className="text-gray-900 font-medium mt-0.5">{user.address}</p>
-            </div>
-          </div>
-          <div className="flex items-start gap-3">
-            <div className="p-2 rounded-lg bg-[#fef5f7]">
-              <Building2 className="w-5 h-5 text-gray-600" />
-            </div>
-            <div>
-              <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">City</p>
-              <p className="text-gray-900 font-medium mt-0.5">{user.city}</p>
-            </div>
-          </div>
-          <div className="flex items-start gap-3">
-            <div className="p-2 rounded-lg bg-[#fef5f7]">
-              <Globe className="w-5 h-5 text-gray-600" />
-            </div>
-            <div>
-              <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">State</p>
-              <p className="text-gray-900 font-medium mt-0.5">{user.state}</p>
-            </div>
-          </div>
-          <div className="flex items-start gap-3">
-            <div className="p-2 rounded-lg bg-[#fef5f7]">
-              <Hash className="w-5 h-5 text-gray-600" />
-            </div>
-            <div>
-              <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">Pincode</p>
-              <p className="text-gray-900 font-medium mt-0.5">{user.pincode}</p>
             </div>
           </div>
         </div>
@@ -278,7 +296,7 @@ export default function UserDetailPage() {
         count={uniqueOrderCount(user.returnsOrders)}
         total={totalAmount(user.returnsOrders)}
         countLabel="Total Returns"
-        amountLabel="Total Return Amount"
+        amountLabel="Total Amount"
       />
       <OrderCardsList items={user.returnsOrders} />
     </div>
@@ -302,7 +320,7 @@ export default function UserDetailPage() {
         count={uniqueOrderCount(user.refundedOrders)}
         total={totalAmount(user.refundedOrders)}
         countLabel="Total Refunds"
-        amountLabel="Total Refund Amount"
+        amountLabel="Total Amount"
       />
       <OrderCardsList items={user.refundedOrders} />
     </div>
@@ -345,7 +363,7 @@ export default function UserDetailPage() {
           className="min-w-[260px] md:min-w-0 shrink-0 md:shrink"
         />
         <KpiCard
-          title="Total Refund Amount"
+          title="Total Amount"
           value={formatCurrency(totalRefundAmount)}
           icon="indian-rupee"
           iconClassName="bg-amber-50 text-amber-600"

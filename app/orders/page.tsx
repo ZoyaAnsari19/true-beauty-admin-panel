@@ -213,14 +213,6 @@ export default function OrdersPage() {
       ),
     },
     {
-      header: "Total Amount",
-      accessor: (order: (typeof orders)[number]) => (
-        <span className="font-semibold text-gray-900">
-          {formatCurrency(order.totalAmount)}
-        </span>
-      ),
-    },
-    {
       header: "Payment Method",
       accessor: (order: (typeof orders)[number]) => (
         <span className="text-xs uppercase tracking-wide text-gray-700">

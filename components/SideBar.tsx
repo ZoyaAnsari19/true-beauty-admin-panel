@@ -102,7 +102,8 @@ export default function SideBar() {
                 pathname === item.href ||
                 (item.href === "/users" && pathname.startsWith("/users/")) ||
                 (item.href === "/products" && pathname.startsWith("/products")) ||
-                (item.href === "/services" && pathname.startsWith("/services"));
+                (item.href === "/services" && pathname.startsWith("/services")) ||
+                (item.href === "/affiliates" && pathname.startsWith("/affiliates/"));
               return (
                 <Link
                   key={item.href}

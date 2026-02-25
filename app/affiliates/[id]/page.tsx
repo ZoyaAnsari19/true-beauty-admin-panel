@@ -45,7 +45,6 @@ export default function AffiliateDetailPage() {
     getAffiliateById,
     setAffiliateStatus,
     updateCommissionRate,
-    adjustWallet,
     updateWithdrawalStatus,
   } = useAffiliates();
 
@@ -56,9 +55,6 @@ export default function AffiliateDetailPage() {
   const [commissionRateDraft, setCommissionRateDraft] = useState<string>(() =>
     affiliate != null ? String(Number(affiliate.commissionRate)) : "0"
   );
-  const [adjustAmount, setAdjustAmount] = useState<string>("");
-  const [adjustReason, setAdjustReason] = useState<string>("");
-
   useEffect(() => {
     if (affiliate != null) {
       const normalized = String(Number(affiliate.commissionRate));
@@ -120,14 +116,6 @@ export default function AffiliateDetailPage() {
     const value = parseFloat(commissionRateDraft);
     if (!Number.isFinite(value) || value < 0 || value > 100) return;
     updateCommissionRate(affiliate.id, value);
-  };
-
-  const handleWalletAdjust = () => {
-    const value = Number(adjustAmount);
-    if (!Number.isFinite(value) || value === 0) return;
-    adjustWallet(affiliate.id, value, adjustReason);
-    setAdjustAmount("");
-    setAdjustReason("");
   };
 
   const handleWithdrawalAction = (
@@ -492,55 +480,6 @@ export default function AffiliateDetailPage() {
                 className="inline-flex items-center justify-center px-4 py-2.5 rounded-xl text-sm font-medium text-white bg-[#D96A86] hover:bg-[#C85A76] transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
               >
                 Save
-              </button>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 space-y-4">
-            <h2 className="text-base font-semibold text-gray-900">
-              Adjust Wallet Manually
-            </h2>
-            <p className="text-xs text-gray-500">
-              Credit or debit this affiliate&apos;s wallet and add a note for
-              future reference.
-            </p>
-            <div className="space-y-3">
-              <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1">
-                  Amount (use negative value to debit)
-                </label>
-                <div className="flex items-center gap-2">
-                  <span className="inline-flex items-center justify-center h-9 w-9 rounded-xl bg-[#fef5f7] text-[#D96A86]">
-                    <Wallet className="w-4 h-4" />
-                  </span>
-                  <input
-                    type="number"
-                    value={adjustAmount}
-                    onChange={(e) => setAdjustAmount(e.target.value)}
-                    className="flex-1 px-3 py-2.5 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-[#f8c6d0] focus:border-transparent"
-                    placeholder="e.g. 500 or -250"
-                  />
-                </div>
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1">
-                  Reason / note
-                </label>
-                <textarea
-                  rows={3}
-                  value={adjustReason}
-                  onChange={(e) => setAdjustReason(e.target.value)}
-                  className="w-full px-3 py-2.5 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-[#f8c6d0] focus:border-transparent resize-none"
-                  placeholder="Short explanation for this adjustment..."
-                />
-              </div>
-              <button
-                type="button"
-                onClick={handleWalletAdjust}
-                className="inline-flex items-center justify-center w-full px-4 py-2.5 rounded-xl text-sm font-medium text-white bg-[#D96A86] hover:bg-[#C85A76] transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
-                disabled={!adjustAmount}
-              >
-                Apply adjustment
               </button>
             </div>
           </div>
