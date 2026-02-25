@@ -11,6 +11,7 @@ import { UsersProvider } from "@/lib/users-context";
 import { ProductsProvider } from "@/lib/products-context";
 import { ServicesProvider } from "@/lib/services-context";
 import { OrdersProvider } from "@/lib/orders-context";
+import { AffiliatesProvider } from "@/lib/affiliates-context";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -54,13 +55,19 @@ export default function RootLayout({
     typeof pathname === "string" &&
     pathname.startsWith("/services/") &&
     pathname !== "/services";
+  const isAffiliateDetail =
+    typeof pathname === "string" &&
+    pathname.startsWith("/affiliates/") &&
+    pathname !== "/affiliates";
   const pageTitle = isUserDetail
     ? "User Details"
     : isProductDetail
       ? "Product Details"
       : isServiceDetail
         ? "Service Details"
-        : (pageTitles[pathname] || "Dashboard");
+        : isAffiliateDetail
+          ? "Affiliate Details"
+          : (pageTitles[pathname] || "Dashboard");
 
   return (
     <html lang="en">
@@ -75,6 +82,7 @@ export default function RootLayout({
         <ProductsProvider>
         <ServicesProvider>
         <OrdersProvider>
+        <AffiliatesProvider>
         <SidebarProvider>
         <div className="flex h-screen bg-[#fef5f7]">
           <SideBar />
@@ -86,6 +94,7 @@ export default function RootLayout({
           </div>
         </div>
         </SidebarProvider>
+        </AffiliatesProvider>
         </OrdersProvider>
         </ServicesProvider>
         </ProductsProvider>
