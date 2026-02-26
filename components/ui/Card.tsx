@@ -14,6 +14,8 @@ export interface ProductOrderCardProps {
   currency?: string;
   formatDate?: (dateStr: string) => string;
   onClick?: () => void;
+  /** Show "Via Affiliate" badge when order was made through affiliate link */
+  showAffiliateBadge?: boolean;
 }
 
 function defaultFormatCurrency(amount: number, currency: string = "INR") {
@@ -42,6 +44,7 @@ export function ProductOrderCard({
   currency = "INR",
   formatDate = defaultFormatDate,
   onClick,
+  showAffiliateBadge = false,
 }: ProductOrderCardProps) {
   const statusColors: Record<string, string> = {
     delivered: "bg-green-50 text-green-700",
@@ -59,52 +62,63 @@ export function ProductOrderCard({
 
   return (
     <div
-      className={`flex flex-col sm:flex-row gap-4 p-4 rounded-2xl border border-[#f8c6d0]/60 bg-white shadow-sm hover:shadow-md transition-shadow ${
+      className={`flex flex-col gap-4 p-4 rounded-2xl border border-[#f8c6d0]/60 bg-white shadow-sm hover:shadow-md transition-shadow ${
         onClick ? "cursor-pointer" : ""
       }`}
       onClick={onClick}
     >
-      {/* Product image */}
-      <div className="shrink-0 w-full sm:w-24 h-24 sm:h-24 rounded-xl bg-[#fef5f7] overflow-hidden flex items-center justify-center">
-        {productImage ? (
-          <Image
-            src={productImage}
-            alt={productName}
-            width={96}
-            height={96}
-            className="w-full h-full object-cover"
-          />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center text-gray-400 text-3xl font-light">
-            —
-          </div>
-        )}
-      </div>
-
-      {/* Product info */}
-      <div className="flex-1 min-w-0 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-        <div className="space-y-1">
-          <h3 className="text-sm font-semibold text-gray-900 truncate">
-            {productName}
-          </h3>
-          <p className="text-sm font-medium text-red-600">
-            {defaultFormatCurrency(price, currency)}
-          </p>
-          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-gray-500">
-            <span>Qty: {quantity}</span>
-            <span>{formatDate(orderDate)}</span>
-            <span
-              className={`inline-flex px-2 py-0.5 rounded-full text-xs font-medium ${statusClass}`}
-            >
-              {orderStatus}
-            </span>
-          </div>
+      <div className="flex flex-col sm:flex-row gap-4 min-w-0">
+        {/* Product image */}
+        <div className="shrink-0 w-full sm:w-24 h-24 sm:h-24 rounded-xl bg-[#fef5f7] overflow-hidden flex items-center justify-center">
+          {productImage ? (
+            <Image
+              src={productImage}
+              alt={productName}
+              width={96}
+              height={96}
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center text-gray-400 text-3xl font-light">
+              —
+            </div>
+          )}
         </div>
-        <div className="shrink-0 sm:text-right">
-          <p className="text-base font-semibold text-gray-900">
-            {defaultFormatCurrency(totalAmount, currency)}
-          </p>
-          <p className="text-xs text-gray-500 mt-0.5">Total</p>
+
+        {/* Product info */}
+        <div className="flex-1 min-w-0 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div className="space-y-1">
+            <h3 className="text-sm font-semibold text-gray-900 truncate">
+              {productName}
+            </h3>
+            <p className="text-sm font-medium text-red-600">
+              {defaultFormatCurrency(price, currency)}
+            </p>
+            <div className="flex items-center text-xs text-gray-500 flex-wrap gap-y-1">
+              <div className="flex items-center gap-x-4">
+                <span>Qty: {quantity}</span>
+                <span>{formatDate(orderDate)}</span>
+              </div>
+              <div className="flex-1 flex justify-center gap-2 min-w-0">
+                <span
+                  className={`inline-flex px-2 py-0.5 rounded-full text-xs font-medium ${statusClass}`}
+                >
+                  {orderStatus}
+                </span>
+                {showAffiliateBadge && (
+                  <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-violet-50 text-violet-700 border border-violet-200/60">
+                    Via Affiliate
+                  </span>
+                )}
+              </div>
+            </div>
+          </div>
+          <div className="shrink-0 sm:text-right">
+            <p className="text-base font-semibold text-gray-900">
+              {defaultFormatCurrency(totalAmount, currency)}
+            </p>
+            <p className="text-xs text-gray-500 mt-0.5">Total</p>
+          </div>
         </div>
       </div>
     </div>
