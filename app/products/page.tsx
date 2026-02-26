@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Eye, MoreVertical, Pencil, Plus, Trash2 } from "lucide-react";
 import { useProducts } from "@/lib/products-context";
-import type { Product, ProductStatus } from "@/lib/products-data";
+import { PRODUCT_CATEGORIES, type Product, type ProductStatus } from "@/lib/products-data";
 import type { ProductFormValues } from "@/lib/products-context";
 import { Drawer } from "@/components/ui/Drawer";
 import { ProductForm } from "@/components/ui/ProductForm";
@@ -40,15 +40,10 @@ const STATUS_OPTIONS: FilterOption[] = [
 
 const CATEGORY_OPTIONS: FilterOption[] = [
   { value: "", label: "All categories" },
-  { value: "Skincare", label: "Skincare" },
-  { value: "Makeup", label: "Makeup" },
-  { value: "Bath & Body", label: "Bath & Body" },
-  { value: "Haircare", label: "Haircare" },
-  { value: "Fragrance", label: "Fragrance" },
-  { value: "Wellness", label: "Wellness" },
-  { value: "Gifting", label: "Gifting" },
-  { value: "Jewellery", label: "Jewellery" },
-  { value: "Offers", label: "Offers" },
+  ...PRODUCT_CATEGORIES.map((category) => ({
+    value: category,
+    label: category,
+  })),
 ];
 
 const STATUS_CLASSES: Record<string, string> = {
@@ -248,6 +243,16 @@ export default function ProductsPage() {
       header: "Price",
       accessor: (product: Product) => (
         <span className="font-medium text-gray-900">{formatPrice(product.price)}</span>
+      ),
+    },
+    {
+      header: "Commission",
+      accessor: (product: Product) => (
+        <span className="text-sm text-gray-700">
+          {typeof product.commissionRate === "number"
+            ? `${product.commissionRate}%`
+            : "-"}
+        </span>
       ),
     },
     {

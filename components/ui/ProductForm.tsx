@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect } from "react";
-import type { Product } from "@/lib/products-data";
+import { PRODUCT_CATEGORIES, type Product } from "@/lib/products-data";
 import type { ProductFormValues } from "@/lib/products-context";
 
 const STATUS_OPTIONS: { value: Product["status"]; label: string }[] = [
@@ -9,6 +9,8 @@ const STATUS_OPTIONS: { value: Product["status"]; label: string }[] = [
   { value: "draft", label: "Draft" },
   { value: "inactive", label: "Inactive" },
 ];
+
+const CATEGORY_OPTIONS = PRODUCT_CATEGORIES;
 
 interface ProductFormProps {
   initialValues?: Product | null;
@@ -20,11 +22,13 @@ const emptyForm: ProductFormValues = {
   name: "",
   category: "",
   price: 0,
+  commissionRate: 0,
   stock: 0,
   stockStatus: "in_stock",
   status: "active",
   image: "",
   description: "",
+  imageFile: null,
 };
 
 export function ProductForm({
@@ -40,12 +44,14 @@ export function ProductForm({
         name: initialValues.name,
         category: initialValues.category,
         price: initialValues.price,
+        commissionRate: initialValues.commissionRate ?? 0,
         stock: initialValues.stock,
         stockStatus: initialValues.stockStatus,
         status: initialValues.status,
         image: initialValues.image ?? "",
         images: initialValues.images,
         description: initialValues.description ?? "",
+        imageFile: null,
       });
     } else {
       setValues(emptyForm);
@@ -61,6 +67,10 @@ export function ProductForm({
       category: values.category.trim() || "Uncategorized",
       price: values.price || 0,
       stock: values.stock ?? 0,
+      commissionRate:
+        typeof values.commissionRate === "number" && !Number.isNaN(values.commissionRate)
+          ? Math.max(0, values.commissionRate)
+          : 0,
       description: values.description?.trim() ?? "",
     });
   };
@@ -85,15 +95,22 @@ export function ProductForm({
         <label htmlFor="category" className="block text-sm font-medium text-gray-700 mb-1">
           Category <span className="text-red-500">*</span>
         </label>
-        <input
+        <select
           id="category"
-          type="text"
           required
           value={values.category}
           onChange={(e) => setValues((v) => ({ ...v, category: e.target.value }))}
-          className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-[#f8c6d0] focus:border-transparent outline-none transition-all"
-          placeholder="e.g. Skincare"
-        />
+          className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-[#f8c6d0] focus:border-transparent outline-none transition-all bg-white"
+        >
+          <option value="" disabled>
+            Select category
+          </option>
+          {CATEGORY_OPTIONS.map((category) => (
+            <option key={category} value={category}>
+              {category}
+            </option>
+          ))}
+        </select>
       </div>
       <div className="grid grid-cols-2 gap-4">
         <div>
@@ -128,6 +145,34 @@ export function ProductForm({
         </div>
       </div>
       <div>
+        <label htmlFor="commissionRate" className="block text-sm font-medium text-gray-700 mb-1">
+          Commission Rate (%)
+        </label>
+        <input
+          id="commissionRate"
+          type="number"
+          min={0}
+          max={100}
+          step={0.1}
+          value={
+            typeof values.commissionRate === "number" && values.commissionRate !== 0
+              ? values.commissionRate
+              : ""
+          }
+          onChange={(e) =>
+            setValues((v) => ({
+              ...v,
+              commissionRate: e.target.value === "" ? 0 : Number(e.target.value) || 0,
+            }))
+          }
+          className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-[#f8c6d0] focus:border-transparent outline-none transition-all"
+          placeholder="e.g. 10"
+        />
+        <p className="mt-1 text-xs text-gray-500">
+          Percentage of the product price that will be given as commission.
+        </p>
+      </div>
+      <div>
         <label htmlFor="status" className="block text-sm font-medium text-gray-700 mb-1">
           Status
         </label>
@@ -148,16 +193,25 @@ export function ProductForm({
       </div>
       <div>
         <label htmlFor="image" className="block text-sm font-medium text-gray-700 mb-1">
-          Image URL
+          Product Image
         </label>
         <input
           id="image"
-          type="url"
-          value={values.image ?? ""}
-          onChange={(e) => setValues((v) => ({ ...v, image: e.target.value || null }))}
-          className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-[#f8c6d0] focus:border-transparent outline-none transition-all"
-          placeholder="https://..."
+          type="file"
+          accept="image/*"
+          onChange={(e) => {
+            const file = e.target.files?.[0] ?? null;
+            setValues((v) => ({
+              ...v,
+              imageFile: file,
+              image: file ? URL.createObjectURL(file) : null,
+            }));
+          }}
+          className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-[#f8c6d0] focus:border-transparent outline-none transition-all bg-white file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-[#fef5f7] file:text-[#D96A86] hover:file:bg-[#f8e0e6]"
         />
+        <p className="mt-1 text-xs text-gray-500">
+          Upload a product image (JPEG, PNG, etc.). This replaces the URL input.
+        </p>
       </div>
       <div>
         <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">

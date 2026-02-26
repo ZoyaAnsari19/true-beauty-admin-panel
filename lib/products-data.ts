@@ -1,11 +1,24 @@
 export type ProductStockStatus = "in_stock" | "low_stock" | "out_of_stock";
 export type ProductStatus = "active" | "draft" | "inactive";
 
+export const PRODUCT_CATEGORIES = [
+  "Skincare",
+  "Makeup",
+  "Bath & Body",
+  "Haircare",
+  "Fragrance",
+  "Wellness",
+  "Gifting",
+  "Jewellery",
+  "Offers",
+] as const;
+
 export interface Product {
   id: string;
   name: string;
   category: string;
   price: number;
+  commissionRate?: number;
   stock: number;
   stockStatus: ProductStockStatus;
   status: ProductStatus;
@@ -23,6 +36,7 @@ const MOCK_PRODUCTS: Product[] = [
     name: "True Beauty Night Cream",
     category: "Skincare",
     price: 1399,
+    commissionRate: 10,
     stock: 45,
     stockStatus: "in_stock",
     status: "active",
@@ -40,6 +54,7 @@ const MOCK_PRODUCTS: Product[] = [
     name: "Vitamin C Face Wash",
     category: "Skincare",
     price: 499,
+    commissionRate: 8,
     stock: 8,
     stockStatus: "low_stock",
     status: "active",
@@ -57,6 +72,7 @@ const MOCK_PRODUCTS: Product[] = [
     name: "Hair Growth Serum",
     category: "Haircare",
     price: 899,
+    commissionRate: 12,
     stock: 0,
     stockStatus: "out_of_stock",
     status: "inactive",
@@ -72,6 +88,7 @@ const MOCK_PRODUCTS: Product[] = [
     name: "Sunscreen SPF 50",
     category: "Skincare",
     price: 449,
+    commissionRate: 6,
     stock: 120,
     stockStatus: "in_stock",
     status: "active",
@@ -87,6 +104,7 @@ const MOCK_PRODUCTS: Product[] = [
     name: "Lip Balm Set",
     category: "Makeup",
     price: 299,
+    commissionRate: 5,
     stock: 25,
     stockStatus: "in_stock",
     status: "draft",
