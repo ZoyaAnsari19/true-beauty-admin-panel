@@ -28,7 +28,7 @@ interface MenuItem {
 const menuItems: MenuItem[] = [
   { label: "Dashboard", icon: LayoutDashboard, href: "/" },
   { label: "User Management", icon: Users, href: "/users" },
-  { label: "Add Product", icon: Package, href: "/products" },
+  { label: "Add Product/Manage", icon: Package, href: "/products" },
   { label: "Add Service", icon: Scissors, href: "/services" },
   // { label: "Order Management", icon: ShoppingCart, href: "/orders" },
   { label: "Affiliate Users", icon: UserCheck, href: "/affiliates" },

@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { useOrders } from "@/lib/orders-context";
 import { useAffiliates } from "@/lib/affiliates-context";
+import { useProducts } from "@/lib/products-context";
 import type { PaymentStatus } from "@/lib/orders-data";
 
 function formatCurrency(amount: number) {
@@ -74,8 +75,12 @@ export default function OrderDetailsPage() {
   const itemId = searchParams.get("itemId") ?? "";
   const { getOrderById } = useOrders();
   const { affiliates } = useAffiliates();
+  const { products } = useProducts();
   const order = orderId ? getOrderById(orderId) : undefined;
   const selectedItem = order?.items.find((i) => i.id === itemId);
+  const matchedProduct = selectedItem
+    ? products.find((p) => p.name === selectedItem.productName)
+    : undefined;
   const affiliate = orderId
     ? affiliates.find((a) =>
         a.commissionLogs.some((log) => log.orderId === orderId)
@@ -137,6 +142,8 @@ export default function OrderDetailsPage() {
   }
 
   const statusKey = (order.orderStatus ?? "").toLowerCase();
+  const isDelivered = order.orderStatus === "delivered";
+  const isPending = order.orderStatus === "pending";
   const statusBadgeClass =
     ORDER_STATUS_CLASSES[statusKey] ?? "bg-gray-50 text-gray-700";
   const paymentBadgeClass =
@@ -172,18 +179,23 @@ export default function OrderDetailsPage() {
                   {order.id}
                 </h1>
               </div>
-              <div className="flex flex-wrap items-center gap-2">
-                <span
-                  className={`inline-flex px-2.5 py-1 rounded-full text-xs font-medium ${statusBadgeClass}`}
-                >
-                  {ORDER_STATUS_LABELS[statusKey] ?? order.orderStatus}
-                </span>
-                <span
-                  className={`inline-flex px-2.5 py-1 rounded-full text-xs font-medium ${paymentBadgeClass}`}
-                >
-                  {PAYMENT_STATUS_LABELS[order.paymentStatus] ??
-                    order.paymentStatus}
-                </span>
+              <div className="flex flex-wrap items-center gap-4 text-sm font-medium text-gray-900">
+                <div className="flex items-center gap-2">
+                  <span>Order:</span>
+                  <span
+                    className={`inline-flex px-2.5 py-1 rounded-full text-xs font-medium ${statusBadgeClass}`}
+                  >
+                    {ORDER_STATUS_LABELS[statusKey] ?? order.orderStatus}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span>Payment:</span>
+                  <span
+                    className={`inline-flex px-2.5 py-1 rounded-full text-xs font-medium ${paymentBadgeClass}`}
+                  >
+                    {PAYMENT_STATUS_LABELS[order.paymentStatus] ?? order.paymentStatus}
+                  </span>
+                </div>
               </div>
             </div>
             <div className="p-6 space-y-4">
@@ -207,7 +219,11 @@ export default function OrderDetailsPage() {
                   </div>
                   <div>
                     <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Last Updated
+                      {isDelivered
+                        ? "Delivered Date"
+                        : isPending
+                          ? "Arrival Date"
+                          : "Last Updated"}
                     </p>
                     <p className="text-sm font-medium text-gray-900 mt-0.5">
                       {formatDate(order.updatedAt)}
@@ -254,6 +270,11 @@ export default function OrderDetailsPage() {
                 <h3 className="text-xl font-semibold text-gray-900">
                   {selectedItem.productName}
                 </h3>
+                {matchedProduct?.category && (
+                  <p className="text-sm text-gray-600">
+                    Category: {matchedProduct.category}
+                  </p>
+                )}
                 <p className="text-base font-medium text-red-600">
                   {formatCurrency(selectedItem.price)} × {selectedItem.quantity}
                 </p>

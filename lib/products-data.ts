@@ -18,6 +18,7 @@ export interface Product {
   name: string;
   category: string;
   price: number;
+  discountPrice?: number;
   commissionRate?: number;
   stock: number;
   stockStatus: ProductStockStatus;
@@ -28,6 +29,7 @@ export interface Product {
   deletedAt?: string | null;
   createdAt: string;
   updatedAt: string;
+  isAffiliateProduct?: boolean;
 }
 
 const MOCK_PRODUCTS: Product[] = [

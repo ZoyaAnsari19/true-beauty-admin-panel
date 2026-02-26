@@ -170,11 +170,9 @@ export default function UsersPage() {
       ),
     },
     {
-      header: "Joined Date",
+      header: "Total Orders",
       accessor: (user: User) => (
-        <span className="text-sm text-gray-600">
-          {formatDate(user.joinedDate)}
-        </span>
+        <span className="text-sm text-gray-600">{user.totalOrders}</span>
       ),
     },
     {
@@ -290,7 +288,7 @@ export default function UsersPage() {
                       {user.status === "active" ? "Active" : "Blocked"}
                     </span>
                     <span className="text-xs text-gray-500 ml-auto">
-                      {formatDate(user.joinedDate)}
+                      Total orders: {user.totalOrders}
                     </span>
                   </div>
                 </div>

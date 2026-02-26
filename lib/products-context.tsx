@@ -57,6 +57,7 @@ export function ProductsProvider({ children }: { children: React.ReactNode }) {
       name: values.name,
       category: values.category,
       price: values.price,
+      discountPrice: values.discountPrice,
       commissionRate: values.commissionRate ?? 0,
       stock: values.stock,
       stockStatus,
@@ -64,6 +65,7 @@ export function ProductsProvider({ children }: { children: React.ReactNode }) {
       image: values.image ?? null,
       images: values.images ?? (values.image ? [values.image] : []),
       description: values.description ?? "",
+      isAffiliateProduct: values.isAffiliateProduct ?? false,
       createdAt: now,
       updatedAt: now,
     };

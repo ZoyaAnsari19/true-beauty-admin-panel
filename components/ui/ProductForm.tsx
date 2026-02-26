@@ -22,6 +22,7 @@ const emptyForm: ProductFormValues = {
   name: "",
   category: "",
   price: 0,
+  discountPrice: 0,
   commissionRate: 0,
   stock: 0,
   stockStatus: "in_stock",
@@ -29,6 +30,7 @@ const emptyForm: ProductFormValues = {
   image: "",
   description: "",
   imageFile: null,
+  isAffiliateProduct: false,
 };
 
 export function ProductForm({
@@ -44,6 +46,7 @@ export function ProductForm({
         name: initialValues.name,
         category: initialValues.category,
         price: initialValues.price,
+        discountPrice: initialValues.discountPrice ?? 0,
         commissionRate: initialValues.commissionRate ?? 0,
         stock: initialValues.stock,
         stockStatus: initialValues.stockStatus,
@@ -52,6 +55,7 @@ export function ProductForm({
         images: initialValues.images,
         description: initialValues.description ?? "",
         imageFile: null,
+        isAffiliateProduct: initialValues.isAffiliateProduct ?? false,
       });
     } else {
       setValues(emptyForm);
@@ -66,12 +70,14 @@ export function ProductForm({
       name: values.name.trim(),
       category: values.category.trim() || "Uncategorized",
       price: values.price || 0,
+      discountPrice: values.discountPrice || 0,
       stock: values.stock ?? 0,
       commissionRate:
         typeof values.commissionRate === "number" && !Number.isNaN(values.commissionRate)
           ? Math.max(0, values.commissionRate)
           : 0,
       description: values.description?.trim() ?? "",
+      isAffiliateProduct: values.isAffiliateProduct ?? false,
     });
   };
 
@@ -112,7 +118,7 @@ export function ProductForm({
           ))}
         </select>
       </div>
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div>
           <label htmlFor="price" className="block text-sm font-medium text-gray-700 mb-1">
             Price (₹) <span className="text-red-500">*</span>
@@ -125,6 +131,25 @@ export function ProductForm({
             required
             value={values.price === 0 ? "" : values.price}
             onChange={(e) => setValues((v) => ({ ...v, price: Number(e.target.value) || 0 }))}
+            className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-[#f8c6d0] focus:border-transparent outline-none transition-all"
+          />
+        </div>
+        <div>
+          <label htmlFor="discountPrice" className="block text-sm font-medium text-gray-700 mb-1">
+            Discount Price (₹)
+          </label>
+          <input
+            id="discountPrice"
+            type="number"
+            min={0}
+            step={0.01}
+            value={values.discountPrice === 0 ? "" : values.discountPrice}
+            onChange={(e) =>
+              setValues((v) => ({
+                ...v,
+                discountPrice: Number(e.target.value) || 0,
+              }))
+            }
             className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-[#f8c6d0] focus:border-transparent outline-none transition-all"
           />
         </div>
@@ -170,6 +195,47 @@ export function ProductForm({
         />
         <p className="mt-1 text-xs text-gray-500">
           Percentage of the product price that will be given as commission.
+        </p>
+      </div>
+      <div className="rounded-xl border border-gray-100 bg-[#fef5f7] p-4">
+        <span className="block text-sm font-medium text-gray-700 mb-1">
+          Add this Affiliate product
+        </span>
+        <div className="flex items-center gap-4 mt-1">
+          <label className="inline-flex items-center gap-2 text-sm text-gray-700">
+            <input
+              type="radio"
+              name="isAffiliateProduct"
+              checked={values.isAffiliateProduct === true}
+              onChange={() =>
+                setValues((v) => ({
+                  ...v,
+                  isAffiliateProduct: true,
+                }))
+              }
+              className="h-4 w-4 text-[#D96A86] border-gray-300 focus:ring-[#f8c6d0]"
+            />
+            <span>Yes</span>
+          </label>
+          <label className="inline-flex items-center gap-2 text-sm text-gray-700">
+            <input
+              type="radio"
+              name="isAffiliateProduct"
+              checked={values.isAffiliateProduct === false}
+              onChange={() =>
+                setValues((v) => ({
+                  ...v,
+                  isAffiliateProduct: false,
+                }))
+              }
+              className="h-4 w-4 text-[#D96A86] border-gray-300 focus:ring-[#f8c6d0]"
+            />
+            <span>No</span>
+          </label>
+        </div>
+        <p className="mt-1 text-xs text-gray-500">
+          If you select &quot;Yes&quot;, this product will be available in the affiliate product list
+          on the user side.
         </p>
       </div>
       <div>
