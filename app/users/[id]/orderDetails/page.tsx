@@ -90,6 +90,8 @@ export default function OrderDetailsPage() {
     (log) => log.orderId === orderId && log.type === "order_commission"
   );
 
+  const [isTrackingModalOpen, setIsTrackingModalOpen] = React.useState(false);
+
   if (!userId) {
     return (
       <div className="space-y-6">
@@ -154,6 +156,21 @@ export default function OrderDetailsPage() {
     order.customerState ||
     order.customerPincode;
   const hasTracking = order.trackingNumber || order.trackingUrl;
+
+  const createdAtDate = new Date(order.createdAt);
+  const expectedArrivalDate = new Date(createdAtDate);
+  expectedArrivalDate.setDate(expectedArrivalDate.getDate() + 5);
+  const expectedArrivalDisplay = formatDate(expectedArrivalDate.toISOString());
+
+  const shippingDate =
+    order.orderStatus === "shipped" || order.orderStatus === "delivered"
+      ? formatDate(order.updatedAt)
+      : "Not shipped yet";
+
+  const arrivalDate =
+    order.orderStatus === "delivered"
+      ? formatDate(order.updatedAt)
+      : `Expected by ${expectedArrivalDisplay}`;
 
   return (
     <div className="space-y-6">
@@ -231,16 +248,6 @@ export default function OrderDetailsPage() {
                   </div>
                 </div>
               </div>
-              {order.notes && (
-                <div className="pt-3 border-t border-gray-100">
-                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">
-                    Notes
-                  </p>
-                  <p className="text-sm text-gray-700 whitespace-pre-wrap">
-                    {order.notes}
-                  </p>
-                </div>
-              )}
             </div>
           </div>
 
@@ -330,14 +337,13 @@ export default function OrderDetailsPage() {
                       </span>
                     )}
                     {order.trackingUrl && (
-                      <a
-                        href={order.trackingUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
+                      <button
+                        type="button"
+                        onClick={() => setIsTrackingModalOpen(true)}
                         className="inline-flex items-center gap-1.5 text-sm font-medium text-[#D96A86] hover:underline"
                       >
                         Track shipment →
-                      </a>
+                      </button>
                     )}
                   </div>
                 </div>
@@ -462,6 +468,66 @@ export default function OrderDetailsPage() {
           )}
         </div>
       </div>
+
+      {isTrackingModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
+          <div className="w-full max-w-md rounded-2xl bg-white shadow-xl">
+            <div className="flex items-center justify-between border-b border-gray-100 px-5 py-4">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-wider text-gray-500">
+                  Shipment timeline
+                </p>
+                <p className="text-sm font-semibold text-gray-900">
+                  {order.trackingNumber ?? "Tracking details"}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsTrackingModalOpen(false)}
+                className="rounded-full p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-700"
+                aria-label="Close tracking details"
+              >
+                ×
+              </button>
+            </div>
+            <div className="px-5 py-4 space-y-4">
+              <div className="space-y-4">
+                {[
+                  {
+                    label: "Booking date",
+                    value: formatDate(order.createdAt),
+                  },
+                  {
+                    label: "Shipping date",
+                    value: shippingDate,
+                  },
+                  {
+                    label: "Arrival date",
+                    value: arrivalDate,
+                  },
+                ].map((item, index, arr) => (
+                  <div key={item.label} className="flex gap-3">
+                    <div className="flex flex-col items-center">
+                      <div className="mt-1 h-2 w-2 rounded-full bg-[#D96A86]" />
+                      {index < arr.length - 1 && (
+                        <div className="h-10 w-px bg-gray-200" />
+                      )}
+                    </div>
+                    <div>
+                      <p className="text-xs font-semibold uppercase tracking-wider text-gray-500">
+                        {item.label}
+                      </p>
+                      <p className="text-sm font-medium text-gray-900">
+                        {item.value}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
