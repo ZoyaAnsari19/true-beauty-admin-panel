@@ -70,7 +70,6 @@ const emptyForm: ServiceFormValues = {
   durationMinutes: 0,
   image: "",
   status: "active",
-  howToUseType: "text",
   howToUseText: "",
   howToUseVideoUrl: "",
   areaBranchName: "",
@@ -117,7 +116,6 @@ export function ServiceForm({
         durationMinutes: initialValues.durationMinutes,
         image: initialValues.image ?? "",
         status: initialValues.status,
-        howToUseType: initialValues.howToUseType ?? "text",
         howToUseText: initialValues.howToUseText ?? "",
         howToUseVideoUrl: initialValues.howToUseVideoUrl ?? "",
         areaBranchName: initialValues.areaBranchName ?? "",
@@ -191,11 +189,14 @@ export function ServiceForm({
       price: values.price || 0,
       durationMinutes: Math.max(0, values.durationMinutes ?? 0),
       image: imageValue,
-      howToUseType: values.howToUseType,
-      howToUseText:
-        values.howToUseType === "text" ? trimmedHowToUseText : "",
-      howToUseVideoUrl:
-        values.howToUseType === "video" ? trimmedHowToUseVideoUrl : "",
+      howToUseType:
+        trimmedHowToUseText && !trimmedHowToUseVideoUrl
+          ? "text"
+          : trimmedHowToUseVideoUrl && !trimmedHowToUseText
+            ? "video"
+            : undefined,
+      howToUseText: trimmedHowToUseText,
+      howToUseVideoUrl: trimmedHowToUseVideoUrl,
       areaBranchName: values.areaBranchName?.trim() ?? "",
       fullAddress: values.fullAddress?.trim() ?? "",
       city: values.city?.trim() ?? "",
@@ -322,90 +323,51 @@ export function ServiceForm({
         <h3 className="text-sm font-semibold text-gray-900 mb-3">
           How to use
         </h3>
-        <div className="space-y-3">
-          <div className="flex flex-wrap items-center gap-4">
-            <label className="inline-flex items-center gap-2 text-sm text-gray-700">
-              <input
-                type="radio"
-                name="howToUseType"
-                value="text"
-                checked={values.howToUseType === "text"}
-                onChange={() =>
-                  setValues((v) => ({
-                    ...v,
-                    howToUseType: "text",
-                  }))
-                }
-                className="h-4 w-4 text-[#D96A86] border-gray-300 focus:ring-[#f8c6d0]"
-              />
-              <span>Text description</span>
+        <div className="space-y-4">
+          <div>
+            <label
+              htmlFor="service-how-to-use-text"
+              className="block text-sm font-medium text-gray-700 mb-1"
+            >
+              Instructions (text)
             </label>
-            <label className="inline-flex items-center gap-2 text-sm text-gray-700">
-              <input
-                type="radio"
-                name="howToUseType"
-                value="video"
-                checked={values.howToUseType === "video"}
-                onChange={() =>
-                  setValues((v) => ({
-                    ...v,
-                    howToUseType: "video",
-                  }))
-                }
-                className="h-4 w-4 text-[#D96A86] border-gray-300 focus:ring-[#f8c6d0]"
-              />
-              <span>Video</span>
-            </label>
+            <textarea
+              id="service-how-to-use-text"
+              rows={3}
+              value={values.howToUseText ?? ""}
+              onChange={(e) =>
+                setValues((v) => ({ ...v, howToUseText: e.target.value }))
+              }
+              className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-[#f8c6d0] focus:border-transparent outline-none transition-all resize-none"
+              placeholder="Step-by-step usage instructions..."
+            />
           </div>
 
-          {values.howToUseType === "text" && (
-            <div>
-              <label
-                htmlFor="service-how-to-use-text"
-                className="block text-sm font-medium text-gray-700 mb-1"
-              >
-                Instructions
-              </label>
-              <textarea
-                id="service-how-to-use-text"
-                rows={3}
-                value={values.howToUseText ?? ""}
-                onChange={(e) =>
-                  setValues((v) => ({ ...v, howToUseText: e.target.value }))
-                }
-                className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-[#f8c6d0] focus:border-transparent outline-none transition-all resize-none"
-                placeholder="Step-by-step usage instructions..."
-              />
-            </div>
-          )}
-
-          {values.howToUseType === "video" && (
-            <div>
-              <label
-                htmlFor="service-how-to-use-video-url"
-                className="block text-sm font-medium text-gray-700 mb-1"
-              >
-                Video URL
-              </label>
-              <input
-                id="service-how-to-use-video-url"
-                type="url"
-                value={values.howToUseVideoUrl ?? ""}
-                onChange={(e) =>
-                  setValues((v) => ({
-                    ...v,
-                    howToUseVideoUrl: e.target.value,
-                  }))
-                }
-                className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-[#f8c6d0] focus:border-transparent outline-none transition-all"
-                placeholder="Paste YouTube, Instagram, or other video link"
-              />
-              <p className="mt-1 text-xs text-gray-500">
-                Add any video URL, including social media links. Customers can
-                open it from the service details page.
-              </p>
-            </div>
-          )}
+          <div>
+            <label
+              htmlFor="service-how-to-use-video-url"
+              className="block text-sm font-medium text-gray-700 mb-1"
+            >
+              Video URL
+            </label>
+            <input
+              id="service-how-to-use-video-url"
+              type="url"
+              value={values.howToUseVideoUrl ?? ""}
+              onChange={(e) =>
+                setValues((v) => ({
+                  ...v,
+                  howToUseVideoUrl: e.target.value,
+                }))
+              }
+              className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-[#f8c6d0] focus:border-transparent outline-none transition-all"
+              placeholder="Paste YouTube, Instagram, or other video link"
+            />
+            <p className="mt-1 text-xs text-gray-500">
+              You can fill text, video URL, or both. Any video URL is allowed,
+              including social media links.
+            </p>
+          </div>
         </div>
       </div>
       <div>

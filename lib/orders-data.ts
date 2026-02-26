@@ -181,7 +181,7 @@ export const MOCK_ORDERS: Order[] = [
       {
         id: "ord-1004-item-1",
         productName: "Hand Cream",
-        productImage: "/products/hand-cream.png",
+        productImage: "/products/handCream.png",
         price: 299,
         quantity: 2,
         totalAmount: 598,
