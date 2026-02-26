@@ -28,9 +28,9 @@ interface MenuItem {
 const menuItems: MenuItem[] = [
   { label: "Dashboard", icon: LayoutDashboard, href: "/" },
   { label: "User Management", icon: Users, href: "/users" },
-  { label: "Add Product", icon: Package, href: "/products" },
+  { label: "Add Product/Manage", icon: Package, href: "/products" },
   { label: "Add Service", icon: Scissors, href: "/services" },
-  { label: "Order Management", icon: ShoppingCart, href: "/orders" },
+  // { label: "Order Management", icon: ShoppingCart, href: "/orders" },
   { label: "Affiliate Users", icon: UserCheck, href: "/affiliates" },
   { label: "Withdraw Request", icon: Wallet, href: "/withdrawals" },
   { label: "Add Commissions", icon: Gift, href: "/commission" },
@@ -104,7 +104,7 @@ export default function SideBar() {
                 (item.href === "/users" && pathname.startsWith("/users/")) ||
                 (item.href === "/products" && pathname.startsWith("/products")) ||
                 (item.href === "/services" && pathname.startsWith("/services")) ||
-                (item.href === "/orders" && pathname.startsWith("/orders")) ||
+                // (item.href === "/orders" && pathname.startsWith("/orders")) ||
                 (item.href === "/affiliates" && pathname.startsWith("/affiliates/")) ||
                 (item.href === "/coupons" && pathname.startsWith("/coupons"));
               return (

@@ -7,6 +7,7 @@ interface UsersContextValue {
   users: User[];
   setUserStatus: (id: string, status: UserStatus) => void;
   getUserById: (id: string) => User | undefined;
+  deleteUser: (id: string) => void;
 }
 
 const UsersContext = createContext<UsersContextValue | null>(null);
@@ -25,8 +26,14 @@ export function UsersProvider({ children }: { children: React.ReactNode }) {
     [users]
   );
 
+  const deleteUser = useCallback((id: string) => {
+    setUsers((prev) => prev.filter((u) => u.id !== id));
+  }, []);
+
   return (
-    <UsersContext.Provider value={{ users, setUserStatus, getUserById }}>
+    <UsersContext.Provider
+      value={{ users, setUserStatus, getUserById, deleteUser }}
+    >
       {children}
     </UsersContext.Provider>
   );

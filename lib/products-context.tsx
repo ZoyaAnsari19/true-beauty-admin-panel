@@ -18,7 +18,10 @@ import {
 export type ProductFormValues = Omit<
   Product,
   "id" | "deletedAt" | "createdAt" | "updatedAt"
-> & { id?: string };
+> & {
+  id?: string;
+  imageFile?: File | null;
+};
 
 function deriveStockStatus(stock: number): ProductStockStatus {
   if (stock <= 0) return "out_of_stock";
@@ -54,12 +57,15 @@ export function ProductsProvider({ children }: { children: React.ReactNode }) {
       name: values.name,
       category: values.category,
       price: values.price,
+      discountPrice: values.discountPrice,
+      commissionRate: values.commissionRate ?? 0,
       stock: values.stock,
       stockStatus,
       status: values.status,
       image: values.image ?? null,
       images: values.images ?? (values.image ? [values.image] : []),
       description: values.description ?? "",
+      isAffiliateProduct: values.isAffiliateProduct ?? false,
       createdAt: now,
       updatedAt: now,
     };

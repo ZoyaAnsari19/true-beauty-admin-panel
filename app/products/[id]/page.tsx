@@ -160,9 +160,17 @@ export default function ProductDetailPage() {
                     <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Price
                     </p>
-                    <p className="text-gray-900 font-medium mt-0.5">
-                      {formatPrice(product.price)}
-                    </p>
+                    <div className="mt-0.5 space-y-1">
+                      <p className="text-gray-900 font-medium">
+                        {formatPrice(product.price)}
+                      </p>
+                      {typeof product.discountPrice === "number" &&
+                        product.discountPrice > 0 && (
+                          <p className="text-sm text-emerald-700 font-medium">
+                            Discounted: {formatPrice(product.discountPrice)}
+                          </p>
+                        )}
+                    </div>
                   </div>
                 </div>
                 <div className="flex items-start gap-3">

@@ -62,8 +62,7 @@ export const MOCK_ORDERS: Order[] = [
       {
         id: "ord-1001-item-1",
         productName: "True Beauty Night Cream",
-        productImage:
-          "https://images.unsplash.com/photo-1556228720-195a672e8a03?w=400&h=400&fit=crop",
+        productImage: "/products/nightCream.png",
         price: 1399,
         quantity: 2,
         totalAmount: 2798,
@@ -71,8 +70,7 @@ export const MOCK_ORDERS: Order[] = [
       {
         id: "ord-1001-item-2",
         productName: "Vitamin C Face Wash",
-        productImage:
-          "https://images.unsplash.com/photo-1571781926291-c477ebfd024b?w=400&h=400&fit=crop",
+        productImage: "/products/faceWash.png",
         price: 499,
         quantity: 1,
         totalAmount: 499,
@@ -107,8 +105,7 @@ export const MOCK_ORDERS: Order[] = [
       {
         id: "ord-1002-item-1",
         productName: "Sunscreen SPF 50",
-        productImage:
-          "https://images.unsplash.com/photo-1556229010-aa6e3a2d108e?w=400&h=400&fit=crop",
+        productImage: "/products/sunscreen.png",
         price: 449,
         quantity: 2,
         totalAmount: 898,
@@ -143,8 +140,7 @@ export const MOCK_ORDERS: Order[] = [
       {
         id: "ord-1003-item-1",
         productName: "Lip Balm Set",
-        productImage:
-          "https://images.unsplash.com/photo-1596462502278-27bfdc403348?w=400&h=400&fit=crop",
+        productImage: "/products/lipBalm.png",
         price: 299,
         quantity: 1,
         totalAmount: 299,
@@ -152,8 +148,7 @@ export const MOCK_ORDERS: Order[] = [
       {
         id: "ord-1003-item-2",
         productName: "True Beauty Moisturizer",
-        productImage:
-          "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=400&h=400&fit=crop",
+        productImage: "/products/moisturizer.png",
         price: 649,
         quantity: 1,
         totalAmount: 649,
@@ -186,8 +181,7 @@ export const MOCK_ORDERS: Order[] = [
       {
         id: "ord-1004-item-1",
         productName: "Hand Cream",
-        productImage:
-          "https://images.unsplash.com/photo-1582719478181-2f56c2687f54?w=400&h=400&fit=crop",
+        productImage: "/products/hand-cream.png",
         price: 299,
         quantity: 2,
         totalAmount: 598,

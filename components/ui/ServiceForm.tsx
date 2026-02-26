@@ -91,7 +91,6 @@ export function ServiceForm({
   onCancel,
 }: ServiceFormProps) {
   const [values, setValues] = React.useState<ServiceFormValues>(emptyForm);
-  const [imageMode, setImageMode] = React.useState<"url" | "file">("url");
   const [imageFile, setImageFile] = React.useState<File | null>(null);
   const [workingDaysMode, setWorkingDaysMode] =
     React.useState<"preset" | "custom">("preset");
@@ -152,6 +151,7 @@ export function ServiceForm({
         setOpeningTime("");
         setClosingTime("");
       }
+      setImageFile(null);
     } else {
       setValues(emptyForm);
       setWorkingDaysMode("preset");
@@ -159,6 +159,7 @@ export function ServiceForm({
       setCustomWorkingDays([]);
       setOpeningTime("");
       setClosingTime("");
+      setImageFile(null);
     }
   }, [initialValues]);
 
@@ -167,7 +168,7 @@ export function ServiceForm({
     if (!values.name.trim()) return;
 
     let imageValue = values.image?.trim() ?? "";
-    if (imageMode === "file" && imageFile) {
+    if (imageFile) {
       imageValue = URL.createObjectURL(imageFile);
     }
 
@@ -282,62 +283,19 @@ export function ServiceForm({
         <label htmlFor="service-image" className="block text-sm font-medium text-gray-700 mb-1">
           Image Upload
         </label>
-        <div className="mb-2 inline-flex items-center rounded-full bg-gray-100 p-0.5 text-xs font-medium text-gray-600">
-          <button
-            type="button"
-            onClick={() => setImageMode("file")}
-            className={`px-3 py-1 rounded-full transition-colors ${
-              imageMode === "file"
-                ? "bg-white text-gray-900 shadow-sm"
-                : "text-gray-600 hover:text-gray-900"
-            }`}
-          >
-            File
-          </button>
-          <button
-            type="button"
-            onClick={() => setImageMode("url")}
-            className={`px-3 py-1 rounded-full transition-colors ${
-              imageMode === "url"
-                ? "bg-white text-gray-900 shadow-sm"
-                : "text-gray-600 hover:text-gray-900"
-            }`}
-          >
-            URL
-          </button>
-        </div>
-
-        {imageMode === "file" ? (
-          <>
-            <input
-              id="service-image-file"
-              type="file"
-              accept="image/*"
-              onChange={(e) => {
-                const file = e.target.files?.[0] ?? null;
-                setImageFile(file);
-              }}
-              className="block w-full text-sm text-gray-700 file:mr-3 file:rounded-lg file:border-0 file:bg-[#fef5f7] file:px-4 file:py-2.5 file:text-sm file:font-medium file:text-[#D96A86] hover:file:bg-[#f8c6d0] cursor-pointer"
-            />
-            <p className="mt-1 text-xs text-gray-500">
-              Upload an image from your device. This will be used inside the admin panel.
-            </p>
-          </>
-        ) : (
-          <>
-            <input
-              id="service-image-url"
-              type="url"
-              value={values.image ?? ""}
-              onChange={(e) => setValues((v) => ({ ...v, image: e.target.value || "" }))}
-              className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-[#f8c6d0] focus:border-transparent outline-none transition-all"
-              placeholder="https://..."
-            />
-            <p className="mt-1 text-xs text-gray-500">
-              Enter image URL (e.g. from CDN or hosted image).
-            </p>
-          </>
-        )}
+        <input
+          id="service-image-file"
+          type="file"
+          accept="image/*"
+          onChange={(e) => {
+            const file = e.target.files?.[0] ?? null;
+            setImageFile(file);
+          }}
+          className="block w-full text-sm text-gray-700 file:mr-3 file:rounded-lg file:border-0 file:bg-[#fef5f7] file:px-4 file:py-2.5 file:text-sm file:font-medium file:text-[#D96A86] hover:file:bg-[#f8c6d0] cursor-pointer"
+        />
+        <p className="mt-1 text-xs text-gray-500">
+          Upload an image from your device. This will be used inside the admin panel.
+        </p>
       </div>
       <div>
         <label htmlFor="service-status" className="block text-sm font-medium text-gray-700 mb-1">

@@ -1,11 +1,25 @@
 export type ProductStockStatus = "in_stock" | "low_stock" | "out_of_stock";
 export type ProductStatus = "active" | "draft" | "inactive";
 
+export const PRODUCT_CATEGORIES = [
+  "Skincare",
+  "Makeup",
+  "Bath & Body",
+  "Haircare",
+  "Fragrance",
+  "Wellness",
+  "Gifting",
+  "Jewellery",
+  "Offers",
+] as const;
+
 export interface Product {
   id: string;
   name: string;
   category: string;
   price: number;
+  discountPrice?: number;
+  commissionRate?: number;
   stock: number;
   stockStatus: ProductStockStatus;
   status: ProductStatus;
@@ -15,6 +29,7 @@ export interface Product {
   deletedAt?: string | null;
   createdAt: string;
   updatedAt: string;
+  isAffiliateProduct?: boolean;
 }
 
 const MOCK_PRODUCTS: Product[] = [
@@ -23,13 +38,12 @@ const MOCK_PRODUCTS: Product[] = [
     name: "True Beauty Night Cream",
     category: "Skincare",
     price: 1399,
+    commissionRate: 10,
     stock: 45,
     stockStatus: "in_stock",
     status: "active",
-    image: "https://images.unsplash.com/photo-1556228720-195a672e8a03?w=400&h=400&fit=crop",
-    images: [
-      "https://images.unsplash.com/photo-1556228720-195a672e8a03?w=800&h=800&fit=crop",
-    ],
+    image: "/products/dayCream.png",
+    images: ["/products/dayCream.png"],
     description:
       "Luxurious night cream enriched with natural extracts. Deeply nourishes and restores skin overnight for a radiant morning glow.",
     createdAt: "2024-01-10T10:00:00Z",
@@ -40,13 +54,12 @@ const MOCK_PRODUCTS: Product[] = [
     name: "Vitamin C Face Wash",
     category: "Skincare",
     price: 499,
+    commissionRate: 8,
     stock: 8,
     stockStatus: "low_stock",
     status: "active",
-    image: "https://images.unsplash.com/photo-1571781926291-c477ebfd024b?w=400&h=400&fit=crop",
-    images: [
-      "https://images.unsplash.com/photo-1571781926291-c477ebfd024b?w=800&h=800&fit=crop",
-    ],
+    image: "/products/faceWash.png",
+    images: ["/products/faceWash.png"],
     description:
       "Gentle cleanser with Vitamin C to brighten and refresh. Suitable for all skin types.",
     createdAt: "2024-02-15T10:00:00Z",
@@ -57,11 +70,12 @@ const MOCK_PRODUCTS: Product[] = [
     name: "Hair Growth Serum",
     category: "Haircare",
     price: 899,
+    commissionRate: 12,
     stock: 0,
     stockStatus: "out_of_stock",
     status: "inactive",
-    image: "https://images.unsplash.com/photo-1522338242762-31d0c0c0c0c0?w=400&h=400&fit=crop",
-    images: [],
+    image: "/products/serum.png",
+    images: ["/products/serum.png"],
     description:
       "Promotes hair growth and reduces breakage. Formulated with biotin and natural oils.",
     createdAt: "2024-03-01T10:00:00Z",
@@ -72,11 +86,12 @@ const MOCK_PRODUCTS: Product[] = [
     name: "Sunscreen SPF 50",
     category: "Skincare",
     price: 449,
+    commissionRate: 6,
     stock: 120,
     stockStatus: "in_stock",
     status: "active",
-    image: "https://images.unsplash.com/photo-1556229010-aa6e3a2d108e?w=400&h=400&fit=crop",
-    images: [],
+    image: "/products/sunscreen.png",
+    images: ["/products/sunscreen.png"],
     description:
       "Broad-spectrum protection with a lightweight, non-greasy formula. Water-resistant.",
     createdAt: "2024-04-05T10:00:00Z",
@@ -87,11 +102,12 @@ const MOCK_PRODUCTS: Product[] = [
     name: "Lip Balm Set",
     category: "Makeup",
     price: 299,
+    commissionRate: 5,
     stock: 25,
     stockStatus: "in_stock",
     status: "draft",
-    image: "https://images.unsplash.com/photo-1596462502278-27bfdc403348?w=400&h=400&fit=crop",
-    images: [],
+    image: "/products/lipBalm.png",
+    images: ["/products/lipBalm.png"],
     description: "Set of 3 nourishing lip balms in different flavors.",
     createdAt: "2024-05-12T10:00:00Z",
     updatedAt: "2024-05-12T10:00:00Z",
