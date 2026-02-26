@@ -10,6 +10,10 @@ export interface Service {
   durationMinutes: number;
   image?: string | null;
   status: ServiceStatus;
+  /** How to use (optional) */
+  howToUseType?: "text" | "video";
+  howToUseText?: string;
+  howToUseVideoUrl?: string;
   /** Location & contact (optional) */
   areaBranchName?: string;
   fullAddress?: string;
@@ -43,6 +47,8 @@ const MOCK_SERVICES: Service[] = [
     phoneNumber: "+91 98765 43210",
     workingHours: "10:00 AM - 8:00 PM",
     workingDays: "Mon - Sat",
+    howToUseType: "video",
+    howToUseVideoUrl: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
     createdAt: "2024-01-15T10:00:00Z",
     updatedAt: "2024-01-15T10:00:00Z",
   },

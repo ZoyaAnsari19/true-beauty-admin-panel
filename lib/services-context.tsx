@@ -54,6 +54,15 @@ export function ServicesProvider({ children }: { children: React.ReactNode }) {
       durationMinutes: values.durationMinutes,
       image: values.image ?? null,
       status: values.status,
+      howToUseType: values.howToUseType,
+      howToUseText:
+        values.howToUseType === "text"
+          ? values.howToUseText?.trim() || undefined
+          : undefined,
+      howToUseVideoUrl:
+        values.howToUseType === "video"
+          ? values.howToUseVideoUrl?.trim() || undefined
+          : undefined,
       areaBranchName: values.areaBranchName ?? undefined,
       fullAddress: values.fullAddress ?? undefined,
       city: values.city ?? undefined,
