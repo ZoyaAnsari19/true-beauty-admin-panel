@@ -6,6 +6,7 @@ export interface Service {
   description: string;
   category: string;
   price: number;
+  discountPrice?: number | null;
   durationMinutes: number;
   image?: string | null;
   status: ServiceStatus;
@@ -30,6 +31,7 @@ const MOCK_SERVICES: Service[] = [
     description: "Deep cleansing facial with natural extracts. Suitable for all skin types.",
     category: "Facials",
     price: 1499,
+    discountPrice: 1299,
     durationMinutes: 60,
     image: "https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?w=400&h=400&fit=crop",
     status: "active",
@@ -50,6 +52,7 @@ const MOCK_SERVICES: Service[] = [
     description: "Professional haircut with wash and blow-dry styling.",
     category: "Hair",
     price: 799,
+    discountPrice: 699,
     durationMinutes: 45,
     image: "https://images.unsplash.com/photo-1560066984-138dadb4c035?w=400&h=400&fit=crop",
     status: "active",

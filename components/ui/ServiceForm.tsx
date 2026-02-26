@@ -66,6 +66,7 @@ const emptyForm: ServiceFormValues = {
   description: "",
   category: "",
   price: 0,
+  discountPrice: 0,
   durationMinutes: 0,
   image: "",
   status: "active",
@@ -109,6 +110,7 @@ export function ServiceForm({
         description: initialValues.description ?? "",
         category: initialValues.category,
         price: initialValues.price,
+        discountPrice: initialValues.discountPrice ?? 0,
         durationMinutes: initialValues.durationMinutes,
         image: initialValues.image ?? "",
         status: initialValues.status,
@@ -242,7 +244,7 @@ export function ServiceForm({
           ))}
         </select>
       </div>
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div>
           <label htmlFor="service-price" className="block text-sm font-medium text-gray-700 mb-1">
             Price (₹) <span className="text-red-500">*</span>
@@ -256,6 +258,29 @@ export function ServiceForm({
             value={values.price === 0 ? "" : values.price}
             onChange={(e) => setValues((v) => ({ ...v, price: Number(e.target.value) || 0 }))}
             className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-[#f8c6d0] focus:border-transparent outline-none transition-all"
+          />
+        </div>
+        <div>
+          <label
+            htmlFor="service-discount-price"
+            className="block text-sm font-medium text-gray-700 mb-1"
+          >
+            Discount Price (₹)
+          </label>
+          <input
+            id="service-discount-price"
+            type="number"
+            min={0}
+            step={1}
+            value={values.discountPrice && values.discountPrice > 0 ? values.discountPrice : ""}
+            onChange={(e) =>
+              setValues((v) => ({
+                ...v,
+                discountPrice: Number(e.target.value) || 0,
+              }))
+            }
+            className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-[#f8c6d0] focus:border-transparent outline-none transition-all"
+            placeholder="Optional"
           />
         </div>
         <div>

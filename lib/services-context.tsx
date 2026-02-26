@@ -47,6 +47,10 @@ export function ServicesProvider({ children }: { children: React.ReactNode }) {
       description: values.description ?? "",
       category: values.category,
       price: values.price,
+      discountPrice:
+        values.discountPrice && values.discountPrice > 0
+          ? values.discountPrice
+          : undefined,
       durationMinutes: values.durationMinutes,
       image: values.image ?? null,
       status: values.status,

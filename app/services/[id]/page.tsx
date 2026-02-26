@@ -161,9 +161,24 @@ export default function ServiceDetailPage() {
                     <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Price
                     </p>
-                    <p className="text-gray-900 font-medium mt-0.5">
-                      {formatPrice(service.price)}
-                    </p>
+                    <div className="mt-0.5">
+                      {service.discountPrice &&
+                      service.discountPrice > 0 &&
+                      service.discountPrice < service.price ? (
+                        <>
+                          <p className="text-gray-900 font-semibold text-base text-red-600">
+                            {formatPrice(service.discountPrice)}
+                          </p>
+                          <p className="text-xs text-gray-500 line-through">
+                            {formatPrice(service.price)}
+                          </p>
+                        </>
+                      ) : (
+                        <p className="text-gray-900 font-medium">
+                          {formatPrice(service.price)}
+                        </p>
+                      )}
+                    </div>
                   </div>
                 </div>
                 <div className="flex items-start gap-3">
