@@ -12,6 +12,7 @@ import { ProductForm } from "@/components/ui/ProductForm";
 import Table from "@/components/Table";
 import { Filters, type FilterOption } from "@/components/ui/filters";
 import { KpiCard } from "@/components/ui/kpiCard";
+import DeletePopup from "@/components/ui/deletePopup";
 
 const STOCK_LABELS: Record<string, string> = {
   in_stock: "In stock",
@@ -144,6 +145,7 @@ export default function ProductsPage() {
   const router = useRouter();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<Product | null>(null);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<"" | ProductStatus>("");
   const [categoryFilter, setCategoryFilter] = useState("");
@@ -206,9 +208,7 @@ export default function ProductsPage() {
   };
 
   const handleDelete = (product: Product) => {
-    if (window.confirm(`Remove "${product.name}" from the list? This can be restored later.`)) {
-      softDeleteProduct(product.id);
-    }
+    setDeleteTarget(product);
   };
 
   const handleFormSubmit = (values: ProductFormValues) => {
@@ -448,6 +448,24 @@ export default function ProductsPage() {
           onCancel={handleFormCancel}
         />
       </Drawer>
+      <DeletePopup
+        open={deleteTarget != null}
+        title="Remove product"
+        description={
+          deleteTarget
+            ? `Remove "${deleteTarget.name}" from the list? This can be restored later.`
+            : ""
+        }
+        confirmLabel="Remove"
+        cancelLabel="Cancel"
+        onCancel={() => setDeleteTarget(null)}
+        onConfirm={() => {
+          if (deleteTarget) {
+            softDeleteProduct(deleteTarget.id);
+          }
+          setDeleteTarget(null);
+        }}
+      />
     </div>
   );
 }

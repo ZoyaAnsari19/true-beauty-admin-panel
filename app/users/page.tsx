@@ -5,15 +5,17 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Ban, Eye, MoreVertical, Trash2 } from "lucide-react";
 import { useUsers } from "@/lib/users-context";
-import { type User, type UserStatus } from "@/lib/users-data";
+import { type User, type UserStatus, MOCK_USERS } from "@/lib/users-data";
 import { KpiCard } from "@/components/ui/kpiCard";
 import { Filters, type FilterOption } from "@/components/ui/filters";
 import Table from "@/components/Table";
+import DeletePopup from "@/components/ui/deletePopup";
 
 function UserActionsMenu({ user }: { user: User }) {
   const { setUserStatus, deleteUser } = useUsers();
   const [open, setOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement | null>(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   const isActive = user.status === "active";
 
@@ -79,13 +81,8 @@ function UserActionsMenu({ user }: { user: User }) {
             type="button"
             onClick={(e) => {
               e.stopPropagation();
-              const confirmed = window.confirm(
-                `Delete user "${user.name}"? This action cannot be undone.`
-              );
-              if (confirmed) {
-                deleteUser(user.id);
-              }
               setOpen(false);
+              setShowDeleteConfirm(true);
             }}
             className="flex w-full items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors text-left"
           >
@@ -94,6 +91,18 @@ function UserActionsMenu({ user }: { user: User }) {
           </button>
         </div>
       )}
+      <DeletePopup
+        open={showDeleteConfirm}
+        title="Delete user"
+        description={`Delete user "${user.name}"?`}
+        confirmLabel="Delete"
+        cancelLabel="Cancel"
+        onCancel={() => setShowDeleteConfirm(false)}
+        onConfirm={() => {
+          deleteUser(user.id);
+          setShowDeleteConfirm(false);
+        }}
+      />
     </div>
   );
 }
@@ -187,6 +196,7 @@ export default function UsersPage() {
     const totalOrders = users.reduce((s, u) => s + u.totalOrders, 0);
     const activeCount = users.filter((u) => u.status === "active").length;
     const blockedCount = users.filter((u) => u.status === "blocked").length;
+    const deletedUsers = Math.max(0, MOCK_USERS.length - users.length);
     const now = new Date();
     const thisMonth = now.getMonth();
     const thisYear = now.getFullYear();
@@ -199,6 +209,7 @@ export default function UsersPage() {
       totalOrders,
       activeCount,
       blockedCount,
+      deletedUsers,
       newThisMonth,
     };
   }, [users]);
@@ -222,22 +233,22 @@ export default function UsersPage() {
           className="min-w-[260px] md:min-w-0 shrink-0 md:shrink"
         />
         <KpiCard
-          title="Active Accounts"
+          title="Active Users"
           value={kpis.activeCount.toLocaleString()}
           icon="user-check"
           iconClassName="bg-emerald-50 text-emerald-600"
           className="min-w-[260px] md:min-w-0 shrink-0 md:shrink"
         />
         <KpiCard
-          title="Blocked Accounts"
+          title="Blocked Users"
           value={kpis.blockedCount.toLocaleString()}
           icon="user-x"
           iconClassName="bg-red-50 text-red-600"
           className="min-w-[260px] md:min-w-0 shrink-0 md:shrink"
         />
         <KpiCard
-          title="New This Month"
-          value={kpis.newThisMonth.toLocaleString()}
+          title="Deleted Users"
+          value={kpis.deletedUsers.toLocaleString()}
           icon="trending-up"
           iconClassName="bg-orange-50 text-orange-600"
           className="min-w-[260px] md:min-w-0 shrink-0 md:shrink"

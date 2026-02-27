@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import {
@@ -20,14 +20,15 @@ import {
   Globe,
   FileText,
   ShieldCheck,
+  Wallet,
+  X,
 } from "lucide-react";
 import { useUsers } from "@/lib/users-context";
 import { useOrders } from "@/lib/orders-context";
 import { useAffiliates } from "@/lib/affiliates-context";
 import { Tabination, type TabItem } from "@/components/ui/Tabination";
 import { ProductOrderCard } from "@/components/ui/Card";
-import { KpiCard } from "@/components/ui/kpiCard";
-import type { OrderItem } from "@/lib/users-data";
+import type { OrderItem, ReturnStatus } from "@/lib/users-data";
 
 function formatDate(dateStr: string) {
   return new Date(dateStr).toLocaleDateString("en-US", {
@@ -51,6 +52,26 @@ function uniqueOrderCount(items: OrderItem[]): number {
 function totalAmount(items: OrderItem[]): number {
   return items.reduce((sum, i) => sum + i.totalAmount, 0);
 }
+
+const RETURN_STATUS_LABELS: Record<ReturnStatus, string> = {
+  pending_review: "Pending review",
+  approved: "Approved",
+  rejected: "Rejected",
+  pickup_scheduled: "Pickup scheduled",
+  pickup_completed: "Pickup completed",
+  refund_initiated: "Refund initiated",
+  completed: "Completed",
+};
+
+const RETURN_STATUS_CLASSES: Record<ReturnStatus, string> = {
+  pending_review: "bg-amber-50 text-amber-700",
+  approved: "bg-emerald-50 text-emerald-700",
+  rejected: "bg-red-50 text-red-700",
+  pickup_scheduled: "bg-blue-50 text-blue-700",
+  pickup_completed: "bg-blue-50 text-blue-700",
+  refund_initiated: "bg-purple-50 text-purple-700",
+  completed: "bg-emerald-50 text-emerald-700",
+};
 
 function OrdersTabSummary({
   count,
@@ -86,9 +107,11 @@ function OrdersTabSummary({
 function OrderCardsList({
   items,
   userId,
+  onCardClick,
 }: {
   items: OrderItem[];
   userId: string;
+  onCardClick?: (item: OrderItem) => void;
 }) {
   const router = useRouter();
   const { orders } = useOrders();
@@ -132,6 +155,10 @@ function OrderCardsList({
   };
 
   const handleCardClick = (item: OrderItem) => {
+    if (onCardClick) {
+      onCardClick(item);
+      return;
+    }
     const resolved = resolveOrderAndItemId(item);
     if (!resolved) return;
     const { orderId, itemId } = resolved;
@@ -178,7 +205,9 @@ function OrderCardsList({
 
 export default function UserDetailPage() {
   const params = useParams();
+  const router = useRouter();
   const { getUserById, setUserStatus } = useUsers();
+  const { affiliates } = useAffiliates();
   const id = typeof params.id === "string" ? params.id : params.id?.[0];
   const user = id ? getUserById(id) : undefined;
 
@@ -483,7 +512,34 @@ export default function UserDetailPage() {
         countLabel="Total Returns"
         amountLabel="Total Amount"
       />
-      <OrderCardsList items={user.returnsOrders} userId={id} />
+      <div className="space-y-3">
+        {user.returnsOrders.length === 0 ? (
+          <p className="text-sm text-gray-500 text-center py-6">
+            No return requests for this user.
+          </p>
+        ) : (
+          user.returnsOrders.map((item, index) => (
+            <ProductOrderCard
+              key={`${item.orderId}-${item.productName}-${index}`}
+              productImage={item.productImage}
+              productName={item.productName}
+              price={item.price}
+              quantity={item.quantity}
+              totalAmount={item.totalAmount}
+              orderDate={item.orderDate}
+              orderStatus="Returned"
+              formatDate={formatDate}
+              onClick={() =>
+                router.push(
+                  `/users/${id}/returnDetails?orderId=${encodeURIComponent(
+                    item.orderId
+                  )}&product=${encodeURIComponent(item.productName)}`
+                )
+              }
+            />
+          ))
+        )}
+      </div>
     </div>
   );
 
@@ -495,7 +551,17 @@ export default function UserDetailPage() {
         countLabel="Total Cancelled"
         amountLabel="Total Amount"
       />
-      <OrderCardsList items={user.cancelledOrders} userId={id} />
+      <OrderCardsList
+        items={user.cancelledOrders}
+        userId={id}
+        onCardClick={(item) =>
+          router.push(
+            `/users/${id}/cancelDetails?orderId=${encodeURIComponent(
+              item.orderId
+            )}&product=${encodeURIComponent(item.productName)}`
+          )
+        }
+      />
     </div>
   );
 
@@ -507,20 +573,69 @@ export default function UserDetailPage() {
         countLabel="Total Refunds"
         amountLabel="Total Amount"
       />
-      <OrderCardsList items={user.refundedOrders} userId={id} />
+      <OrderCardsList
+        items={user.refundedOrders}
+        userId={id}
+        onCardClick={(item) =>
+          router.push(
+            `/users/${id}/refundDetalis?orderId=${encodeURIComponent(
+              item.orderId
+            )}&product=${encodeURIComponent(item.productName)}`
+          )
+        }
+      />
     </div>
   );
 
-  const tabs: TabItem[] = [
-    { id: "basic", label: "Basic Info", content: basicInfoContent },
-    { id: "kyc", label: "KYC", content: kycContent },
-    { id: "purchases", label: "Orders", content: purchasesContent },
-    { id: "returns", label: "Returns", content: returnsContent },
-    { id: "cancelled", label: "Cancelled", content: cancelledContent },
-    { id: "refunds", label: "Refunds", content: refundsContent },
-  ];
+  const affiliateForUser = affiliates.find((a) => a.email === user.email);
 
-  const totalRefundAmount = totalAmount(user.refundedOrders);
+  const walletContent = (
+    <div className="space-y-6">
+      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+        <div className="px-6 py-4 border-b border-gray-100 bg-[#fef5f7] flex items-center gap-2">
+          <Wallet className="w-5 h-5 text-gray-600" />
+          <h2 className="text-base font-semibold text-gray-900">
+            Wallet Amount
+          </h2>
+        </div>
+        <div className="p-6">
+          {affiliateForUser ? (
+            <>
+              <p className="text-sm text-gray-600 mb-2">
+                Current affiliate wallet balance for this user.
+              </p>
+              <p className="text-2xl font-semibold text-gray-900">
+                {formatCurrency(affiliateForUser.walletBalance)}
+              </p>
+            </>
+          ) : (
+            <p className="text-sm text-gray-500">
+              This user does not have an affiliate wallet.
+            </p>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+
+  const tabs: TabItem[] = affiliateForUser
+    ? [
+        { id: "purchases", label: "Orders", content: purchasesContent },
+        { id: "returns", label: "Returns", content: returnsContent },
+        { id: "cancelled", label: "Cancelled", content: cancelledContent },
+        { id: "refunds", label: "Refunds", content: refundsContent },
+        { id: "wallet", label: "Wallet Amount", content: walletContent },
+        { id: "basic", label: "Basic Info", content: basicInfoContent },
+        { id: "kyc", label: "KYC", content: kycContent },
+      ]
+    : [
+        { id: "purchases", label: "Orders", content: purchasesContent },
+        { id: "returns", label: "Returns", content: returnsContent },
+        { id: "cancelled", label: "Cancelled", content: cancelledContent },
+        { id: "refunds", label: "Refunds", content: refundsContent },
+        { id: "basic", label: "Basic Info", content: basicInfoContent },
+        { id: "kyc", label: "KYC", content: kycContent },
+      ];
 
   return (
     <div className="space-y-6">
@@ -532,44 +647,8 @@ export default function UserDetailPage() {
         Back to Users
       </Link>
 
-      {/* KPI cards — horizontal scroll on mobile, grid on desktop */}
-      <div className="flex gap-4 overflow-x-auto pb-2 -mx-4 px-4 md:mx-0 md:px-0 md:grid md:grid-cols-2 lg:grid-cols-4 md:gap-6">
-        <KpiCard
-          title="Total Orders"
-          value={String(user.totalOrders)}
-          icon="shopping-cart"
-          iconClassName="bg-green-50 text-green-600"
-          className="min-w-[260px] md:min-w-0 shrink-0 md:shrink"
-        />
-        <KpiCard
-          title="Total Spend"
-          value={formatCurrency(user.totalSpend)}
-          icon="indian-rupee"
-          iconClassName="bg-purple-50 text-purple-600"
-          className="min-w-[260px] md:min-w-0 shrink-0 md:shrink"
-        />
-        <KpiCard
-          title="Total Amount"
-          value={formatCurrency(totalRefundAmount)}
-          icon="indian-rupee"
-          iconClassName="bg-amber-50 text-amber-600"
-          className="min-w-[260px] md:min-w-0 shrink-0 md:shrink"
-        />
-        <KpiCard
-          title="Account Status"
-          value={user.status === "active" ? "Active" : "Blocked"}
-          icon={user.status === "active" ? "user-check" : "user-x"}
-          iconClassName={
-            user.status === "active"
-              ? "bg-emerald-50 text-emerald-600"
-              : "bg-red-50 text-red-600"
-          }
-          className="min-w-[260px] md:min-w-0 shrink-0 md:shrink"
-        />
-      </div>
-
       {/* Tabs */}
-      <Tabination tabs={tabs} defaultTabId="basic" />
+      <Tabination tabs={tabs} defaultTabId="purchases" />
     </div>
   );
 }
