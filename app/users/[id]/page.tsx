@@ -551,7 +551,17 @@ export default function UserDetailPage() {
         countLabel="Total Cancelled"
         amountLabel="Total Amount"
       />
-      <OrderCardsList items={user.cancelledOrders} userId={id} />
+      <OrderCardsList
+        items={user.cancelledOrders}
+        userId={id}
+        onCardClick={(item) =>
+          router.push(
+            `/users/${id}/cancelDetails?orderId=${encodeURIComponent(
+              item.orderId
+            )}&product=${encodeURIComponent(item.productName)}`
+          )
+        }
+      />
     </div>
   );
 

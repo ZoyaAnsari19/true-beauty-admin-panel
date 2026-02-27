@@ -58,6 +58,12 @@ export interface OrderItem {
   refundDetails?: RefundDetails;
   /** Audit entries for refund-related actions */
   refundAuditLog?: RefundAuditEntry[];
+  /** Reason provided when the order was cancelled */
+  cancelReason?: string;
+  /** Who cancelled the order */
+  cancelledBy?: "user" | "admin";
+  /** High-level refund status for cancelled/returned orders */
+  refundStatus?: "not_applicable" | "pending" | "processed";
 }
 
 export type KycStatus = "not_submitted" | "pending" | "verified";
@@ -180,6 +186,9 @@ const MOCK_CANCELLED_USER1: OrderItem[] = [
     totalAmount: 399,
     orderDate: "2024-03-01",
     orderStatus: "Cancelled",
+    cancelReason: "Customer changed mind before shipment.",
+    cancelledBy: "user",
+    refundStatus: "pending",
   },
 ];
 const MOCK_REFUNDED_USER1: OrderItem[] = [
@@ -292,6 +301,9 @@ const MOCK_CANCELLED_USER4: OrderItem[] = [
     totalAmount: 699,
     orderDate: "2024-03-12",
     orderStatus: "Cancelled",
+    cancelReason: "Pricing error in listing.",
+    cancelledBy: "admin",
+    refundStatus: "processed",
   },
   {
     orderId: "ord-4e",
@@ -302,6 +314,9 @@ const MOCK_CANCELLED_USER4: OrderItem[] = [
     totalAmount: 399,
     orderDate: "2024-03-12",
     orderStatus: "Cancelled",
+    cancelReason: "Duplicate order placed by user.",
+    cancelledBy: "user",
+    refundStatus: "pending",
   },
 ];
 const MOCK_REFUNDED_USER4: OrderItem[] = [
