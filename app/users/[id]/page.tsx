@@ -20,6 +20,7 @@ import {
   Globe,
   FileText,
   ShieldCheck,
+  Wallet,
 } from "lucide-react";
 import { useUsers } from "@/lib/users-context";
 import { useOrders } from "@/lib/orders-context";
@@ -179,6 +180,7 @@ function OrderCardsList({
 export default function UserDetailPage() {
   const params = useParams();
   const { getUserById, setUserStatus } = useUsers();
+  const { affiliates } = useAffiliates();
   const id = typeof params.id === "string" ? params.id : params.id?.[0];
   const user = id ? getUserById(id) : undefined;
 
@@ -511,14 +513,55 @@ export default function UserDetailPage() {
     </div>
   );
 
-  const tabs: TabItem[] = [
-    { id: "basic", label: "Basic Info", content: basicInfoContent },
-    { id: "kyc", label: "KYC", content: kycContent },
-    { id: "purchases", label: "Orders", content: purchasesContent },
-    { id: "returns", label: "Returns", content: returnsContent },
-    { id: "cancelled", label: "Cancelled", content: cancelledContent },
-    { id: "refunds", label: "Refunds", content: refundsContent },
-  ];
+  const affiliateForUser = affiliates.find((a) => a.email === user.email);
+
+  const walletContent = (
+    <div className="space-y-6">
+      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+        <div className="px-6 py-4 border-b border-gray-100 bg-[#fef5f7] flex items-center gap-2">
+          <Wallet className="w-5 h-5 text-gray-600" />
+          <h2 className="text-base font-semibold text-gray-900">
+            Wallet Amount
+          </h2>
+        </div>
+        <div className="p-6">
+          {affiliateForUser ? (
+            <>
+              <p className="text-sm text-gray-600 mb-2">
+                Current affiliate wallet balance for this user.
+              </p>
+              <p className="text-2xl font-semibold text-gray-900">
+                {formatCurrency(affiliateForUser.walletBalance)}
+              </p>
+            </>
+          ) : (
+            <p className="text-sm text-gray-500">
+              This user does not have an affiliate wallet.
+            </p>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+
+  const tabs: TabItem[] = affiliateForUser
+    ? [
+        { id: "purchases", label: "Orders", content: purchasesContent },
+        { id: "returns", label: "Returns", content: returnsContent },
+        { id: "cancelled", label: "Cancelled", content: cancelledContent },
+        { id: "refunds", label: "Refunds", content: refundsContent },
+        { id: "wallet", label: "Wallet Amount", content: walletContent },
+        { id: "basic", label: "Basic Info", content: basicInfoContent },
+        { id: "kyc", label: "KYC", content: kycContent },
+      ]
+    : [
+        { id: "purchases", label: "Orders", content: purchasesContent },
+        { id: "returns", label: "Returns", content: returnsContent },
+        { id: "cancelled", label: "Cancelled", content: cancelledContent },
+        { id: "refunds", label: "Refunds", content: refundsContent },
+        { id: "basic", label: "Basic Info", content: basicInfoContent },
+        { id: "kyc", label: "KYC", content: kycContent },
+      ];
 
   const totalRefundAmount = totalAmount(user.refundedOrders);
 
@@ -569,7 +612,7 @@ export default function UserDetailPage() {
       </div>
 
       {/* Tabs */}
-      <Tabination tabs={tabs} defaultTabId="basic" />
+      <Tabination tabs={tabs} defaultTabId="purchases" />
     </div>
   );
 }
