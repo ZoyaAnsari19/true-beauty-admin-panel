@@ -66,9 +66,12 @@ const emptyForm: ServiceFormValues = {
   description: "",
   category: "",
   price: 0,
+  discountPrice: 0,
   durationMinutes: 0,
   image: "",
   status: "active",
+  howToUseText: "",
+  howToUseVideoUrl: "",
   areaBranchName: "",
   fullAddress: "",
   city: "",
@@ -109,9 +112,12 @@ export function ServiceForm({
         description: initialValues.description ?? "",
         category: initialValues.category,
         price: initialValues.price,
+        discountPrice: initialValues.discountPrice ?? 0,
         durationMinutes: initialValues.durationMinutes,
         image: initialValues.image ?? "",
         status: initialValues.status,
+        howToUseText: initialValues.howToUseText ?? "",
+        howToUseVideoUrl: initialValues.howToUseVideoUrl ?? "",
         areaBranchName: initialValues.areaBranchName ?? "",
         fullAddress: initialValues.fullAddress ?? "",
         city: initialValues.city ?? "",
@@ -172,6 +178,9 @@ export function ServiceForm({
       imageValue = URL.createObjectURL(imageFile);
     }
 
+    const trimmedHowToUseText = values.howToUseText?.trim() ?? "";
+    const trimmedHowToUseVideoUrl = values.howToUseVideoUrl?.trim() ?? "";
+
     onSubmit({
       ...values,
       name: values.name.trim(),
@@ -180,6 +189,14 @@ export function ServiceForm({
       price: values.price || 0,
       durationMinutes: Math.max(0, values.durationMinutes ?? 0),
       image: imageValue,
+      howToUseType:
+        trimmedHowToUseText && !trimmedHowToUseVideoUrl
+          ? "text"
+          : trimmedHowToUseVideoUrl && !trimmedHowToUseText
+            ? "video"
+            : undefined,
+      howToUseText: trimmedHowToUseText,
+      howToUseVideoUrl: trimmedHowToUseVideoUrl,
       areaBranchName: values.areaBranchName?.trim() ?? "",
       fullAddress: values.fullAddress?.trim() ?? "",
       city: values.city?.trim() ?? "",
@@ -242,7 +259,7 @@ export function ServiceForm({
           ))}
         </select>
       </div>
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div>
           <label htmlFor="service-price" className="block text-sm font-medium text-gray-700 mb-1">
             Price (₹) <span className="text-red-500">*</span>
@@ -256,6 +273,29 @@ export function ServiceForm({
             value={values.price === 0 ? "" : values.price}
             onChange={(e) => setValues((v) => ({ ...v, price: Number(e.target.value) || 0 }))}
             className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-[#f8c6d0] focus:border-transparent outline-none transition-all"
+          />
+        </div>
+        <div>
+          <label
+            htmlFor="service-discount-price"
+            className="block text-sm font-medium text-gray-700 mb-1"
+          >
+            Discount Price (₹)
+          </label>
+          <input
+            id="service-discount-price"
+            type="number"
+            min={0}
+            step={1}
+            value={values.discountPrice && values.discountPrice > 0 ? values.discountPrice : ""}
+            onChange={(e) =>
+              setValues((v) => ({
+                ...v,
+                discountPrice: Number(e.target.value) || 0,
+              }))
+            }
+            className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-[#f8c6d0] focus:border-transparent outline-none transition-all"
+            placeholder="Optional"
           />
         </div>
         <div>
@@ -279,9 +319,60 @@ export function ServiceForm({
           />
         </div>
       </div>
+      <div className="pt-4 border-t border-gray-200">
+        <h3 className="text-sm font-semibold text-gray-900 mb-3">
+          How to use
+        </h3>
+        <div className="space-y-4">
+          <div>
+            <label
+              htmlFor="service-how-to-use-text"
+              className="block text-sm font-medium text-gray-700 mb-1"
+            >
+              Instructions (text)
+            </label>
+            <textarea
+              id="service-how-to-use-text"
+              rows={3}
+              value={values.howToUseText ?? ""}
+              onChange={(e) =>
+                setValues((v) => ({ ...v, howToUseText: e.target.value }))
+              }
+              className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-[#f8c6d0] focus:border-transparent outline-none transition-all resize-none"
+              placeholder="Step-by-step usage instructions..."
+            />
+          </div>
+
+          <div>
+            <label
+              htmlFor="service-how-to-use-video-url"
+              className="block text-sm font-medium text-gray-700 mb-1"
+            >
+              Video URL
+            </label>
+            <input
+              id="service-how-to-use-video-url"
+              type="url"
+              value={values.howToUseVideoUrl ?? ""}
+              onChange={(e) =>
+                setValues((v) => ({
+                  ...v,
+                  howToUseVideoUrl: e.target.value,
+                }))
+              }
+              className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-[#f8c6d0] focus:border-transparent outline-none transition-all"
+              placeholder="Paste YouTube, Instagram, or other video link"
+            />
+            <p className="mt-1 text-xs text-gray-500">
+              You can fill text, video URL, or both. Any video URL is allowed,
+              including social media links.
+            </p>
+          </div>
+        </div>
+      </div>
       <div>
-        <label htmlFor="service-image" className="block text-sm font-medium text-gray-700 mb-1">
-          Image Upload
+        <label htmlFor="service-image-file" className="block text-sm font-medium text-gray-700 mb-1">
+          Service Image 
         </label>
         <input
           id="service-image-file"
@@ -291,7 +382,7 @@ export function ServiceForm({
             const file = e.target.files?.[0] ?? null;
             setImageFile(file);
           }}
-          className="block w-full text-sm text-gray-700 file:mr-3 file:rounded-lg file:border-0 file:bg-[#fef5f7] file:px-4 file:py-2.5 file:text-sm file:font-medium file:text-[#D96A86] hover:file:bg-[#f8c6d0] cursor-pointer"
+          className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-[#f8c6d0] focus:border-transparent outline-none transition-all bg-white file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-[#fef5f7] file:text-[#D96A86] hover:file:bg-[#f8e0e6]"
         />
         <p className="mt-1 text-xs text-gray-500">
           Upload an image from your device. This will be used inside the admin panel.

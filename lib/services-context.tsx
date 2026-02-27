@@ -41,15 +41,30 @@ export function ServicesProvider({ children }: { children: React.ReactNode }) {
 
   const addService = useCallback((values: ServiceFormValues): Service => {
     const now = new Date().toISOString();
+    const trimmedHowToUseText = values.howToUseText?.trim() ?? "";
+    const trimmedHowToUseVideoUrl = values.howToUseVideoUrl?.trim() ?? "";
+
     const newService: Service = {
       id: generateServiceId(),
       name: values.name,
       description: values.description ?? "",
       category: values.category,
       price: values.price,
+      discountPrice:
+        values.discountPrice && values.discountPrice > 0
+          ? values.discountPrice
+          : undefined,
       durationMinutes: values.durationMinutes,
       image: values.image ?? null,
       status: values.status,
+      howToUseType:
+        trimmedHowToUseText && !trimmedHowToUseVideoUrl
+          ? "text"
+          : trimmedHowToUseVideoUrl && !trimmedHowToUseText
+            ? "video"
+            : undefined,
+      howToUseText: trimmedHowToUseText || undefined,
+      howToUseVideoUrl: trimmedHowToUseVideoUrl || undefined,
       areaBranchName: values.areaBranchName ?? undefined,
       fullAddress: values.fullAddress ?? undefined,
       city: values.city ?? undefined,

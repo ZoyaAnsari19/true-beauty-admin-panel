@@ -161,9 +161,24 @@ export default function ServiceDetailPage() {
                     <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Price
                     </p>
-                    <p className="text-gray-900 font-medium mt-0.5">
-                      {formatPrice(service.price)}
-                    </p>
+                    <div className="mt-0.5">
+                      {service.discountPrice &&
+                      service.discountPrice > 0 &&
+                      service.discountPrice < service.price ? (
+                        <>
+                          <p className="text-gray-900 font-semibold text-base text-red-600">
+                            {formatPrice(service.discountPrice)}
+                          </p>
+                          <p className="text-xs text-gray-500 line-through">
+                            {formatPrice(service.price)}
+                          </p>
+                        </>
+                      ) : (
+                        <p className="text-gray-900 font-medium">
+                          {formatPrice(service.price)}
+                        </p>
+                      )}
+                    </div>
                   </div>
                 </div>
                 <div className="flex items-start gap-3">
@@ -205,6 +220,32 @@ export default function ServiceDetailPage() {
                   <p className="text-gray-600 text-sm leading-relaxed whitespace-pre-wrap">
                     {service.description}
                   </p>
+                </div>
+              )}
+
+              {(service.howToUseText || service.howToUseVideoUrl) && (
+                <div className="pt-4 border-t border-gray-100">
+                  <div className="flex items-center gap-2 mb-2">
+                    <FileText className="w-5 h-5 text-gray-600" />
+                    <h3 className="text-sm font-semibold text-gray-900">
+                      How to use
+                    </h3>
+                  </div>
+                  {service.howToUseText && (
+                    <p className="text-gray-600 text-sm leading-relaxed whitespace-pre-wrap mb-2">
+                      {service.howToUseText}
+                    </p>
+                  )}
+                  {service.howToUseVideoUrl && (
+                    <a
+                      href={service.howToUseVideoUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1.5 text-sm font-medium text-[#D96A86] hover:underline"
+                    >
+                      Watch how-to video →
+                    </a>
+                  )}
                 </div>
               )}
 

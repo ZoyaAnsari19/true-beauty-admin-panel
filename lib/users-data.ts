@@ -219,7 +219,7 @@ const MOCK_PURCHASES_USER5: OrderItem[] = [
   {
     orderId: "ord-5a",
     productName: "Hand Cream",
-    productImage: "/products/hand-cream.png",
+    productImage: "/products/handCream.png",
     price: 299,
     quantity: 2,
     totalAmount: 598,
@@ -229,7 +229,7 @@ const MOCK_PURCHASES_USER5: OrderItem[] = [
   {
     orderId: "ord-5b",
     productName: "Face Mist",
-    productImage: "/products/face-mist.png",
+    productImage: "/products/faceMist.png",
     price: 349,
     quantity: 1,
     totalAmount: 349,
@@ -241,7 +241,7 @@ const MOCK_RETURNS_USER5: OrderItem[] = [
   {
     orderId: "ord-5c",
     productName: "BB Cream",
-    productImage: "/products/bb-cream.png",
+    productImage: "/products/bbCream.png",
     price: 499,
     quantity: 1,
     totalAmount: 499,
@@ -265,7 +265,7 @@ const MOCK_REFUNDED_USER5: OrderItem[] = [
   {
     orderId: "ord-5e",
     productName: "Trial Set",
-    productImage: "/products/trial-set.png",
+    productImage: "/products/trialSet.png",
     price: 199,
     quantity: 1,
     totalAmount: 199,

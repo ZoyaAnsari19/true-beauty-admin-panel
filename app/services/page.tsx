@@ -220,9 +220,24 @@ export default function ServicesPage() {
     {
       header: "Price",
       accessor: (service: Service) => (
-        <span className="font-medium text-gray-900">
-          {formatPrice(service.price)}
-        </span>
+        <div className="flex flex-col">
+          {service.discountPrice &&
+          service.discountPrice > 0 &&
+          service.discountPrice < service.price ? (
+            <>
+              <span className="text-sm font-semibold text-red-600">
+                {formatPrice(service.discountPrice)}
+              </span>
+              <span className="text-xs text-gray-500 line-through">
+                {formatPrice(service.price)}
+              </span>
+            </>
+          ) : (
+            <span className="font-medium text-gray-900">
+              {formatPrice(service.price)}
+            </span>
+          )}
+        </div>
       ),
     },
     {
@@ -361,7 +376,20 @@ export default function ServicesPage() {
                       </span>
                     </p>
                     <p className="text-sm font-medium text-gray-900 mt-0.5">
-                      {formatPrice(service.price)}
+                      {service.discountPrice &&
+                      service.discountPrice > 0 &&
+                      service.discountPrice < service.price ? (
+                        <>
+                          <span className="text-sm font-semibold text-red-600">
+                            {formatPrice(service.discountPrice)}
+                          </span>
+                          <span className="ml-2 text-xs text-gray-500 line-through">
+                            {formatPrice(service.price)}
+                          </span>
+                        </>
+                      ) : (
+                        formatPrice(service.price)
+                      )}
                     </p>
                     <div className="flex items-center justify-between gap-2 mt-2 flex-wrap">
                       <span
