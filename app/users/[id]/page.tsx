@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import {
@@ -21,13 +21,14 @@ import {
   FileText,
   ShieldCheck,
   Wallet,
+  X,
 } from "lucide-react";
 import { useUsers } from "@/lib/users-context";
 import { useOrders } from "@/lib/orders-context";
 import { useAffiliates } from "@/lib/affiliates-context";
 import { Tabination, type TabItem } from "@/components/ui/Tabination";
 import { ProductOrderCard } from "@/components/ui/Card";
-import type { OrderItem } from "@/lib/users-data";
+import type { OrderItem, ReturnStatus } from "@/lib/users-data";
 
 function formatDate(dateStr: string) {
   return new Date(dateStr).toLocaleDateString("en-US", {
@@ -51,6 +52,26 @@ function uniqueOrderCount(items: OrderItem[]): number {
 function totalAmount(items: OrderItem[]): number {
   return items.reduce((sum, i) => sum + i.totalAmount, 0);
 }
+
+const RETURN_STATUS_LABELS: Record<ReturnStatus, string> = {
+  pending_review: "Pending review",
+  approved: "Approved",
+  rejected: "Rejected",
+  pickup_scheduled: "Pickup scheduled",
+  pickup_completed: "Pickup completed",
+  refund_initiated: "Refund initiated",
+  completed: "Completed",
+};
+
+const RETURN_STATUS_CLASSES: Record<ReturnStatus, string> = {
+  pending_review: "bg-amber-50 text-amber-700",
+  approved: "bg-emerald-50 text-emerald-700",
+  rejected: "bg-red-50 text-red-700",
+  pickup_scheduled: "bg-blue-50 text-blue-700",
+  pickup_completed: "bg-blue-50 text-blue-700",
+  refund_initiated: "bg-purple-50 text-purple-700",
+  completed: "bg-emerald-50 text-emerald-700",
+};
 
 function OrdersTabSummary({
   count,
@@ -86,9 +107,11 @@ function OrdersTabSummary({
 function OrderCardsList({
   items,
   userId,
+  onCardClick,
 }: {
   items: OrderItem[];
   userId: string;
+  onCardClick?: (item: OrderItem) => void;
 }) {
   const router = useRouter();
   const { orders } = useOrders();
@@ -132,6 +155,10 @@ function OrderCardsList({
   };
 
   const handleCardClick = (item: OrderItem) => {
+    if (onCardClick) {
+      onCardClick(item);
+      return;
+    }
     const resolved = resolveOrderAndItemId(item);
     if (!resolved) return;
     const { orderId, itemId } = resolved;
@@ -178,6 +205,7 @@ function OrderCardsList({
 
 export default function UserDetailPage() {
   const params = useParams();
+  const router = useRouter();
   const { getUserById, setUserStatus } = useUsers();
   const { affiliates } = useAffiliates();
   const id = typeof params.id === "string" ? params.id : params.id?.[0];
@@ -484,7 +512,34 @@ export default function UserDetailPage() {
         countLabel="Total Returns"
         amountLabel="Total Amount"
       />
-      <OrderCardsList items={user.returnsOrders} userId={id} />
+      <div className="space-y-3">
+        {user.returnsOrders.length === 0 ? (
+          <p className="text-sm text-gray-500 text-center py-6">
+            No return requests for this user.
+          </p>
+        ) : (
+          user.returnsOrders.map((item, index) => (
+            <ProductOrderCard
+              key={`${item.orderId}-${item.productName}-${index}`}
+              productImage={item.productImage}
+              productName={item.productName}
+              price={item.price}
+              quantity={item.quantity}
+              totalAmount={item.totalAmount}
+              orderDate={item.orderDate}
+              orderStatus="Returned"
+              formatDate={formatDate}
+              onClick={() =>
+                router.push(
+                  `/users/${id}/returnDetails?orderId=${encodeURIComponent(
+                    item.orderId
+                  )}&product=${encodeURIComponent(item.productName)}`
+                )
+              }
+            />
+          ))
+        )}
+      </div>
     </div>
   );
 

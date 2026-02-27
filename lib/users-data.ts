@@ -1,5 +1,38 @@
 export type UserStatus = "active" | "blocked";
 
+export type ReturnStatus =
+  | "pending_review"
+  | "approved"
+  | "rejected"
+  | "pickup_scheduled"
+  | "pickup_completed"
+  | "refund_initiated"
+  | "completed";
+
+export interface ReturnTimelineEntry {
+  status: ReturnStatus;
+  date: string;
+  note?: string;
+}
+
+export type RefundMethod = "bank_transfer" | "upi" | "original_source";
+
+export interface RefundDetails {
+  method: RefundMethod;
+  accountHolderName?: string;
+  bankName?: string;
+  accountNumber?: string;
+  ifscCode?: string;
+  upiId?: string;
+}
+
+export interface RefundAuditEntry {
+  action: string;
+  date: string;
+  by: string;
+  note?: string;
+}
+
 export interface OrderItem {
   orderId: string;
   productImage?: string | null;
@@ -9,6 +42,22 @@ export interface OrderItem {
   totalAmount: number;
   orderDate: string;
   orderStatus: string;
+  /** Optional reason for return (for returned items) */
+  returnReason?: string;
+  /** Longer customer description for the return */
+  returnDescription?: string;
+  /** Optional list of uploaded image URLs relevant to the return */
+  returnImages?: string[];
+  /** When the return was initially requested */
+  returnRequestedAt?: string;
+  /** Current lifecycle status for returns */
+  returnStatus?: ReturnStatus;
+  /** Timeline of status changes for this return */
+  returnTimeline?: ReturnTimelineEntry[];
+  /** Refund destination details, when applicable */
+  refundDetails?: RefundDetails;
+  /** Audit entries for refund-related actions */
+  refundAuditLog?: RefundAuditEntry[];
 }
 
 export type KycStatus = "not_submitted" | "pending" | "verified";
@@ -98,6 +147,27 @@ const MOCK_RETURNS_USER1: OrderItem[] = [
     totalAmount: 649,
     orderDate: "2024-04-15",
     orderStatus: "Returned",
+    returnReason: "Skin irritation after first use.",
+    returnDescription:
+      "Customer experienced mild redness and irritation after applying the moisturizer once and decided to return the product for safety reasons.",
+    returnImages: ["/returns/moisturizer-redness.png"],
+    returnRequestedAt: "2024-04-16T09:30:00Z",
+    returnStatus: "pending_review",
+    returnTimeline: [
+      {
+        status: "pending_review",
+        date: "2024-04-16T09:30:00Z",
+        note: "Return request submitted by customer.",
+      },
+    ],
+    refundDetails: {
+      method: "bank_transfer",
+      accountHolderName: "Sarah Johnson",
+      bankName: "HDFC Bank",
+      accountNumber: "123456789012",
+      ifscCode: "HDFC0001234",
+    },
+    refundAuditLog: [],
   },
 ];
 const MOCK_CANCELLED_USER1: OrderItem[] = [
@@ -179,6 +249,37 @@ const MOCK_RETURNS_USER4: OrderItem[] = [
     totalAmount: 349,
     orderDate: "2024-03-25",
     orderStatus: "Returned",
+    returnReason: "Bottle leaked inside the box.",
+    returnDescription:
+      "Courier delivered the toner with visible leakage inside the packaging. Customer shared images of the damaged box and half-empty bottle.",
+    returnImages: [
+      "/returns/toner-box-damaged.png",
+      "/returns/toner-bottle-leak.png",
+    ],
+    returnRequestedAt: "2024-03-26T11:10:00Z",
+    returnStatus: "approved",
+    returnTimeline: [
+      {
+        status: "pending_review",
+        date: "2024-03-26T11:10:00Z",
+        note: "Return request submitted by customer.",
+      },
+      {
+        status: "approved",
+        date: "2024-03-26T15:45:00Z",
+        note: "Return approved by admin after reviewing images.",
+      },
+      {
+        status: "pickup_scheduled",
+        date: "2024-03-27T09:00:00Z",
+        note: "Pickup scheduled with courier partner.",
+      },
+    ],
+    refundDetails: {
+      method: "upi",
+      upiId: "ava.d@upi",
+    },
+    refundAuditLog: [],
   },
 ];
 const MOCK_CANCELLED_USER4: OrderItem[] = [
@@ -247,6 +348,34 @@ const MOCK_RETURNS_USER5: OrderItem[] = [
     totalAmount: 499,
     orderDate: "2024-04-01",
     orderStatus: "Returned",
+    returnReason: "BB Cream shade mismatch.",
+    returnDescription:
+      "Customer ordered the wrong shade and wants to return it unused. Packaging is intact and seal is not broken.",
+    returnImages: ["/returns/bbcream-box.png"],
+    returnRequestedAt: "2024-04-02T14:20:00Z",
+    returnStatus: "refund_initiated",
+    returnTimeline: [
+      {
+        status: "pending_review",
+        date: "2024-04-02T14:20:00Z",
+      },
+      {
+        status: "approved",
+        date: "2024-04-02T16:00:00Z",
+      },
+      {
+        status: "pickup_completed",
+        date: "2024-04-04T10:30:00Z",
+      },
+      {
+        status: "refund_initiated",
+        date: "2024-04-05T12:00:00Z",
+      },
+    ],
+    refundDetails: {
+      method: "original_source",
+    },
+    refundAuditLog: [],
   },
 ];
 const MOCK_CANCELLED_USER5: OrderItem[] = [
