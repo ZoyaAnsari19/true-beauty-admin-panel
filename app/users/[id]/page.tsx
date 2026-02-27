@@ -7,7 +7,7 @@ import {
   ArrowLeft,
   Ban,
   CheckCircle,
-  User,
+  User as UserIcon,
   Mail,
   Phone,
   MapPin,
@@ -28,7 +28,12 @@ import { useOrders } from "@/lib/orders-context";
 import { useAffiliates } from "@/lib/affiliates-context";
 import { Tabination, type TabItem } from "@/components/ui/Tabination";
 import { ProductOrderCard } from "@/components/ui/Card";
-import type { OrderItem, ReturnStatus } from "@/lib/users-data";
+import type {
+  OrderItem,
+  ReturnStatus,
+  User as UserModel,
+  WishlistItem,
+} from "@/lib/users-data";
 
 function formatDate(dateStr: string) {
   return new Date(dateStr).toLocaleDateString("en-US", {
@@ -71,6 +76,18 @@ const RETURN_STATUS_CLASSES: Record<ReturnStatus, string> = {
   pickup_completed: "bg-blue-50 text-blue-700",
   refund_initiated: "bg-purple-50 text-purple-700",
   completed: "bg-emerald-50 text-emerald-700",
+};
+
+const WITHDRAW_STATUS_LABELS: Record<string, string> = {
+  pending: "Pending",
+  approved: "Approved",
+  rejected: "Rejected",
+};
+
+const WITHDRAW_STATUS_CLASSES: Record<string, string> = {
+  pending: "bg-amber-50 text-amber-700",
+  approved: "bg-emerald-50 text-emerald-700",
+  rejected: "bg-red-50 text-red-700",
 };
 
 function OrdersTabSummary({
@@ -203,6 +220,115 @@ function OrderCardsList({
   );
 }
 
+function ReturnsTabContent({
+  user,
+  userId,
+}: {
+  user: UserModel;
+  userId: string;
+}) {
+  const router = useRouter();
+
+  const refundTab: TabItem<"refund" | "exchange"> = {
+    id: "refund",
+    label: "Refund",
+    content: (
+      <div>
+        <OrdersTabSummary
+          count={uniqueOrderCount(user.returnsOrders)}
+          total={totalAmount(user.returnsOrders)}
+          countLabel="Total Refund Requests"
+          amountLabel="Total Amount"
+        />
+        <div className="space-y-3">
+          {user.returnsOrders.length === 0 ? (
+            <p className="text-sm text-gray-500 text-center py-6">
+              No refund requests for this user.
+            </p>
+          ) : (
+            user.returnsOrders.map((item: OrderItem, index: number) => (
+              <ProductOrderCard
+                key={`${item.orderId}-${item.productName}-${index}`}
+                productImage={item.productImage}
+                productName={item.productName}
+                price={item.price}
+                quantity={item.quantity}
+                totalAmount={item.totalAmount}
+                orderDate={item.orderDate}
+                orderStatus="Returned"
+                formatDate={formatDate}
+                onClick={() =>
+                  router.push(
+                    `/users/${userId}/returnDetails?orderId=${encodeURIComponent(
+                      item.orderId
+                    )}&product=${encodeURIComponent(item.productName)}`
+                  )
+                }
+              />
+            ))
+          )}
+        </div>
+      </div>
+    ),
+  };
+
+  const exchangeOrders = user.exchangeOrders ?? [];
+
+  const exchangeTab: TabItem<"refund" | "exchange"> = {
+    id: "exchange",
+    label: "Exchange",
+    content: (
+      <div>
+        <OrdersTabSummary
+          count={uniqueOrderCount(exchangeOrders)}
+          total={totalAmount(exchangeOrders)}
+          countLabel="Total Exchanges"
+          amountLabel="Total Amount"
+        />
+        <div className="space-y-3">
+          {exchangeOrders.length === 0 ? (
+            <p className="text-sm text-gray-500 text-center py-6">
+              No exchange requests for this user.
+            </p>
+          ) : (
+            exchangeOrders.map((item: OrderItem, index: number) => (
+              <ProductOrderCard
+                key={`${item.orderId}-${item.productName}-${index}`}
+                productImage={item.productImage}
+                productName={item.productName}
+                price={item.price}
+                quantity={item.quantity}
+                totalAmount={item.totalAmount}
+                orderDate={item.orderDate}
+                orderStatus="Exchange requested"
+                formatDate={formatDate}
+                onClick={() =>
+                  router.push(
+                    `/users/${userId}/exchangeDetails?orderId=${encodeURIComponent(
+                      item.orderId
+                    )}&product=${encodeURIComponent(item.productName)}`
+                  )
+                }
+              />
+            ))
+          )}
+        </div>
+      </div>
+    ),
+  };
+
+  const subTabs: TabItem<"refund" | "exchange">[] = [refundTab, exchangeTab];
+
+  return (
+    <Tabination
+      tabs={subTabs}
+      defaultTabId="refund"
+      className="mt-0"
+      panelClassName="bg-transparent border-none shadow-none p-0"
+    />
+  );
+}
+
 export default function UserDetailPage() {
   const params = useParams();
   const router = useRouter();
@@ -246,7 +372,7 @@ export default function UserDetailPage() {
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
             <div className="flex items-start gap-3">
               <div className="p-2 rounded-lg bg-[#fef5f7] shrink-0">
-                <User className="w-5 h-5 text-gray-600" />
+                <UserIcon className="w-5 h-5 text-gray-600" />
               </div>
               <div className="min-w-0">
                 <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">Name</p>
@@ -504,44 +630,7 @@ export default function UserDetailPage() {
     </div>
   );
 
-  const returnsContent = (
-    <div>
-      <OrdersTabSummary
-        count={uniqueOrderCount(user.returnsOrders)}
-        total={totalAmount(user.returnsOrders)}
-        countLabel="Total Returns"
-        amountLabel="Total Amount"
-      />
-      <div className="space-y-3">
-        {user.returnsOrders.length === 0 ? (
-          <p className="text-sm text-gray-500 text-center py-6">
-            No return requests for this user.
-          </p>
-        ) : (
-          user.returnsOrders.map((item, index) => (
-            <ProductOrderCard
-              key={`${item.orderId}-${item.productName}-${index}`}
-              productImage={item.productImage}
-              productName={item.productName}
-              price={item.price}
-              quantity={item.quantity}
-              totalAmount={item.totalAmount}
-              orderDate={item.orderDate}
-              orderStatus="Returned"
-              formatDate={formatDate}
-              onClick={() =>
-                router.push(
-                  `/users/${id}/returnDetails?orderId=${encodeURIComponent(
-                    item.orderId
-                  )}&product=${encodeURIComponent(item.productName)}`
-                )
-              }
-            />
-          ))
-        )}
-      </div>
-    </div>
-  );
+  const returnsContent = <ReturnsTabContent user={user} userId={id} />;
 
   const cancelledContent = (
     <div>
@@ -589,6 +678,112 @@ export default function UserDetailPage() {
 
   const affiliateForUser = affiliates.find((a) => a.email === user.email);
 
+  const wishlist = user.wishlist ?? [];
+
+  const [selectedWishlistItem, setSelectedWishlistItem] =
+    useState<WishlistItem | null>(null);
+
+  const wishlistTotalValue = wishlist.reduce(
+    (sum, item) => sum + item.price,
+    0
+  );
+
+  const wishlistContent = (
+    <div>
+      <OrdersTabSummary
+        count={wishlist.length}
+        total={wishlistTotalValue}
+        countLabel="Total Liked Products"
+        amountLabel="Total Wishlist Value"
+      />
+      {wishlist.length === 0 ? (
+        <p className="text-center text-gray-500 py-8 text-sm">
+          User has not liked any products yet.
+        </p>
+      ) : (
+        <div className="space-y-4">
+          {wishlist.map((item) => (
+            <div
+              key={item.id}
+              className="flex flex-col sm:flex-row gap-4 p-4 rounded-2xl border border-[#f8c6d0]/60 bg-white shadow-sm cursor-pointer hover:shadow-md transition-shadow"
+              onClick={() => setSelectedWishlistItem(item)}
+            >
+              <div className="shrink-0 w-full sm:w-24 h-24 rounded-xl bg-[#fef5f7] overflow-hidden flex items-center justify-center">
+                {item.productImage ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={item.productImage}
+                    alt={item.productName}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-gray-400 text-3xl font-light">
+                    —
+                  </div>
+                )}
+              </div>
+              <div className="flex-1 min-w-0 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                <div className="space-y-1">
+                  <h3 className="text-sm font-semibold text-gray-900 truncate">
+                    {item.productName}
+                  </h3>
+                  <p className="text-xs text-gray-500 uppercase tracking-wider">
+                    {item.category}
+                  </p>
+                  <p className="text-sm font-medium text-red-600">
+                    {formatCurrency(item.price)}
+                  </p>
+                  <div className="flex items-center flex-wrap gap-x-4 gap-y-1 mt-1 text-xs text-gray-500">
+                    <span className="text-gray-500">
+                      Liked on{" "}
+                      {new Date(item.likedAt).toLocaleDateString("en-US", {
+                        year: "numeric",
+                        month: "short",
+                        day: "numeric",
+                      })}
+                    </span>
+                    <span
+                      className="inline-flex px-2.5 py-1 rounded-full text-xs font-medium bg-green-50 text-green-700"
+                    >
+                      {item.stockStatus === "in_stock"
+                        ? "In stock"
+                        : item.stockStatus === "low_stock"
+                        ? "Low stock"
+                        : "Out of stock"}
+                    </span>
+                  </div>
+                </div>
+                <div className="shrink-0 sm:text-right">
+                  <p className="text-xs text-gray-500">Total</p>
+                  <p className="text-base font-semibold text-gray-900 mt-0.5">
+                    {formatCurrency(item.price)}
+                  </p>
+                  <div className="mt-2 flex justify-start sm:justify-end">
+                    <span
+                      className={`inline-flex px-2.5 py-1 rounded-full text-xs font-medium ${
+                        item.productStatus === "active"
+                          ? "bg-emerald-50 text-emerald-700"
+                          : item.productStatus === "draft"
+                          ? "bg-gray-100 text-gray-700"
+                          : "bg-red-50 text-red-700"
+                      }`}
+                    >
+                      {item.productStatus === "active"
+                        ? "Active"
+                        : item.productStatus === "draft"
+                        ? "Draft"
+                        : "Inactive"}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+
   const walletContent = (
     <div className="space-y-6">
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
@@ -620,35 +815,228 @@ export default function UserDetailPage() {
 
   const tabs: TabItem[] = affiliateForUser
     ? [
+        { id: "basic", label: "Basic Info", content: basicInfoContent },
         { id: "purchases", label: "Orders", content: purchasesContent },
         { id: "returns", label: "Returns", content: returnsContent },
         { id: "cancelled", label: "Cancelled", content: cancelledContent },
-        { id: "refunds", label: "Refunds", content: refundsContent },
+        { id: "wishlist", label: "Wishlist", content: wishlistContent },
+        {
+          id: "withdrawals",
+          label: "Withdraw History",
+          content: (
+            <div className="space-y-6">
+              <div className="flex gap-4 overflow-x-auto pb-2 -mx-4 px-4 md:mx-0 md:px-0 md:grid md:grid-cols-2 md:gap-4">
+                <div className="flex items-center gap-3 p-4 rounded-xl bg-[#fef5f7] border border-[#f8c6d0]/40 min-w-[200px] md:min-w-0 shrink-0 md:shrink">
+                  <ShoppingBag className="w-5 h-5 text-gray-600 shrink-0" />
+                  <div className="min-w-0">
+                    <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Total Withdrawals
+                    </p>
+                    <p className="text-xl font-semibold text-gray-900">
+                      {affiliateForUser.withdrawals.length}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3 p-4 rounded-xl bg-[#fef5f7] border border-[#f8c6d0]/40 min-w-[200px] md:min-w-0 shrink-0 md:shrink">
+                  <IndianRupee className="w-5 h-5 text-gray-600 shrink-0" />
+                  <div className="min-w-0">
+                    <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Total Approved Amount
+                    </p>
+                    <p className="text-xl font-semibold text-gray-900">
+                      {formatCurrency(
+                        affiliateForUser.withdrawals
+                          .filter((w) => w.status === "approved")
+                          .reduce((sum, w) => sum + w.amount, 0)
+                      )}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {affiliateForUser.withdrawals.length === 0 ? (
+                <p className="text-center text-gray-500 py-8 text-sm">
+                  No withdrawal requests for this affiliate.
+                </p>
+              ) : (
+                <div className="space-y-3">
+                  {affiliateForUser.withdrawals.map((w) => {
+                    const statusLabel =
+                      WITHDRAW_STATUS_LABELS[w.status] ?? w.status;
+                    const statusClass =
+                      WITHDRAW_STATUS_CLASSES[w.status] ??
+                      "bg-gray-50 text-gray-700";
+                    return (
+                      <div
+                        key={w.id}
+                        className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3"
+                      >
+                        <div className="space-y-1">
+                          <p className="text-sm font-semibold text-gray-900">
+                            {formatCurrency(w.amount)}
+                          </p>
+                          <p className="text-xs text-gray-500">
+                            {w.method}
+                          </p>
+                          <p className="text-xs text-gray-500">
+                            Requested on{" "}
+                            {new Date(w.requestedAt).toLocaleString("en-US", {
+                              year: "numeric",
+                              month: "short",
+                              day: "numeric",
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            })}
+                          </p>
+                          {w.processedAt && (
+                            <p className="text-xs text-gray-500">
+                              Processed on{" "}
+                              {new Date(w.processedAt).toLocaleString(
+                                "en-US",
+                                {
+                                  year: "numeric",
+                                  month: "short",
+                                  day: "numeric",
+                                  hour: "2-digit",
+                                  minute: "2-digit",
+                                }
+                              )}
+                            </p>
+                          )}
+                          {w.notes && (
+                            <p className="text-xs text-gray-600">
+                              {w.notes}
+                            </p>
+                          )}
+                        </div>
+                        <div className="sm:text-right">
+                          <span
+                            className={`inline-flex px-2.5 py-1 rounded-full text-xs font-medium ${statusClass}`}
+                          >
+                            {statusLabel}
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          ),
+        },
         { id: "wallet", label: "Wallet Amount", content: walletContent },
-        { id: "basic", label: "Basic Info", content: basicInfoContent },
         { id: "kyc", label: "KYC", content: kycContent },
       ]
     : [
+        { id: "basic", label: "Basic Info", content: basicInfoContent },
         { id: "purchases", label: "Orders", content: purchasesContent },
         { id: "returns", label: "Returns", content: returnsContent },
         { id: "cancelled", label: "Cancelled", content: cancelledContent },
-        { id: "refunds", label: "Refunds", content: refundsContent },
-        { id: "basic", label: "Basic Info", content: basicInfoContent },
+        { id: "wishlist", label: "Wishlist", content: wishlistContent },
         { id: "kyc", label: "KYC", content: kycContent },
       ];
 
   return (
     <div className="space-y-6">
-      <Link
-        href="/users"
-        className="inline-flex items-center gap-2 text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors"
-      >
-        <ArrowLeft className="w-4 h-4" />
-        Back to Users
-      </Link>
+      <div className="flex items-center justify-between gap-3">
+        <Link
+          href="/users"
+          className="inline-flex items-center gap-2 text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          Back to Users
+        </Link>
+        <h1 className="flex-1 text-center text-lg sm:text-xl font-semibold text-gray-900 truncate">
+          {user.name}
+        </h1>
+        <div className="w-20" />
+      </div>
 
       {/* Tabs */}
-      <Tabination tabs={tabs} defaultTabId="purchases" />
+      <Tabination tabs={tabs} defaultTabId="basic" />
+
+      {selectedWishlistItem && (
+        <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/40 px-4">
+          <div className="bg-white rounded-2xl shadow-lg border border-gray-100 max-w-lg w-full">
+            <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 bg-[#fef5f7] rounded-t-2xl">
+              <h2 className="text-sm font-semibold text-gray-900">
+                Product details
+              </h2>
+              <button
+                type="button"
+                onClick={() => setSelectedWishlistItem(null)}
+                className="p-1 rounded-full hover:bg-white"
+              >
+                <X className="w-4 h-4 text-gray-500" />
+              </button>
+            </div>
+            <div className="p-5 space-y-4">
+              <div className="flex gap-4">
+                <div className="shrink-0 w-24 h-24 rounded-xl bg-[#fef5f7] overflow-hidden flex items-center justify-center">
+                  {selectedWishlistItem.productImage ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={selectedWishlistItem.productImage}
+                      alt={selectedWishlistItem.productName}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-gray-400 text-3xl font-light">
+                      —
+                    </div>
+                  )}
+                </div>
+                <div className="flex-1 min-w-0 space-y-1">
+                  <p className="text-sm font-semibold text-gray-900 truncate">
+                    {selectedWishlistItem.productName}
+                  </p>
+                  <p className="text-xs text-gray-500 uppercase tracking-wider">
+                    {selectedWishlistItem.category}
+                  </p>
+                  <p className="text-sm font-medium text-red-600">
+                    {formatCurrency(selectedWishlistItem.price)}
+                  </p>
+                  <div className="flex flex-wrap gap-2 mt-1">
+                    <span className="inline-flex px-2.5 py-1 rounded-full text-xs font-medium bg-green-50 text-green-700">
+                      {selectedWishlistItem.stockStatus === "in_stock"
+                        ? "In stock"
+                        : selectedWishlistItem.stockStatus === "low_stock"
+                        ? "Low stock"
+                        : "Out of stock"}
+                    </span>
+                    <span
+                      className={`inline-flex px-2.5 py-1 rounded-full text-xs font-medium ${
+                        selectedWishlistItem.productStatus === "active"
+                          ? "bg-emerald-50 text-emerald-700"
+                          : selectedWishlistItem.productStatus === "draft"
+                          ? "bg-gray-100 text-gray-700"
+                          : "bg-red-50 text-red-700"
+                      }`}
+                    >
+                      {selectedWishlistItem.productStatus === "active"
+                        ? "Active"
+                        : selectedWishlistItem.productStatus === "draft"
+                        ? "Draft"
+                        : "Inactive"}
+                    </span>
+                  </div>
+                  <p className="text-xs text-gray-500">
+                    Liked on{" "}
+                    {new Date(selectedWishlistItem.likedAt).toLocaleDateString(
+                      "en-US",
+                      {
+                        year: "numeric",
+                        month: "short",
+                        day: "numeric",
+                      }
+                    )}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

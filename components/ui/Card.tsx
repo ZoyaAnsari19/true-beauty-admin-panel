@@ -94,30 +94,28 @@ export function ProductOrderCard({
             <p className="text-sm font-medium text-red-600">
               {defaultFormatCurrency(price, currency)}
             </p>
-            <div className="flex items-center text-xs text-gray-500 flex-wrap gap-y-1">
-              <div className="flex items-center gap-x-4">
-                <span>Qty: {quantity}</span>
-                <span>{formatDate(orderDate)}</span>
-              </div>
-              <div className="flex-1 flex justify-center gap-2 min-w-0">
-                <span
-                  className={`inline-flex px-2 py-0.5 rounded-full text-xs font-medium ${statusClass}`}
-                >
-                  {orderStatus}
+            <div className="flex items-center text-xs text-gray-500 flex-wrap gap-x-4 gap-y-1 mt-1">
+              <span>Qty: {quantity}</span>
+              <span>{formatDate(orderDate)}</span>
+              {showAffiliateBadge && (
+                <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-violet-50 text-violet-700 border border-violet-200/60">
+                  Via Affiliate
                 </span>
-                {showAffiliateBadge && (
-                  <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-violet-50 text-violet-700 border border-violet-200/60">
-                    Via Affiliate
-                  </span>
-                )}
-              </div>
+              )}
             </div>
           </div>
           <div className="shrink-0 sm:text-right">
-            <p className="text-base font-semibold text-gray-900">
+            <p className="text-xs text-gray-500">Total</p>
+            <p className="text-base font-semibold text-gray-900 mt-0.5">
               {defaultFormatCurrency(totalAmount, currency)}
             </p>
-            <p className="text-xs text-gray-500 mt-0.5">Total</p>
+            <div className="mt-2 flex justify-start sm:justify-end">
+              <span
+                className={`inline-flex px-2.5 py-1 rounded-full text-xs font-medium ${statusClass}`}
+              >
+                {orderStatus}
+              </span>
+            </div>
           </div>
         </div>
       </div>
