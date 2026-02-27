@@ -27,7 +27,6 @@ import { useOrders } from "@/lib/orders-context";
 import { useAffiliates } from "@/lib/affiliates-context";
 import { Tabination, type TabItem } from "@/components/ui/Tabination";
 import { ProductOrderCard } from "@/components/ui/Card";
-import { KpiCard } from "@/components/ui/kpiCard";
 import type { OrderItem } from "@/lib/users-data";
 
 function formatDate(dateStr: string) {
@@ -563,8 +562,6 @@ export default function UserDetailPage() {
         { id: "kyc", label: "KYC", content: kycContent },
       ];
 
-  const totalRefundAmount = totalAmount(user.refundedOrders);
-
   return (
     <div className="space-y-6">
       <Link
@@ -574,42 +571,6 @@ export default function UserDetailPage() {
         <ArrowLeft className="w-4 h-4" />
         Back to Users
       </Link>
-
-      {/* KPI cards — horizontal scroll on mobile, grid on desktop */}
-      <div className="flex gap-4 overflow-x-auto pb-2 -mx-4 px-4 md:mx-0 md:px-0 md:grid md:grid-cols-2 lg:grid-cols-4 md:gap-6">
-        <KpiCard
-          title="Total Orders"
-          value={String(user.totalOrders)}
-          icon="shopping-cart"
-          iconClassName="bg-green-50 text-green-600"
-          className="min-w-[260px] md:min-w-0 shrink-0 md:shrink"
-        />
-        <KpiCard
-          title="Total Spend"
-          value={formatCurrency(user.totalSpend)}
-          icon="indian-rupee"
-          iconClassName="bg-purple-50 text-purple-600"
-          className="min-w-[260px] md:min-w-0 shrink-0 md:shrink"
-        />
-        <KpiCard
-          title="Total Amount"
-          value={formatCurrency(totalRefundAmount)}
-          icon="indian-rupee"
-          iconClassName="bg-amber-50 text-amber-600"
-          className="min-w-[260px] md:min-w-0 shrink-0 md:shrink"
-        />
-        <KpiCard
-          title="Account Status"
-          value={user.status === "active" ? "Active" : "Blocked"}
-          icon={user.status === "active" ? "user-check" : "user-x"}
-          iconClassName={
-            user.status === "active"
-              ? "bg-emerald-50 text-emerald-600"
-              : "bg-red-50 text-red-600"
-          }
-          className="min-w-[260px] md:min-w-0 shrink-0 md:shrink"
-        />
-      </div>
 
       {/* Tabs */}
       <Tabination tabs={tabs} defaultTabId="purchases" />
