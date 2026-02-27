@@ -139,10 +139,23 @@ export interface User {
   cancelledOrders: OrderItem[];
   refundedOrders: OrderItem[];
   exchangeOrders: OrderItem[];
+  wishlist: WishlistItem[];
   /**
    * Optional KYC information uploaded from user side.
    */
   kyc?: UserKyc;
+}
+
+export interface WishlistItem {
+  id: string;
+  productId: string;
+  productName: string;
+  productImage?: string | null;
+  category: string;
+  price: number;
+  stockStatus: "in_stock" | "low_stock" | "out_of_stock";
+  productStatus: "active" | "draft" | "inactive";
+  likedAt: string;
 }
 
 // Mock order items for development
@@ -266,6 +279,31 @@ const MOCK_REFUNDED_USER1: OrderItem[] = [
   },
 ];
 
+const MOCK_WISHLIST_USER1: WishlistItem[] = [
+  {
+    id: "w-1",
+    productId: "p1",
+    productName: "True Beauty Night Cream",
+    productImage: "/products/nightCream.png",
+    category: "Skincare",
+    price: 1399,
+    stockStatus: "in_stock",
+    productStatus: "active",
+    likedAt: "2024-06-05T10:15:00Z",
+  },
+  {
+    id: "w-2",
+    productId: "p2",
+    productName: "True Beauty Serum",
+    productImage: "/products/serum.png",
+    category: "Skincare",
+    price: 899,
+    stockStatus: "low_stock",
+    productStatus: "active",
+    likedAt: "2024-06-08T14:45:00Z",
+  },
+];
+
 const MOCK_PURCHASES_USER2: OrderItem[] = [
   {
     orderId: "ord-2a",
@@ -289,6 +327,7 @@ const MOCK_PURCHASES_USER2: OrderItem[] = [
   },
 ];
 const MOCK_EXCHANGES_USER2: OrderItem[] = [];
+const MOCK_WISHLIST_USER2: WishlistItem[] = [];
 const MOCK_PURCHASES_USER4: OrderItem[] = [
   {
     orderId: "ord-4a",
@@ -426,6 +465,19 @@ const MOCK_REFUNDED_USER4: OrderItem[] = [
     orderStatus: "Refunded",
   },
 ];
+const MOCK_WISHLIST_USER4: WishlistItem[] = [
+  {
+    id: "w-3",
+    productId: "p3",
+    productName: "Cleansing Balm",
+    productImage: "/products/cleansing-balm.png",
+    category: "Cleansers",
+    price: 799,
+    stockStatus: "in_stock",
+    productStatus: "active",
+    likedAt: "2024-05-18T09:00:00Z",
+  },
+];
 const MOCK_PURCHASES_USER5: OrderItem[] = [
   {
     orderId: "ord-5a",
@@ -513,6 +565,7 @@ const MOCK_REFUNDED_USER5: OrderItem[] = [
     orderStatus: "Refunded",
   },
 ];
+const MOCK_WISHLIST_USER5: WishlistItem[] = [];
 
 // Mock data for development
 export const MOCK_USERS: User[] = [
@@ -540,6 +593,7 @@ export const MOCK_USERS: User[] = [
     cancelledOrders: MOCK_CANCELLED_USER1,
     refundedOrders: MOCK_REFUNDED_USER1,
     exchangeOrders: MOCK_EXCHANGES_USER1,
+    wishlist: MOCK_WISHLIST_USER1,
     kyc: {
       status: "verified",
       aadharUrl:
@@ -572,6 +626,7 @@ export const MOCK_USERS: User[] = [
     cancelledOrders: [],
     refundedOrders: [],
     exchangeOrders: MOCK_EXCHANGES_USER2,
+    wishlist: MOCK_WISHLIST_USER2,
     kyc: {
       status: "pending",
     },
@@ -600,6 +655,7 @@ export const MOCK_USERS: User[] = [
     cancelledOrders: [],
     refundedOrders: [],
     exchangeOrders: [],
+    wishlist: [],
     kyc: {
       status: "not_submitted",
     },
@@ -628,6 +684,7 @@ export const MOCK_USERS: User[] = [
     cancelledOrders: MOCK_CANCELLED_USER4,
     refundedOrders: MOCK_REFUNDED_USER4,
     exchangeOrders: MOCK_EXCHANGES_USER4,
+    wishlist: MOCK_WISHLIST_USER4,
     kyc: {
       status: "verified",
     },
@@ -656,6 +713,7 @@ export const MOCK_USERS: User[] = [
     cancelledOrders: MOCK_CANCELLED_USER5,
     refundedOrders: MOCK_REFUNDED_USER5,
     exchangeOrders: MOCK_EXCHANGES_USER5,
+    wishlist: MOCK_WISHLIST_USER5,
     kyc: {
       status: "not_submitted",
     },

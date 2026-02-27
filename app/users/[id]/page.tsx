@@ -32,6 +32,7 @@ import type {
   OrderItem,
   ReturnStatus,
   User as UserModel,
+  WishlistItem,
 } from "@/lib/users-data";
 
 function formatDate(dateStr: string) {
@@ -665,6 +666,112 @@ export default function UserDetailPage() {
 
   const affiliateForUser = affiliates.find((a) => a.email === user.email);
 
+  const wishlist = user.wishlist ?? [];
+
+  const [selectedWishlistItem, setSelectedWishlistItem] =
+    useState<WishlistItem | null>(null);
+
+  const wishlistTotalValue = wishlist.reduce(
+    (sum, item) => sum + item.price,
+    0
+  );
+
+  const wishlistContent = (
+    <div>
+      <OrdersTabSummary
+        count={wishlist.length}
+        total={wishlistTotalValue}
+        countLabel="Total Liked Products"
+        amountLabel="Total Wishlist Value"
+      />
+      {wishlist.length === 0 ? (
+        <p className="text-center text-gray-500 py-8 text-sm">
+          User has not liked any products yet.
+        </p>
+      ) : (
+        <div className="space-y-4">
+          {wishlist.map((item) => (
+            <div
+              key={item.id}
+              className="flex flex-col sm:flex-row gap-4 p-4 rounded-2xl border border-[#f8c6d0]/60 bg-white shadow-sm cursor-pointer hover:shadow-md transition-shadow"
+              onClick={() => setSelectedWishlistItem(item)}
+            >
+              <div className="shrink-0 w-full sm:w-24 h-24 rounded-xl bg-[#fef5f7] overflow-hidden flex items-center justify-center">
+                {item.productImage ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={item.productImage}
+                    alt={item.productName}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-gray-400 text-3xl font-light">
+                    —
+                  </div>
+                )}
+              </div>
+              <div className="flex-1 min-w-0 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                <div className="space-y-1">
+                  <h3 className="text-sm font-semibold text-gray-900 truncate">
+                    {item.productName}
+                  </h3>
+                  <p className="text-xs text-gray-500 uppercase tracking-wider">
+                    {item.category}
+                  </p>
+                  <p className="text-sm font-medium text-red-600">
+                    {formatCurrency(item.price)}
+                  </p>
+                  <div className="flex items-center flex-wrap gap-x-4 gap-y-1 mt-1 text-xs text-gray-500">
+                    <span className="text-gray-500">
+                      Liked on{" "}
+                      {new Date(item.likedAt).toLocaleDateString("en-US", {
+                        year: "numeric",
+                        month: "short",
+                        day: "numeric",
+                      })}
+                    </span>
+                    <span
+                      className="inline-flex px-2.5 py-1 rounded-full text-xs font-medium bg-green-50 text-green-700"
+                    >
+                      {item.stockStatus === "in_stock"
+                        ? "In stock"
+                        : item.stockStatus === "low_stock"
+                        ? "Low stock"
+                        : "Out of stock"}
+                    </span>
+                  </div>
+                </div>
+                <div className="shrink-0 sm:text-right">
+                  <p className="text-xs text-gray-500">Total</p>
+                  <p className="text-base font-semibold text-gray-900 mt-0.5">
+                    {formatCurrency(item.price)}
+                  </p>
+                  <div className="mt-2 flex justify-start sm:justify-end">
+                    <span
+                      className={`inline-flex px-2.5 py-1 rounded-full text-xs font-medium ${
+                        item.productStatus === "active"
+                          ? "bg-emerald-50 text-emerald-700"
+                          : item.productStatus === "draft"
+                          ? "bg-gray-100 text-gray-700"
+                          : "bg-red-50 text-red-700"
+                      }`}
+                    >
+                      {item.productStatus === "active"
+                        ? "Active"
+                        : item.productStatus === "draft"
+                        ? "Draft"
+                        : "Inactive"}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+
   const walletContent = (
     <div className="space-y-6">
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
@@ -696,20 +803,20 @@ export default function UserDetailPage() {
 
   const tabs: TabItem[] = affiliateForUser
     ? [
+        { id: "basic", label: "Basic Info", content: basicInfoContent },
         { id: "purchases", label: "Orders", content: purchasesContent },
         { id: "returns", label: "Returns", content: returnsContent },
         { id: "cancelled", label: "Cancelled", content: cancelledContent },
-        { id: "refunds", label: "Refunds", content: refundsContent },
+        { id: "wishlist", label: "Wishlist", content: wishlistContent },
         { id: "wallet", label: "Wallet Amount", content: walletContent },
-        { id: "basic", label: "Basic Info", content: basicInfoContent },
         { id: "kyc", label: "KYC", content: kycContent },
       ]
     : [
+        { id: "basic", label: "Basic Info", content: basicInfoContent },
         { id: "purchases", label: "Orders", content: purchasesContent },
         { id: "returns", label: "Returns", content: returnsContent },
         { id: "cancelled", label: "Cancelled", content: cancelledContent },
-        { id: "refunds", label: "Refunds", content: refundsContent },
-        { id: "basic", label: "Basic Info", content: basicInfoContent },
+        { id: "wishlist", label: "Wishlist", content: wishlistContent },
         { id: "kyc", label: "KYC", content: kycContent },
       ];
 
@@ -724,7 +831,90 @@ export default function UserDetailPage() {
       </Link>
 
       {/* Tabs */}
-      <Tabination tabs={tabs} defaultTabId="purchases" />
+      <Tabination tabs={tabs} defaultTabId="basic" />
+
+      {selectedWishlistItem && (
+        <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/40 px-4">
+          <div className="bg-white rounded-2xl shadow-lg border border-gray-100 max-w-lg w-full">
+            <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 bg-[#fef5f7] rounded-t-2xl">
+              <h2 className="text-sm font-semibold text-gray-900">
+                Product details
+              </h2>
+              <button
+                type="button"
+                onClick={() => setSelectedWishlistItem(null)}
+                className="p-1 rounded-full hover:bg-white"
+              >
+                <X className="w-4 h-4 text-gray-500" />
+              </button>
+            </div>
+            <div className="p-5 space-y-4">
+              <div className="flex gap-4">
+                <div className="shrink-0 w-24 h-24 rounded-xl bg-[#fef5f7] overflow-hidden flex items-center justify-center">
+                  {selectedWishlistItem.productImage ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={selectedWishlistItem.productImage}
+                      alt={selectedWishlistItem.productName}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-gray-400 text-3xl font-light">
+                      —
+                    </div>
+                  )}
+                </div>
+                <div className="flex-1 min-w-0 space-y-1">
+                  <p className="text-sm font-semibold text-gray-900 truncate">
+                    {selectedWishlistItem.productName}
+                  </p>
+                  <p className="text-xs text-gray-500 uppercase tracking-wider">
+                    {selectedWishlistItem.category}
+                  </p>
+                  <p className="text-sm font-medium text-red-600">
+                    {formatCurrency(selectedWishlistItem.price)}
+                  </p>
+                  <div className="flex flex-wrap gap-2 mt-1">
+                    <span className="inline-flex px-2.5 py-1 rounded-full text-xs font-medium bg-green-50 text-green-700">
+                      {selectedWishlistItem.stockStatus === "in_stock"
+                        ? "In stock"
+                        : selectedWishlistItem.stockStatus === "low_stock"
+                        ? "Low stock"
+                        : "Out of stock"}
+                    </span>
+                    <span
+                      className={`inline-flex px-2.5 py-1 rounded-full text-xs font-medium ${
+                        selectedWishlistItem.productStatus === "active"
+                          ? "bg-emerald-50 text-emerald-700"
+                          : selectedWishlistItem.productStatus === "draft"
+                          ? "bg-gray-100 text-gray-700"
+                          : "bg-red-50 text-red-700"
+                      }`}
+                    >
+                      {selectedWishlistItem.productStatus === "active"
+                        ? "Active"
+                        : selectedWishlistItem.productStatus === "draft"
+                        ? "Draft"
+                        : "Inactive"}
+                    </span>
+                  </div>
+                  <p className="text-xs text-gray-500">
+                    Liked on{" "}
+                    {new Date(selectedWishlistItem.likedAt).toLocaleDateString(
+                      "en-US",
+                      {
+                        year: "numeric",
+                        month: "short",
+                        day: "numeric",
+                      }
+                    )}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
