@@ -9,8 +9,22 @@ export type ReturnStatus =
   | "refund_initiated"
   | "completed";
 
+export type ExchangeStatus =
+  | "pending_review"
+  | "approved"
+  | "rejected"
+  | "pickup"
+  | "replacement_shipped"
+  | "replacement_delivered";
+
 export interface ReturnTimelineEntry {
   status: ReturnStatus;
+  date: string;
+  note?: string;
+}
+
+export interface ExchangeTimelineEntry {
+  status: ExchangeStatus;
   date: string;
   note?: string;
 }
@@ -66,6 +80,24 @@ export interface OrderItem {
   refundStatus?: "not_applicable" | "pending" | "processed";
   /** Optional transaction identifier for processed refunds */
   refundTransactionId?: string;
+  /** Optional reason for exchange (for exchange requests) */
+  exchangeReason?: string;
+  /** Longer customer description for the exchange */
+  exchangeDescription?: string;
+  /** When the exchange was initially requested */
+  exchangeRequestedAt?: string;
+  /** Current lifecycle status for exchanges */
+  exchangeStatus?: ExchangeStatus;
+  /** Timeline of status changes for this exchange */
+  exchangeTimeline?: ExchangeTimelineEntry[];
+  /** Replacement product name, if different from original */
+  replacementProductName?: string;
+  /** Replacement variant information (shade, size, etc.) */
+  replacementVariant?: string;
+  /** Replacement quantity, if different from original */
+  replacementQuantity?: number;
+  /** Tracking identifier for the replacement shipment */
+  replacementTrackingId?: string;
 }
 
 export type KycStatus = "not_submitted" | "pending" | "verified";
@@ -106,6 +138,7 @@ export interface User {
   returnsOrders: OrderItem[];
   cancelledOrders: OrderItem[];
   refundedOrders: OrderItem[];
+  exchangeOrders: OrderItem[];
   /**
    * Optional KYC information uploaded from user side.
    */
@@ -143,6 +176,33 @@ const MOCK_PURCHASES_USER1: OrderItem[] = [
     totalAmount: 1497,
     orderDate: "2024-05-22",
     orderStatus: "Delivered",
+  },
+];
+const MOCK_EXCHANGES_USER1: OrderItem[] = [
+  {
+    orderId: "ord-1f",
+    productName: "True Beauty Moisturizer",
+    productImage: "/products/moisturizer.png",
+    price: 649,
+    quantity: 1,
+    totalAmount: 649,
+    orderDate: "2024-04-20",
+    orderStatus: "Exchange requested",
+    exchangeReason: "Customer requested different variant for skin type.",
+    exchangeDescription:
+      "Customer realised the ordered moisturizer was for oily skin and requested an exchange to the dry skin variant before opening the product.",
+    exchangeRequestedAt: "2024-04-21T10:15:00Z",
+    exchangeStatus: "pending_review",
+    exchangeTimeline: [
+      {
+        status: "pending_review",
+        date: "2024-04-21T10:15:00Z",
+        note: "Exchange request submitted by customer.",
+      },
+    ],
+    replacementProductName: "True Beauty Moisturizer - Dry Skin",
+    replacementVariant: "Dry Skin",
+    replacementQuantity: 1,
   },
 ];
 const MOCK_RETURNS_USER1: OrderItem[] = [
@@ -228,6 +288,7 @@ const MOCK_PURCHASES_USER2: OrderItem[] = [
     orderStatus: "Delivered",
   },
 ];
+const MOCK_EXCHANGES_USER2: OrderItem[] = [];
 const MOCK_PURCHASES_USER4: OrderItem[] = [
   {
     orderId: "ord-4a",
@@ -291,6 +352,38 @@ const MOCK_RETURNS_USER4: OrderItem[] = [
       upiId: "ava.d@upi",
     },
     refundAuditLog: [],
+  },
+];
+const MOCK_EXCHANGES_USER4: OrderItem[] = [
+  {
+    orderId: "ord-4g",
+    productName: "Body Lotion",
+    productImage: "/products/body-lotion.png",
+    price: 549,
+    quantity: 1,
+    totalAmount: 549,
+    orderDate: "2024-05-22",
+    orderStatus: "Exchange requested",
+    exchangeReason: "Customer wants a different fragrance variant.",
+    exchangeDescription:
+      "Customer prefers the unscented version of the body lotion and requested an exchange before using the product.",
+    exchangeRequestedAt: "2024-05-23T09:45:00Z",
+    exchangeStatus: "approved",
+    exchangeTimeline: [
+      {
+        status: "pending_review",
+        date: "2024-05-23T09:45:00Z",
+        note: "Exchange request submitted by customer.",
+      },
+      {
+        status: "approved",
+        date: "2024-05-23T12:30:00Z",
+        note: "Exchange approved by admin.",
+      },
+    ],
+    replacementProductName: "Body Lotion - Unscented",
+    replacementVariant: "Unscented",
+    replacementQuantity: 1,
   },
 ];
 const MOCK_CANCELLED_USER4: OrderItem[] = [
@@ -395,6 +488,7 @@ const MOCK_RETURNS_USER5: OrderItem[] = [
     refundAuditLog: [],
   },
 ];
+const MOCK_EXCHANGES_USER5: OrderItem[] = [];
 const MOCK_CANCELLED_USER5: OrderItem[] = [
   {
     orderId: "ord-5d",
@@ -445,6 +539,7 @@ export const MOCK_USERS: User[] = [
     returnsOrders: MOCK_RETURNS_USER1,
     cancelledOrders: MOCK_CANCELLED_USER1,
     refundedOrders: MOCK_REFUNDED_USER1,
+    exchangeOrders: MOCK_EXCHANGES_USER1,
     kyc: {
       status: "verified",
       aadharUrl:
@@ -476,6 +571,7 @@ export const MOCK_USERS: User[] = [
     returnsOrders: [],
     cancelledOrders: [],
     refundedOrders: [],
+    exchangeOrders: MOCK_EXCHANGES_USER2,
     kyc: {
       status: "pending",
     },
@@ -503,6 +599,7 @@ export const MOCK_USERS: User[] = [
     returnsOrders: [],
     cancelledOrders: [],
     refundedOrders: [],
+    exchangeOrders: [],
     kyc: {
       status: "not_submitted",
     },
@@ -530,6 +627,7 @@ export const MOCK_USERS: User[] = [
     returnsOrders: MOCK_RETURNS_USER4,
     cancelledOrders: MOCK_CANCELLED_USER4,
     refundedOrders: MOCK_REFUNDED_USER4,
+    exchangeOrders: MOCK_EXCHANGES_USER4,
     kyc: {
       status: "verified",
     },
@@ -557,6 +655,7 @@ export const MOCK_USERS: User[] = [
     returnsOrders: MOCK_RETURNS_USER5,
     cancelledOrders: MOCK_CANCELLED_USER5,
     refundedOrders: MOCK_REFUNDED_USER5,
+    exchangeOrders: MOCK_EXCHANGES_USER5,
     kyc: {
       status: "not_submitted",
     },

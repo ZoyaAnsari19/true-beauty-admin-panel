@@ -7,7 +7,7 @@ import {
   ArrowLeft,
   Ban,
   CheckCircle,
-  User,
+  User as UserIcon,
   Mail,
   Phone,
   MapPin,
@@ -28,7 +28,11 @@ import { useOrders } from "@/lib/orders-context";
 import { useAffiliates } from "@/lib/affiliates-context";
 import { Tabination, type TabItem } from "@/components/ui/Tabination";
 import { ProductOrderCard } from "@/components/ui/Card";
-import type { OrderItem, ReturnStatus } from "@/lib/users-data";
+import type {
+  OrderItem,
+  ReturnStatus,
+  User as UserModel,
+} from "@/lib/users-data";
 
 function formatDate(dateStr: string) {
   return new Date(dateStr).toLocaleDateString("en-US", {
@@ -203,6 +207,115 @@ function OrderCardsList({
   );
 }
 
+function ReturnsTabContent({
+  user,
+  userId,
+}: {
+  user: UserModel;
+  userId: string;
+}) {
+  const router = useRouter();
+
+  const refundTab: TabItem<"refund" | "exchange"> = {
+    id: "refund",
+    label: "Refund",
+    content: (
+      <div>
+        <OrdersTabSummary
+          count={uniqueOrderCount(user.returnsOrders)}
+          total={totalAmount(user.returnsOrders)}
+          countLabel="Total Refund Requests"
+          amountLabel="Total Amount"
+        />
+        <div className="space-y-3">
+          {user.returnsOrders.length === 0 ? (
+            <p className="text-sm text-gray-500 text-center py-6">
+              No refund requests for this user.
+            </p>
+          ) : (
+            user.returnsOrders.map((item: OrderItem, index: number) => (
+              <ProductOrderCard
+                key={`${item.orderId}-${item.productName}-${index}`}
+                productImage={item.productImage}
+                productName={item.productName}
+                price={item.price}
+                quantity={item.quantity}
+                totalAmount={item.totalAmount}
+                orderDate={item.orderDate}
+                orderStatus="Returned"
+                formatDate={formatDate}
+                onClick={() =>
+                  router.push(
+                    `/users/${userId}/returnDetails?orderId=${encodeURIComponent(
+                      item.orderId
+                    )}&product=${encodeURIComponent(item.productName)}`
+                  )
+                }
+              />
+            ))
+          )}
+        </div>
+      </div>
+    ),
+  };
+
+  const exchangeOrders = user.exchangeOrders ?? [];
+
+  const exchangeTab: TabItem<"refund" | "exchange"> = {
+    id: "exchange",
+    label: "Exchange",
+    content: (
+      <div>
+        <OrdersTabSummary
+          count={uniqueOrderCount(exchangeOrders)}
+          total={totalAmount(exchangeOrders)}
+          countLabel="Total Exchanges"
+          amountLabel="Total Amount"
+        />
+        <div className="space-y-3">
+          {exchangeOrders.length === 0 ? (
+            <p className="text-sm text-gray-500 text-center py-6">
+              No exchange requests for this user.
+            </p>
+          ) : (
+            exchangeOrders.map((item: OrderItem, index: number) => (
+              <ProductOrderCard
+                key={`${item.orderId}-${item.productName}-${index}`}
+                productImage={item.productImage}
+                productName={item.productName}
+                price={item.price}
+                quantity={item.quantity}
+                totalAmount={item.totalAmount}
+                orderDate={item.orderDate}
+                orderStatus="Exchange requested"
+                formatDate={formatDate}
+                onClick={() =>
+                  router.push(
+                    `/users/${userId}/exchangeDetails?orderId=${encodeURIComponent(
+                      item.orderId
+                    )}&product=${encodeURIComponent(item.productName)}`
+                  )
+                }
+              />
+            ))
+          )}
+        </div>
+      </div>
+    ),
+  };
+
+  const subTabs: TabItem<"refund" | "exchange">[] = [refundTab, exchangeTab];
+
+  return (
+    <Tabination
+      tabs={subTabs}
+      defaultTabId="refund"
+      className="mt-0"
+      panelClassName="bg-transparent border-none shadow-none p-0"
+    />
+  );
+}
+
 export default function UserDetailPage() {
   const params = useParams();
   const router = useRouter();
@@ -246,7 +359,7 @@ export default function UserDetailPage() {
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
             <div className="flex items-start gap-3">
               <div className="p-2 rounded-lg bg-[#fef5f7] shrink-0">
-                <User className="w-5 h-5 text-gray-600" />
+                <UserIcon className="w-5 h-5 text-gray-600" />
               </div>
               <div className="min-w-0">
                 <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">Name</p>
@@ -504,44 +617,7 @@ export default function UserDetailPage() {
     </div>
   );
 
-  const returnsContent = (
-    <div>
-      <OrdersTabSummary
-        count={uniqueOrderCount(user.returnsOrders)}
-        total={totalAmount(user.returnsOrders)}
-        countLabel="Total Returns"
-        amountLabel="Total Amount"
-      />
-      <div className="space-y-3">
-        {user.returnsOrders.length === 0 ? (
-          <p className="text-sm text-gray-500 text-center py-6">
-            No return requests for this user.
-          </p>
-        ) : (
-          user.returnsOrders.map((item, index) => (
-            <ProductOrderCard
-              key={`${item.orderId}-${item.productName}-${index}`}
-              productImage={item.productImage}
-              productName={item.productName}
-              price={item.price}
-              quantity={item.quantity}
-              totalAmount={item.totalAmount}
-              orderDate={item.orderDate}
-              orderStatus="Returned"
-              formatDate={formatDate}
-              onClick={() =>
-                router.push(
-                  `/users/${id}/returnDetails?orderId=${encodeURIComponent(
-                    item.orderId
-                  )}&product=${encodeURIComponent(item.productName)}`
-                )
-              }
-            />
-          ))
-        )}
-      </div>
-    </div>
-  );
+  const returnsContent = <ReturnsTabContent user={user} userId={id} />;
 
   const cancelledContent = (
     <div>
