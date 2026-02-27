@@ -78,6 +78,18 @@ const RETURN_STATUS_CLASSES: Record<ReturnStatus, string> = {
   completed: "bg-emerald-50 text-emerald-700",
 };
 
+const WITHDRAW_STATUS_LABELS: Record<string, string> = {
+  pending: "Pending",
+  approved: "Approved",
+  rejected: "Rejected",
+};
+
+const WITHDRAW_STATUS_CLASSES: Record<string, string> = {
+  pending: "bg-amber-50 text-amber-700",
+  approved: "bg-emerald-50 text-emerald-700",
+  rejected: "bg-red-50 text-red-700",
+};
+
 function OrdersTabSummary({
   count,
   total,
@@ -808,6 +820,110 @@ export default function UserDetailPage() {
         { id: "returns", label: "Returns", content: returnsContent },
         { id: "cancelled", label: "Cancelled", content: cancelledContent },
         { id: "wishlist", label: "Wishlist", content: wishlistContent },
+        {
+          id: "withdrawals",
+          label: "Withdraw History",
+          content: (
+            <div className="space-y-6">
+              <div className="flex gap-4 overflow-x-auto pb-2 -mx-4 px-4 md:mx-0 md:px-0 md:grid md:grid-cols-2 md:gap-4">
+                <div className="flex items-center gap-3 p-4 rounded-xl bg-[#fef5f7] border border-[#f8c6d0]/40 min-w-[200px] md:min-w-0 shrink-0 md:shrink">
+                  <ShoppingBag className="w-5 h-5 text-gray-600 shrink-0" />
+                  <div className="min-w-0">
+                    <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Total Withdrawals
+                    </p>
+                    <p className="text-xl font-semibold text-gray-900">
+                      {affiliateForUser.withdrawals.length}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3 p-4 rounded-xl bg-[#fef5f7] border border-[#f8c6d0]/40 min-w-[200px] md:min-w-0 shrink-0 md:shrink">
+                  <IndianRupee className="w-5 h-5 text-gray-600 shrink-0" />
+                  <div className="min-w-0">
+                    <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Total Approved Amount
+                    </p>
+                    <p className="text-xl font-semibold text-gray-900">
+                      {formatCurrency(
+                        affiliateForUser.withdrawals
+                          .filter((w) => w.status === "approved")
+                          .reduce((sum, w) => sum + w.amount, 0)
+                      )}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {affiliateForUser.withdrawals.length === 0 ? (
+                <p className="text-center text-gray-500 py-8 text-sm">
+                  No withdrawal requests for this affiliate.
+                </p>
+              ) : (
+                <div className="space-y-3">
+                  {affiliateForUser.withdrawals.map((w) => {
+                    const statusLabel =
+                      WITHDRAW_STATUS_LABELS[w.status] ?? w.status;
+                    const statusClass =
+                      WITHDRAW_STATUS_CLASSES[w.status] ??
+                      "bg-gray-50 text-gray-700";
+                    return (
+                      <div
+                        key={w.id}
+                        className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3"
+                      >
+                        <div className="space-y-1">
+                          <p className="text-sm font-semibold text-gray-900">
+                            {formatCurrency(w.amount)}
+                          </p>
+                          <p className="text-xs text-gray-500">
+                            {w.method}
+                          </p>
+                          <p className="text-xs text-gray-500">
+                            Requested on{" "}
+                            {new Date(w.requestedAt).toLocaleString("en-US", {
+                              year: "numeric",
+                              month: "short",
+                              day: "numeric",
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            })}
+                          </p>
+                          {w.processedAt && (
+                            <p className="text-xs text-gray-500">
+                              Processed on{" "}
+                              {new Date(w.processedAt).toLocaleString(
+                                "en-US",
+                                {
+                                  year: "numeric",
+                                  month: "short",
+                                  day: "numeric",
+                                  hour: "2-digit",
+                                  minute: "2-digit",
+                                }
+                              )}
+                            </p>
+                          )}
+                          {w.notes && (
+                            <p className="text-xs text-gray-600">
+                              {w.notes}
+                            </p>
+                          )}
+                        </div>
+                        <div className="sm:text-right">
+                          <span
+                            className={`inline-flex px-2.5 py-1 rounded-full text-xs font-medium ${statusClass}`}
+                          >
+                            {statusLabel}
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          ),
+        },
         { id: "wallet", label: "Wallet Amount", content: walletContent },
         { id: "kyc", label: "KYC", content: kycContent },
       ]
