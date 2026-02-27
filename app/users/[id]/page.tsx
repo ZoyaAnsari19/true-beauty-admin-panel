@@ -822,13 +822,19 @@ export default function UserDetailPage() {
 
   return (
     <div className="space-y-6">
-      <Link
-        href="/users"
-        className="inline-flex items-center gap-2 text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors"
-      >
-        <ArrowLeft className="w-4 h-4" />
-        Back to Users
-      </Link>
+      <div className="flex items-center justify-between gap-3">
+        <Link
+          href="/users"
+          className="inline-flex items-center gap-2 text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          Back to Users
+        </Link>
+        <h1 className="flex-1 text-center text-lg sm:text-xl font-semibold text-gray-900 truncate">
+          {user.name}
+        </h1>
+        <div className="w-20" />
+      </div>
 
       {/* Tabs */}
       <Tabination tabs={tabs} defaultTabId="basic" />
