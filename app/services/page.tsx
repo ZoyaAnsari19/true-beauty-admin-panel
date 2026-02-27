@@ -12,6 +12,7 @@ import { ServiceForm } from "@/components/ui/ServiceForm";
 import Table from "@/components/Table";
 import { Filters, type FilterOption } from "@/components/ui/filters";
 import { KpiCard } from "@/components/ui/kpiCard";
+import DeletePopup from "@/components/ui/deletePopup";
 
 const STATUS_LABELS: Record<string, string> = {
   active: "Active",
@@ -138,6 +139,7 @@ export default function ServicesPage() {
   const [editingService, setEditingService] = useState<Service | null>(null);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<"" | ServiceStatus>("");
+  const [deleteTarget, setDeleteTarget] = useState<Service | null>(null);
 
   const filteredServices = useMemo(() => {
     let list = [...services];
@@ -180,13 +182,7 @@ export default function ServicesPage() {
   };
 
   const handleDelete = (service: Service) => {
-    if (
-      window.confirm(
-        `Remove "${service.name}" from the list? This can be restored later.`
-      )
-    ) {
-      softDeleteService(service.id);
-    }
+    setDeleteTarget(service);
   };
 
   const handleFormSubmit = (values: ServiceFormValues) => {
@@ -440,6 +436,24 @@ export default function ServicesPage() {
           onCancel={handleFormCancel}
         />
       </Drawer>
+      <DeletePopup
+        open={deleteTarget != null}
+        title="Remove service"
+        description={
+          deleteTarget
+            ? `Remove "${deleteTarget.name}" from the list? This can be restored later.`
+            : ""
+        }
+        confirmLabel="Remove"
+        cancelLabel="Cancel"
+        onCancel={() => setDeleteTarget(null)}
+        onConfirm={() => {
+          if (deleteTarget) {
+            softDeleteService(deleteTarget.id);
+          }
+          setDeleteTarget(null);
+        }}
+      />
     </div>
   );
 }

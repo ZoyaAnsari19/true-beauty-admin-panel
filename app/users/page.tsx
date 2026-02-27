@@ -9,11 +9,13 @@ import { type User, type UserStatus, MOCK_USERS } from "@/lib/users-data";
 import { KpiCard } from "@/components/ui/kpiCard";
 import { Filters, type FilterOption } from "@/components/ui/filters";
 import Table from "@/components/Table";
+import DeletePopup from "@/components/ui/deletePopup";
 
 function UserActionsMenu({ user }: { user: User }) {
   const { setUserStatus, deleteUser } = useUsers();
   const [open, setOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement | null>(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   const isActive = user.status === "active";
 
@@ -79,13 +81,8 @@ function UserActionsMenu({ user }: { user: User }) {
             type="button"
             onClick={(e) => {
               e.stopPropagation();
-              const confirmed = window.confirm(
-                `Delete user "${user.name}"? This action cannot be undone.`
-              );
-              if (confirmed) {
-                deleteUser(user.id);
-              }
               setOpen(false);
+              setShowDeleteConfirm(true);
             }}
             className="flex w-full items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors text-left"
           >
@@ -94,6 +91,18 @@ function UserActionsMenu({ user }: { user: User }) {
           </button>
         </div>
       )}
+      <DeletePopup
+        open={showDeleteConfirm}
+        title="Delete user"
+        description={`Delete user "${user.name}"?`}
+        confirmLabel="Delete"
+        cancelLabel="Cancel"
+        onCancel={() => setShowDeleteConfirm(false)}
+        onConfirm={() => {
+          deleteUser(user.id);
+          setShowDeleteConfirm(false);
+        }}
+      />
     </div>
   );
 }
