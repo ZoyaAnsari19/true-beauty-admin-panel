@@ -64,6 +64,8 @@ export interface OrderItem {
   cancelledBy?: "user" | "admin";
   /** High-level refund status for cancelled/returned orders */
   refundStatus?: "not_applicable" | "pending" | "processed";
+  /** Optional transaction identifier for processed refunds */
+  refundTransactionId?: string;
 }
 
 export type KycStatus = "not_submitted" | "pending" | "verified";

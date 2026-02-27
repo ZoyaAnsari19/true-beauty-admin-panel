@@ -573,7 +573,17 @@ export default function UserDetailPage() {
         countLabel="Total Refunds"
         amountLabel="Total Amount"
       />
-      <OrderCardsList items={user.refundedOrders} userId={id} />
+      <OrderCardsList
+        items={user.refundedOrders}
+        userId={id}
+        onCardClick={(item) =>
+          router.push(
+            `/users/${id}/refundDetalis?orderId=${encodeURIComponent(
+              item.orderId
+            )}&product=${encodeURIComponent(item.productName)}`
+          )
+        }
+      />
     </div>
   );
 
