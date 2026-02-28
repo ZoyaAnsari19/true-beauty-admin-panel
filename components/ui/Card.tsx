@@ -56,67 +56,65 @@ export function ProductOrderCard({
     refunded: "bg-teal-50 text-teal-700",
     pending: "bg-gray-50 text-gray-700",
     inprogress: "bg-amber-50 text-amber-700",
+    instock: "bg-emerald-50 text-emerald-700",
+    lowstock: "bg-amber-50 text-amber-700",
+    outofstock: "bg-red-50 text-red-700",
   };
   const statusKey = orderStatus.toLowerCase().replace(/\s+/g, "");
   const statusClass = statusColors[statusKey] ?? "bg-gray-50 text-gray-700";
 
   return (
     <div
-      className={`flex flex-col gap-4 p-4 rounded-2xl border border-[#f8c6d0]/60 bg-white shadow-sm hover:shadow-md transition-shadow ${
+      className={`flex flex-col h-full p-4 rounded-2xl border border-[#f8c6d0]/60 bg-white shadow-sm hover:shadow-md transition-shadow ${
         onClick ? "cursor-pointer" : ""
       }`}
       onClick={onClick}
     >
-      <div className="flex flex-col sm:flex-row gap-4 min-w-0">
-        {/* Product image */}
-        <div className="shrink-0 w-full sm:w-24 h-24 sm:h-24 rounded-xl bg-[#fef5f7] overflow-hidden flex items-center justify-center">
-          {productImage ? (
-            <Image
-              src={productImage}
-              alt={productName}
-              width={96}
-              height={96}
-              className="w-full h-full object-cover"
-            />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center text-gray-400 text-3xl font-light">
-              —
-            </div>
-          )}
-        </div>
+      {/* Product image on top */}
+      <div className="w-full rounded-xl bg-[#fef5f7] overflow-hidden flex items-center justify-center">
+        {productImage ? (
+          <Image
+            src={productImage}
+            alt={productName}
+            width={320}
+            height={192}
+            className="w-full h-40 sm:h-48 object-cover"
+          />
+        ) : (
+          <div className="w-full h-40 sm:h-48 flex items-center justify-center text-gray-400 text-3xl font-light">
+            —
+          </div>
+        )}
+      </div>
 
-        {/* Product info */}
-        <div className="flex-1 min-w-0 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-          <div className="space-y-1">
-            <h3 className="text-sm font-semibold text-gray-900 truncate">
+      {/* Structured product details below */}
+      <div className="mt-4 flex-1 flex flex-col gap-3">
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <h3 className="text-sm font-semibold text-gray-900 line-clamp-2">
               {productName}
             </h3>
-            <p className="text-sm font-medium text-red-600">
-              {defaultFormatCurrency(price, currency)}
-            </p>
-            <div className="flex items-center text-xs text-gray-500 flex-wrap gap-x-4 gap-y-1 mt-1">
-              <span>Qty: {quantity}</span>
-              <span>{formatDate(orderDate)}</span>
-              {showAffiliateBadge && (
-                <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-violet-50 text-violet-700 border border-violet-200/60">
-                  Via Affiliate
-                </span>
-              )}
-            </div>
           </div>
-          <div className="shrink-0 sm:text-right">
-            <p className="text-xs text-gray-500">Total</p>
-            <p className="text-base font-semibold text-gray-900 mt-0.5">
-              {defaultFormatCurrency(totalAmount, currency)}
-            </p>
-            <div className="mt-2 flex justify-start sm:justify-end">
-              <span
-                className={`inline-flex px-2.5 py-1 rounded-full text-xs font-medium ${statusClass}`}
-              >
-                {orderStatus}
+          <span
+            className={`inline-flex px-2.5 py-1 rounded-full text-xs font-medium shrink-0 ${statusClass}`}
+          >
+            {orderStatus}
+          </span>
+        </div>
+
+        <div className="flex items-center justify-between gap-3 text-xs text-gray-500">
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
+            <span>Qty: {quantity}</span>
+            <span>{formatDate(orderDate)}</span>
+            {showAffiliateBadge && (
+              <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-violet-50 text-violet-700 border border-violet-200/60">
+                Via Affiliate
               </span>
-            </div>
+            )}
           </div>
+          <span className="text-sm font-semibold text-red-600">
+            {defaultFormatCurrency(totalAmount, currency)}
+          </span>
         </div>
       </div>
     </div>

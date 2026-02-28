@@ -6,6 +6,7 @@ import { useParams, useSearchParams } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { useUsers } from "@/lib/users-context";
 import type { OrderItem, ReturnStatus } from "@/lib/users-data";
+import { ProductOrderCard } from "@/components/ui/Card";
 
 const RETURN_STATUS_LABELS: Record<ReturnStatus, string> = {
   pending_review: "Pending review",
@@ -176,45 +177,24 @@ export default function ReturnDetailsPage() {
             )}
           </section>
 
-          {/* Product info */}
-          <section className="rounded-2xl border border-gray-100 bg-white p-4 flex gap-4">
-            <div className="shrink-0 w-24 h-24 rounded-xl bg-[#fef5f7] overflow-hidden flex items-center justify-center">
-              {returnItem.productImage ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={returnItem.productImage}
-                  alt={returnItem.productName}
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center text-gray-300 text-2xl font-light">
-                  —
-                </div>
-              )}
-            </div>
-            <div className="flex-1 min-w-0 flex flex-col justify-between gap-1">
-              <div>
-                <p className="text-sm font-semibold text-gray-900 truncate">
-                  {returnItem.productName}
-                </p>
-                <p className="text-xs text-gray-500">
-                  Ordered on{" "}
-                  {new Date(returnItem.orderDate).toLocaleDateString("en-US", {
-                    year: "numeric",
-                    month: "short",
-                    day: "numeric",
-                  })}
-                </p>
-              </div>
-              <div className="flex items-center justify-between gap-2">
-                <span className="text-xs text-gray-500">
-                  Qty: {returnItem.quantity}
-                </span>
-                <span className="text-sm font-semibold text-gray-900">
-                  {formatCurrency(returnItem.price)}
-                </span>
-              </div>
-            </div>
+          {/* Product info — reuse ProductOrderCard */}
+          <section>
+            <ProductOrderCard
+              productImage={returnItem.productImage}
+              productName={returnItem.productName}
+              price={returnItem.price}
+              quantity={returnItem.quantity}
+              totalAmount={returnItem.totalAmount}
+              orderDate={returnItem.orderDate}
+              orderStatus={RETURN_STATUS_LABELS[status]}
+              formatDate={(d) =>
+                new Date(d).toLocaleDateString("en-US", {
+                  year: "numeric",
+                  month: "short",
+                  day: "numeric",
+                })
+              }
+            />
           </section>
 
           {/* Reason & description */}
