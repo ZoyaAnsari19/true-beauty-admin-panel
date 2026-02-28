@@ -122,14 +122,21 @@ export default function WithdrawRequestDetailPage() {
               {formatCurrency(withdrawal.amount)}
             </h1>
           </div>
-          <span
-            className={`inline-flex px-3 py-1.5 rounded-full text-sm font-medium ${
-              WITHDRAWAL_STATUS_CLASSES[withdrawal.status] ??
-              "bg-gray-50 text-gray-700"
-            }`}
-          >
-            {WITHDRAWAL_STATUS_LABELS[withdrawal.status] ?? withdrawal.status}
-          </span>
+          <div className="flex flex-wrap items-center gap-3">
+            {withdrawal.requestedAt && (
+              <p className="text-xs text-gray-500">
+                Requested: {formatDateTime(withdrawal.requestedAt)}
+              </p>
+            )}
+            <span
+              className={`inline-flex px-3 py-1.5 rounded-full text-sm font-medium ${
+                WITHDRAWAL_STATUS_CLASSES[withdrawal.status] ??
+                "bg-gray-50 text-gray-700"
+              }`}
+            >
+              {WITHDRAWAL_STATUS_LABELS[withdrawal.status] ?? withdrawal.status}
+            </span>
+          </div>
         </div>
 
         <div className="p-6 space-y-8">
@@ -149,22 +156,24 @@ export default function WithdrawRequestDetailPage() {
                   {AFFILIATE_STATUS_LABELS[affiliate.status] ?? affiliate.status}
                 </span>
               </div>
-              <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-gray-600">
-                <span className="flex items-center gap-2">
-                  <Mail className="w-4 h-4 text-gray-500" />
-                  {affiliate.email}
-                </span>
-                <span className="flex items-center gap-2">
-                  <Phone className="w-4 h-4 text-gray-500" />
-                  {affiliate.phone}
-                </span>
+              <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-2 text-sm text-gray-600">
+                <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
+                  <span className="flex items-center gap-2">
+                    <Mail className="w-4 h-4 text-gray-500" />
+                    {affiliate.email}
+                  </span>
+                  <span className="flex items-center gap-2">
+                    <Phone className="w-4 h-4 text-gray-500" />
+                    {affiliate.phone}
+                  </span>
+                </div>
+                <p className="text-xs text-gray-500 shrink-0">
+                  Referral code:{" "}
+                  <span className="font-mono font-medium text-gray-700">
+                    {affiliate.referralCode}
+                  </span>
+                </p>
               </div>
-              <p className="text-xs text-gray-500">
-                Referral code:{" "}
-                <span className="font-mono font-medium text-gray-700">
-                  {affiliate.referralCode}
-                </span>
-              </p>
             </div>
           </section>
 
@@ -238,14 +247,14 @@ export default function WithdrawRequestDetailPage() {
             </section>
           )}
 
-          {withdrawal.requestedAt && (
+          {(withdrawal.processedAt || withdrawal.paidAt) && (
             <p className="text-xs text-gray-500">
-              Requested: {formatDateTime(withdrawal.requestedAt)}
               {withdrawal.processedAt && (
-                <> · Processed: {formatDateTime(withdrawal.processedAt)}</>
+                <>Processed: {formatDateTime(withdrawal.processedAt)}</>
               )}
+              {withdrawal.processedAt && withdrawal.paidAt && " · "}
               {withdrawal.paidAt && (
-                <> · Marked paid: {formatDateTime(withdrawal.paidAt)}</>
+                <>Marked paid: {formatDateTime(withdrawal.paidAt)}</>
               )}
             </p>
           )}

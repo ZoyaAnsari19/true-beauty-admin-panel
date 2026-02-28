@@ -170,14 +170,12 @@ export default function WithdrawRequestsPage() {
   }, [allRows, search, statusFilter]);
 
   const kpis = useMemo(() => {
-    const pending = allRows.filter((r) => r.status === "pending").length;
-    const totalPendingAmount = allRows
-      .filter((r) => r.status === "pending")
-      .reduce((s, r) => s + r.amount, 0);
-    const approved = allRows.filter((r) => r.status === "approved").length;
-    const paid = allRows.filter((r) => r.status === "paid").length;
+    const totalRequests = allRows.length;
+    const totalPendingRequests = allRows.filter((r) => r.status === "pending").length;
+    const totalApproved = allRows.filter((r) => r.status === "approved").length;
+    const totalPaid = allRows.filter((r) => r.status === "paid").length;
 
-    return { pending, totalPendingAmount, approved, paid };
+    return { totalRequests, totalPendingRequests, totalApproved, totalPaid };
   }, [allRows]);
 
   const handleApprove = (row: WithdrawRequestRow) => {
@@ -237,18 +235,10 @@ export default function WithdrawRequestsPage() {
       ),
     },
     {
-      header: "Available Wallet",
+      header: "Wallet Balance",
       accessor: (row: WithdrawRequestRow) => (
         <span className="text-sm text-gray-700">
           {formatCurrency(row.availableWallet)}
-        </span>
-      ),
-    },
-    {
-      header: "Bank/UPI",
-      accessor: (row: WithdrawRequestRow) => (
-        <span className="text-sm text-gray-600 font-mono">
-          {row.bankUpiMasked}
         </span>
       ),
     },
@@ -290,29 +280,29 @@ export default function WithdrawRequestsPage() {
     <div className="space-y-6">
       <div className="flex gap-4 overflow-x-auto pb-2 -mx-4 px-4 md:mx-0 md:px-0 md:grid md:grid-cols-2 lg:grid-cols-4 md:gap-6">
         <KpiCard
-          title="Pending Requests"
-          value={kpis.pending.toLocaleString()}
+          title="Total Requests"
+          value={kpis.totalRequests.toLocaleString()}
+          icon="users"
+          iconClassName="bg-gray-100 text-gray-600"
+          className="min-w-[260px] md:min-w-0 shrink-0 md:shrink"
+        />
+        <KpiCard
+          title="Total Pending Requests"
+          value={kpis.totalPendingRequests.toLocaleString()}
           icon="indian-rupee"
           iconClassName="bg-amber-50 text-amber-600"
           className="min-w-[260px] md:min-w-0 shrink-0 md:shrink"
         />
         <KpiCard
-          title="Pending Amount"
-          value={formatCurrency(kpis.totalPendingAmount)}
-          icon="trending-up"
-          iconClassName="bg-orange-50 text-orange-600"
-          className="min-w-[260px] md:min-w-0 shrink-0 md:shrink"
-        />
-        <KpiCard
-          title="Approved (Awaiting Payment)"
-          value={kpis.approved.toLocaleString()}
+          title="Total Approved"
+          value={kpis.totalApproved.toLocaleString()}
           icon="user-check"
           iconClassName="bg-emerald-50 text-emerald-700"
           className="min-w-[260px] md:min-w-0 shrink-0 md:shrink"
         />
         <KpiCard
-          title="Paid"
-          value={kpis.paid.toLocaleString()}
+          title="Total Pending"
+          value={kpis.totalPendingRequests.toLocaleString()}
           icon="shopping-cart"
           iconClassName="bg-blue-50 text-blue-600"
           className="min-w-[260px] md:min-w-0 shrink-0 md:shrink"
