@@ -83,11 +83,11 @@ export default function ExchangeDetailsPage() {
     return (
       <div className="space-y-6">
         <Link
-          href={`/users/${id}`}
+          href={`/users/${id}?tab=returns&subtab=exchange`}
           className="inline-flex items-center gap-2 text-sm font-medium text-gray-600 hover:text-gray-900"
         >
           <ArrowLeft className="w-4 h-4" />
-          Back to User
+          Back to Exchange
         </Link>
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-8 text-center">
           <p className="text-gray-500 text-sm">
@@ -117,11 +117,11 @@ export default function ExchangeDetailsPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <Link
-          href={`/users/${id}`}
+          href={`/users/${id}?tab=returns&subtab=exchange`}
           className="inline-flex items-center gap-2 text-sm font-medium text-gray-600 hover:text-gray-900"
         >
           <ArrowLeft className="w-4 h-4" />
-          Back to User
+          Back to Exchange
         </Link>
       </div>
 
@@ -163,16 +163,17 @@ export default function ExchangeDetailsPage() {
             )}
           </section>
 
-          {/* Product info — reuse standard ProductOrderCard layout */}
+          {/* Product info — horizontal layout (image left, details center, status + total right) */}
           <section>
             <ProductOrderCard
+              layout="horizontal"
               productImage={exchangeItem.productImage}
               productName={exchangeItem.productName}
               price={exchangeItem.price}
               quantity={exchangeItem.quantity}
               totalAmount={exchangeItem.totalAmount}
               orderDate={exchangeItem.orderDate}
-              orderStatus="Exchange requested"
+              orderStatus={EXCHANGE_STATUS_LABELS[status]}
               formatDate={(d) =>
                 new Date(d).toLocaleDateString("en-US", {
                   year: "numeric",

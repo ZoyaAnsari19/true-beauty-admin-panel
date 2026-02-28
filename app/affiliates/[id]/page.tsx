@@ -39,6 +39,18 @@ function formatDate(dateStr: string) {
   });
 }
 
+const DATE_TIME_OPTS: Intl.DateTimeFormatOptions = {
+  year: "numeric",
+  month: "short",
+  day: "numeric",
+  hour: "2-digit",
+  minute: "2-digit",
+};
+
+function formatDateTime(dateStr: string) {
+  return new Date(dateStr).toLocaleString("en-US", DATE_TIME_OPTS);
+}
+
 export default function AffiliateDetailPage() {
   const params = useParams();
   const {
@@ -535,44 +547,70 @@ export default function AffiliateDetailPage() {
               </p>
             ) : (
               <>
-                {/* Mobile: card list */}
-                <div className="md:hidden space-y-3">
+                {/* Mobile: card list - vertical layout, 3 per row on larger screens */}
+                <div className="md:hidden grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                   {affiliate.withdrawals.map((w) => (
                     <div
                       key={w.id}
-                      className="rounded-xl border border-gray-100 bg-[#fef5f7]/60 p-3"
+                      className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden transition-shadow hover:shadow-md"
                     >
-                      <div className="flex items-center justify-between gap-2">
-                        <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                          {w.id}
-                        </span>
-                        <span className="text-sm font-semibold text-gray-900">
-                          {formatCurrency(w.amount)}
-                        </span>
-                      </div>
-                      <p className="mt-1 text-xs text-gray-600">{w.method}</p>
-                      <div className="mt-1 flex items-center justify-between gap-2 text-xs text-gray-600">
-                        <span>Requested {formatDate(w.requestedAt)}</span>
-                        <span
-                          className={`inline-flex px-2.5 py-1 rounded-full text-xs font-medium ${
-                            WITHDRAWAL_STATUS_CLASSES[w.status] ??
-                            "bg-gray-50 text-gray-700"
-                          }`}
-                        >
-                          {WITHDRAWAL_STATUS_LABELS[w.status] ?? w.status}
-                        </span>
-                      </div>
-                      <div className="mt-2">
+                      <div className="p-5 flex flex-col gap-4">
+                        {/* Top row: amount + status */}
+                        <div className="flex items-start justify-between gap-4">
+                          <p className="text-xl font-bold text-gray-900 tracking-tight">
+                            {formatCurrency(w.amount)}
+                          </p>
+                          <span
+                            className={`shrink-0 inline-flex px-3 py-1.5 rounded-full text-xs font-semibold uppercase tracking-wide ${
+                              WITHDRAWAL_STATUS_CLASSES[w.status] ??
+                              "bg-gray-50 text-gray-700"
+                            }`}
+                          >
+                            {WITHDRAWAL_STATUS_LABELS[w.status] ?? w.status}
+                          </span>
+                        </div>
+                        {/* Payment details + dates stacked */}
+                        <div className="border-t border-gray-100 pt-4 space-y-3">
+                          <p className="text-sm font-medium text-gray-700">
+                            {w.method}
+                          </p>
+                          <dl className="space-y-2 text-sm">
+                            <div className="flex flex-wrap items-baseline gap-x-2">
+                              <dt className="text-gray-500 font-normal">
+                                Requested on
+                              </dt>
+                              <dd className="text-gray-900 font-medium">
+                                {formatDateTime(w.requestedAt)}
+                              </dd>
+                            </div>
+                            {w.processedAt && (
+                              <div className="flex flex-wrap items-baseline gap-x-2">
+                                <dt className="text-gray-500 font-normal">
+                                  Processed on
+                                </dt>
+                                <dd className="text-gray-900 font-medium">
+                                  {formatDateTime(w.processedAt)}
+                                </dd>
+                              </div>
+                            )}
+                          </dl>
+                          {w.notes && (
+                            <p className="text-sm text-gray-600 pt-1 border-t border-gray-50">
+                              {w.notes}
+                            </p>
+                          )}
+                        </div>
+                        {/* Actions for pending */}
                         {w.status === "pending" ? (
-                          <div className="flex gap-2">
+                          <div className="border-t border-gray-100 pt-4 flex gap-2">
                             <button
                               type="button"
                               onClick={() =>
                                 handleWithdrawalAction(w.id, "approve")
                               }
-                              className="flex-1 inline-flex items-center justify-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium text-emerald-700 bg-emerald-50 hover:bg-emerald-100 transition-colors"
+                              className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-lg text-sm font-medium text-emerald-700 bg-emerald-50 hover:bg-emerald-100 transition-colors"
                             >
-                              <CheckCircle2 className="w-3.5 h-3.5" />
+                              <CheckCircle2 className="w-4 h-4" />
                               Approve
                             </button>
                             <button
@@ -580,19 +618,13 @@ export default function AffiliateDetailPage() {
                               onClick={() =>
                                 handleWithdrawalAction(w.id, "reject")
                               }
-                              className="flex-1 inline-flex items-center justify-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium text-red-700 bg-red-50 hover:bg-red-100 transition-colors"
+                              className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-lg text-sm font-medium text-red-700 bg-red-50 hover:bg-red-100 transition-colors"
                             >
-                              <XCircle className="w-3.5 h-3.5" />
+                              <XCircle className="w-4 h-4" />
                               Reject
                             </button>
                           </div>
-                        ) : (
-                          <span className="text-xs text-gray-500">
-                            {w.processedAt
-                              ? `Processed on ${formatDate(w.processedAt)}`
-                              : "-"}
-                          </span>
-                        )}
+                        ) : null}
                       </div>
                     </div>
                   ))}
