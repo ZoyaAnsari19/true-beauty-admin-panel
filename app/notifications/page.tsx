@@ -14,6 +14,7 @@ import {
   Package,
   Scissors,
   Eye,
+  EyeOff,
   CheckCircle2,
   XCircle,
   RotateCcw,
@@ -107,6 +108,30 @@ function formatCurrency(amount: number): string {
   return new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR" }).format(amount);
 }
 
+/** Two-column detail row: label left, value right. */
+function DetailRow({
+  label,
+  value,
+  valueBold = false,
+}: {
+  label: string;
+  value: React.ReactNode;
+  valueBold?: boolean;
+}) {
+  return (
+    <div className="flex justify-between items-baseline gap-4 py-3 border-b border-gray-100 last:border-0">
+      <dt className="text-sm text-gray-500 shrink-0">{label}</dt>
+      <dd
+        className={`text-sm text-right text-gray-900 min-w-0 ${
+          valueBold ? "font-semibold" : "font-medium"
+        }`}
+      >
+        {value}
+      </dd>
+    </div>
+  );
+}
+
 function NotificationDetailDrawer({
   notification,
   onClose,
@@ -121,188 +146,257 @@ function NotificationDetailDrawer({
   const isOrder = (notification.category === "new_orders" && payload?.order) || false;
   const isReturn = !!payload?.return;
 
+  const [bankRevealed, setBankRevealed] = useState(false);
+  const [confirmAction, setConfirmAction] = useState<"approve" | "reject" | null>(null);
+
+  const handleApprove = () => {
+    onClose();
+    onNavigate(
+      payload?.withdraw?.affiliateId && payload?.withdraw?.withdrawalId
+        ? `/withdraw-requests/${payload.withdraw.affiliateId}/${payload.withdraw.withdrawalId}`
+        : "/withdraw-requests"
+    );
+    setConfirmAction(null);
+  };
+
+  const handleReject = () => {
+    onClose();
+    onNavigate("/withdraw-requests");
+    setConfirmAction(null);
+  };
+
+  const sectionPadding = "px-5 py-5 sm:px-6 sm:py-6";
+  const cardBg = "rounded-xl bg-gray-50/80 border border-gray-100";
+
   return (
-    <div className="space-y-6">
-      <div>
-        <h3 className="text-base font-semibold text-gray-900">{notification.title}</h3>
-        <p className="text-sm text-gray-500 mt-1">{formatDateTime(notification.timestamp)}</p>
-        <span
-          className={`inline-flex mt-2 px-2.5 py-1 rounded-full text-xs font-medium ${
-            notification.read ? "bg-gray-100 text-gray-600" : "bg-[#D96A86]/10 text-[#D96A86]"
-          }`}
-        >
-          {notification.read ? "Read" : "Unread"}
-        </span>
+    <div className="min-h-0 flex flex-col">
+      {/* Header Section */}
+      <div className={`${sectionPadding} pb-5 border-b border-gray-100`}>
+        <div className="flex items-start justify-between gap-4">
+          <h2 className="text-xl font-bold text-gray-900 leading-tight flex-1 min-w-0">
+            {notification.title}
+          </h2>
+          <span
+            className={`shrink-0 inline-flex px-2.5 py-1 rounded-full text-xs font-medium ${
+              notification.read ? "bg-gray-100 text-gray-600" : "bg-[#D96A86]/10 text-[#D96A86]"
+            }`}
+          >
+            {notification.read ? "Read" : "Unread"}
+          </span>
+        </div>
+        <p className="text-sm text-gray-500 mt-2">{formatDateTime(notification.timestamp)}</p>
       </div>
 
-      <div className="rounded-xl border border-gray-100 bg-gray-50/50 p-4">
-        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">
+      {/* Event Summary */}
+      <div className={`${sectionPadding} py-5`}>
+        <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
           Event summary
-        </p>
-        <p className="text-sm text-gray-700">{notification.description}</p>
+        </h3>
+        <div className={`${cardBg} p-4 sm:p-5`}>
+          <p className="text-sm text-gray-700 leading-relaxed">{notification.description}</p>
+        </div>
       </div>
 
-      {isWithdraw && payload?.withdraw && (
-        <div className="rounded-xl border border-gray-100 bg-[#fef5f7]/50 p-4 space-y-3">
-          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
-            Withdraw details
-          </p>
-          <dl className="space-y-2 text-sm">
-            <div className="flex justify-between">
-              <dt className="text-gray-500">Affiliate</dt>
-              <dd className="font-medium text-gray-900">{payload.withdraw.affiliateName}</dd>
-            </div>
-            <div className="flex justify-between">
-              <dt className="text-gray-500">Requested amount</dt>
-              <dd className="font-medium text-gray-900">
-                {formatCurrency(payload.withdraw.requestedAmount)}
-              </dd>
-            </div>
-            <div className="flex justify-between">
-              <dt className="text-gray-500">Wallet balance</dt>
-              <dd className="font-medium text-gray-900">
-                {formatCurrency(payload.withdraw.walletBalance)}
-              </dd>
-            </div>
-            <div className="flex justify-between">
-              <dt className="text-gray-500">Bank/UPI</dt>
-              <dd className="font-mono text-gray-700">{payload.withdraw.bankUpiMasked}</dd>
-            </div>
-          </dl>
-          <div className="flex flex-wrap gap-2 pt-2">
-            <button
-              type="button"
-              onClick={() => {
-                onClose();
-                onNavigate(notification.redirectLink || "/withdraw-requests");
-              }}
-              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium text-[#D96A86] bg-[#fef5f7] hover:bg-[#f8c6d0]/50 transition-colors"
-            >
-              <Eye className="w-4 h-4" />
-              View
-            </button>
-            {notification.title.toLowerCase().includes("request") && (
-              <>
+      {/* Details Section */}
+      {(isWithdraw || isOrder || isReturn) && (
+        <div className={`${sectionPadding} py-5 border-t border-gray-100`}>
+          <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-4">
+            {isWithdraw ? "Withdraw details" : isOrder ? "Order details" : "Return details"}
+          </h3>
+          <div className={`${cardBg} p-4 sm:p-5`}>
+            <dl className="space-y-0">
+              {isWithdraw && payload?.withdraw && (
+                <>
+                  <DetailRow label="Affiliate" value={payload.withdraw.affiliateName} />
+                  <DetailRow
+                    label="Requested amount"
+                    value={formatCurrency(payload.withdraw.requestedAmount)}
+                    valueBold
+                  />
+                  <DetailRow
+                    label="Wallet balance"
+                    value={formatCurrency(payload.withdraw.walletBalance)}
+                    valueBold
+                  />
+                  <div className="flex justify-between items-center gap-4 py-3 border-b border-gray-100">
+                    <dt className="text-sm text-gray-500 shrink-0">Bank / UPI</dt>
+                    <dd className="flex items-center gap-2 min-w-0 justify-end">
+                      <span className="font-mono text-sm text-gray-900">
+                        {bankRevealed && payload.withdraw.fullBankDetails
+                          ? payload.withdraw.fullBankDetails
+                          : payload.withdraw.bankUpiMasked}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => setBankRevealed((v) => !v)}
+                        className="shrink-0 p-1.5 rounded-lg text-gray-500 hover:bg-gray-200 hover:text-gray-700 transition-colors"
+                        aria-label={bankRevealed ? "Mask" : "Reveal"}
+                      >
+                        {bankRevealed ? (
+                          <EyeOff className="w-4 h-4" />
+                        ) : (
+                          <Eye className="w-4 h-4" />
+                        )}
+                      </button>
+                    </dd>
+                  </div>
+                </>
+              )}
+              {isOrder && payload?.order && (
+                <>
+                  <DetailRow label="Order ID" value={payload.order.orderId} />
+                  <DetailRow label="Customer" value={payload.order.customerName} />
+                  <DetailRow
+                    label="Amount"
+                    value={formatCurrency(payload.order.amount)}
+                    valueBold
+                  />
+                  <DetailRow label="Payment method" value={payload.order.paymentMethod} />
+                </>
+              )}
+              {isReturn && payload?.return && (
+                <>
+                  <DetailRow label="Order ID" value={payload.return.orderId} />
+                  <DetailRow label="Product" value={payload.return.productName} />
+                  <div className="py-3 border-b border-gray-100">
+                    <dt className="text-sm text-gray-500 mb-1">Return reason</dt>
+                    <dd className="text-sm text-gray-900 font-medium">
+                      {payload.return.returnReason}
+                    </dd>
+                  </div>
+                  <DetailRow label="Status" value={payload.return.returnStatus} />
+                </>
+              )}
+            </dl>
+          </div>
+        </div>
+      )}
+
+      {/* Action Section */}
+      <div className={`${sectionPadding} pt-5 mt-auto border-t border-gray-100`}>
+        <div className="flex flex-col gap-3">
+          {(isWithdraw || isOrder || isReturn || notification.redirectLink) && (
+            <>
+              <div className="flex flex-wrap gap-3">
                 <button
                   type="button"
                   onClick={() => {
                     onClose();
                     onNavigate(
-                      payload.withdraw?.affiliateId && payload.withdraw?.withdrawalId
-                        ? `/withdraw-requests/${payload.withdraw.affiliateId}/${payload.withdraw.withdrawalId}`
-                        : "/withdraw-requests"
+                      notification.redirectLink ||
+                        (isWithdraw ? "/withdraw-requests" : isOrder ? "/orders" : "/users")
                     );
                   }}
-                  className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium text-emerald-700 bg-emerald-50 hover:bg-emerald-100 transition-colors"
+                  className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 transition-colors"
                 >
-                  <CheckCircle2 className="w-4 h-4" />
-                  Approve
+                  <Eye className="w-4 h-4" />
+                  View
                 </button>
+                {isWithdraw && notification.title.toLowerCase().includes("request") && (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => setConfirmAction("approve")}
+                      className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium text-white bg-emerald-600 hover:bg-emerald-700 transition-colors"
+                    >
+                      <CheckCircle2 className="w-4 h-4" />
+                      Approve
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setConfirmAction("reject")}
+                      className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium text-red-700 border border-red-200 hover:bg-red-50 transition-colors"
+                    >
+                      <XCircle className="w-4 h-4" />
+                      Reject
+                    </button>
+                  </>
+                )}
+              </div>
+              {isOrder && (
                 <button
                   type="button"
                   onClick={() => {
                     onClose();
-                    onNavigate("/withdraw-requests");
+                    onNavigate(notification.redirectLink || "/orders");
                   }}
-                  className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium text-red-700 bg-red-50 hover:bg-red-100 transition-colors"
+                  className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium text-white bg-[#D96A86] hover:bg-[#C85A76] transition-colors"
                 >
-                  <XCircle className="w-4 h-4" />
-                  Reject
+                  <Eye className="w-4 h-4" />
+                  View Order
                 </button>
-              </>
-            )}
+              )}
+              {isReturn && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    onClose();
+                    onNavigate(notification.redirectLink || "/users");
+                  }}
+                  className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium text-white bg-[#D96A86] hover:bg-[#C85A76] transition-colors"
+                >
+                  <RotateCcw className="w-4 h-4" />
+                  View Return
+                </button>
+              )}
+            </>
+          )}
+          {!isWithdraw && !isOrder && !isReturn && notification.redirectLink && (
+            <button
+              type="button"
+              onClick={() => {
+                onClose();
+                onNavigate(notification.redirectLink!);
+              }}
+              className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium text-white bg-[#D96A86] hover:bg-[#C85A76] transition-colors"
+            >
+              <Eye className="w-4 h-4" />
+              View details
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Confirmation modal */}
+      {confirmAction && (
+        <>
+          <div
+            className="fixed inset-0 bg-black/40 z-[60]"
+            aria-hidden
+            onClick={() => setConfirmAction(null)}
+          />
+          <div
+            role="dialog"
+            aria-modal="true"
+            className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[min(90vw,360px)] bg-white rounded-2xl shadow-xl border border-gray-100 p-6 z-[70]"
+          >
+            <p className="text-sm font-medium text-gray-900">
+              {confirmAction === "approve"
+                ? "Approve this withdrawal request? You will be taken to the request details."
+                : "Reject this withdrawal request? You will be taken to withdraw requests."}
+            </p>
+            <div className="flex gap-3 mt-5">
+              <button
+                type="button"
+                onClick={() => setConfirmAction(null)}
+                className="flex-1 py-2.5 rounded-xl text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={confirmAction === "approve" ? handleApprove : handleReject}
+                className={`flex-1 py-2.5 rounded-xl text-sm font-medium text-white transition-colors ${
+                  confirmAction === "approve"
+                    ? "bg-emerald-600 hover:bg-emerald-700"
+                    : "bg-red-600 hover:bg-red-700"
+                }`}
+              >
+                {confirmAction === "approve" ? "Approve" : "Reject"}
+              </button>
+            </div>
           </div>
-        </div>
-      )}
-
-      {isOrder && payload?.order && (
-        <div className="rounded-xl border border-gray-100 bg-[#fef5f7]/50 p-4 space-y-3">
-          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
-            Order details
-          </p>
-          <dl className="space-y-2 text-sm">
-            <div className="flex justify-between">
-              <dt className="text-gray-500">Order ID</dt>
-              <dd className="font-mono font-medium text-gray-900">{payload.order.orderId}</dd>
-            </div>
-            <div className="flex justify-between">
-              <dt className="text-gray-500">Customer</dt>
-              <dd className="font-medium text-gray-900">{payload.order.customerName}</dd>
-            </div>
-            <div className="flex justify-between">
-              <dt className="text-gray-500">Amount</dt>
-              <dd className="font-medium text-gray-900">
-                {formatCurrency(payload.order.amount)}
-              </dd>
-            </div>
-            <div className="flex justify-between">
-              <dt className="text-gray-500">Payment method</dt>
-              <dd className="text-gray-700">{payload.order.paymentMethod}</dd>
-            </div>
-          </dl>
-          <button
-            type="button"
-            onClick={() => {
-              onClose();
-              onNavigate(notification.redirectLink || "/orders");
-            }}
-            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium text-white bg-[#D96A86] hover:bg-[#C85A76] transition-colors"
-          >
-            <Eye className="w-4 h-4" />
-            View Order
-          </button>
-        </div>
-      )}
-
-      {isReturn && payload?.return && (
-        <div className="rounded-xl border border-gray-100 bg-[#fef5f7]/50 p-4 space-y-3">
-          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
-            Return details
-          </p>
-          <dl className="space-y-2 text-sm">
-            <div className="flex justify-between">
-              <dt className="text-gray-500">Order ID</dt>
-              <dd className="font-mono font-medium text-gray-900">{payload.return.orderId}</dd>
-            </div>
-            <div className="flex justify-between">
-              <dt className="text-gray-500">Product</dt>
-              <dd className="font-medium text-gray-900">{payload.return.productName}</dd>
-            </div>
-            <div className="flex flex-col gap-1">
-              <dt className="text-gray-500 text-xs">Return reason</dt>
-              <dd className="text-sm text-gray-700">{payload.return.returnReason}</dd>
-            </div>
-            <div className="flex justify-between">
-              <dt className="text-gray-500">Status</dt>
-              <dd className="font-medium text-gray-900">{payload.return.returnStatus}</dd>
-            </div>
-          </dl>
-          <button
-            type="button"
-            onClick={() => {
-              onClose();
-              onNavigate(notification.redirectLink || "/users");
-            }}
-            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium text-white bg-[#D96A86] hover:bg-[#C85A76] transition-colors"
-          >
-            <RotateCcw className="w-4 h-4" />
-            View Return
-          </button>
-        </div>
-      )}
-
-      {!isWithdraw && !isOrder && !isReturn && notification.redirectLink && (
-        <button
-          type="button"
-          onClick={() => {
-            onClose();
-            onNavigate(notification.redirectLink!);
-          }}
-          className="w-full inline-flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl text-sm font-medium text-white bg-[#D96A86] hover:bg-[#C85A76] transition-colors"
-        >
-          <Eye className="w-4 h-4" />
-          View details
-        </button>
+        </>
       )}
     </div>
   );

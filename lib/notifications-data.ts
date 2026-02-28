@@ -17,6 +17,8 @@ export interface NotificationPayload {
     requestedAmount: number;
     walletBalance: number;
     bankUpiMasked: string;
+    /** Full bank/UPI when revealed (optional, for mask/reveal) */
+    fullBankDetails?: string;
     withdrawalId?: string;
     affiliateId?: string;
   };
@@ -74,6 +76,7 @@ export const MOCK_NOTIFICATIONS: Notification[] = [
         requestedAmount: 3000,
         walletBalance: 7250,
         bankUpiMasked: "Bank ****1234",
+        fullBankDetails: "Bank Transfer - HDFC ****1234",
         withdrawalId: "wd-2",
         affiliateId: "aff-1001",
       },
