@@ -57,6 +57,7 @@ export function ServicesProvider({ children }: { children: React.ReactNode }) {
       durationMinutes: values.durationMinutes,
       image: values.image ?? null,
       status: values.status,
+      bookingConfirmationMode: values.bookingConfirmationMode ?? "after_24h",
       howToUseType:
         trimmedHowToUseText && !trimmedHowToUseVideoUrl
           ? "text"

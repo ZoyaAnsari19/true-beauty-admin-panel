@@ -70,6 +70,7 @@ const emptyForm: ServiceFormValues = {
   durationMinutes: 0,
   image: "",
   status: "active",
+  bookingConfirmationMode: "after_24h",
   howToUseText: "",
   howToUseVideoUrl: "",
   areaBranchName: "",
@@ -116,6 +117,7 @@ export function ServiceForm({
         durationMinutes: initialValues.durationMinutes,
         image: initialValues.image ?? "",
         status: initialValues.status,
+        bookingConfirmationMode: initialValues.bookingConfirmationMode ?? "after_24h",
         howToUseText: initialValues.howToUseText ?? "",
         howToUseVideoUrl: initialValues.howToUseVideoUrl ?? "",
         areaBranchName: initialValues.areaBranchName ?? "",
@@ -189,6 +191,7 @@ export function ServiceForm({
       price: values.price || 0,
       durationMinutes: Math.max(0, values.durationMinutes ?? 0),
       image: imageValue,
+      bookingConfirmationMode: values.bookingConfirmationMode ?? "after_24h",
       howToUseType:
         trimmedHowToUseText && !trimmedHowToUseVideoUrl
           ? "text"
@@ -228,19 +231,6 @@ export function ServiceForm({
         />
       </div>
       <div>
-        <label htmlFor="service-description" className="block text-sm font-medium text-gray-700 mb-1">
-          Description
-        </label>
-        <textarea
-          id="service-description"
-          rows={3}
-          value={values.description ?? ""}
-          onChange={(e) => setValues((v) => ({ ...v, description: e.target.value }))}
-          className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-[#f8c6d0] focus:border-transparent outline-none transition-all resize-none"
-          placeholder="Brief description of the service..."
-        />
-      </div>
-      <div>
         <label htmlFor="service-category" className="block text-sm font-medium text-gray-700 mb-1">
           Category <span className="text-red-500">*</span>
         </label>
@@ -259,7 +249,26 @@ export function ServiceForm({
           ))}
         </select>
       </div>
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div>
+        <label htmlFor="service-image-file" className="block text-sm font-medium text-gray-700 mb-1">
+          Service Image 
+        </label>
+        <input
+          id="service-image-file"
+          type="file"
+          accept="image/*"
+          onChange={(e) => {
+            const file = e.target.files?.[0] ?? null;
+            setImageFile(file);
+          }}
+          className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-[#f8c6d0] focus:border-transparent outline-none transition-all bg-white file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-[#fef5f7] file:text-[#D96A86] hover:file:bg-[#f8e0e6]"
+        />
+        <p className="mt-1 text-xs text-gray-500">
+          Upload an image from your device. This will be used inside the admin panel.
+        </p>
+      </div>
+      <div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
           <label htmlFor="service-price" className="block text-sm font-medium text-gray-700 mb-1">
             Price (₹) <span className="text-red-500">*</span>
@@ -298,25 +307,89 @@ export function ServiceForm({
             placeholder="Optional"
           />
         </div>
-        <div>
-          <label htmlFor="service-duration" className="block text-sm font-medium text-gray-700 mb-1">
-            Duration (min) <span className="text-red-500">*</span>
-          </label>
-          <input
-            id="service-duration"
-            type="number"
-            min={0}
-            step={5}
-            required
-            value={values.durationMinutes === 0 ? "" : values.durationMinutes}
-            onChange={(e) =>
-              setValues((v) => ({
-                ...v,
-                durationMinutes: Math.max(0, Math.floor(Number(e.target.value) || 0)),
-              }))
-            }
-            className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-[#f8c6d0] focus:border-transparent outline-none transition-all"
-          />
+        </div>
+      </div>
+      <div>
+        <label htmlFor="service-description" className="block text-sm font-medium text-gray-700 mb-1">
+          Description
+        </label>
+        <textarea
+          id="service-description"
+          rows={3}
+          value={values.description ?? ""}
+          onChange={(e) => setValues((v) => ({ ...v, description: e.target.value }))}
+          className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-[#f8c6d0] focus:border-transparent outline-none transition-all resize-none"
+          placeholder="Brief description of the service..."
+        />
+      </div>
+      <div className="pt-4 border-t border-gray-200">
+        <h3 className="text-sm font-semibold text-gray-900 mb-3">
+          Schedule
+        </h3>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label htmlFor="service-duration" className="block text-sm font-medium text-gray-700 mb-1">
+              Duration (min) <span className="text-red-500">*</span>
+            </label>
+            <input
+              id="service-duration"
+              type="number"
+              min={0}
+              step={5}
+              required
+              value={values.durationMinutes === 0 ? "" : values.durationMinutes}
+              onChange={(e) =>
+                setValues((v) => ({
+                  ...v,
+                  durationMinutes: Math.max(0, Math.floor(Number(e.target.value) || 0)),
+                }))
+              }
+              className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-[#f8c6d0] focus:border-transparent outline-none transition-all"
+            />
+          </div>
+        </div>
+        <div className="mt-4">
+          <p className="block text-sm font-medium text-gray-700 mb-2">
+            Booking confirmation
+          </p>
+          <div className="flex flex-col sm:flex-row gap-3">
+            <label className="inline-flex items-center gap-2 text-sm text-gray-700">
+              <input
+                type="radio"
+                name="bookingConfirmationMode"
+                value="after_24h"
+                checked={values.bookingConfirmationMode === "after_24h"}
+                onChange={() =>
+                  setValues((v) => ({
+                    ...v,
+                    bookingConfirmationMode: "after_24h",
+                  }))
+                }
+                className="h-4 w-4 text-[#D96A86] border-gray-300 focus:ring-[#f8c6d0]"
+              />
+              <span>Confirm after 24 hours</span>
+            </label>
+            <label className="inline-flex items-center gap-2 text-sm text-gray-700">
+              <input
+                type="radio"
+                name="bookingConfirmationMode"
+                value="instant"
+                checked={values.bookingConfirmationMode === "instant"}
+                onChange={() =>
+                  setValues((v) => ({
+                    ...v,
+                    bookingConfirmationMode: "instant",
+                  }))
+                }
+                className="h-4 w-4 text-[#D96A86] border-gray-300 focus:ring-[#f8c6d0]"
+              />
+              <span>Confirm instantly</span>
+            </label>
+          </div>
+          <p className="mt-1 text-xs text-gray-500">
+            If you choose &quot;Confirm after 24 hours&quot;, any new booking for this service will
+            only be marked as confirmed after 24 hours.
+          </p>
         </div>
       </div>
       <div className="pt-4 border-t border-gray-200">
@@ -369,24 +442,6 @@ export function ServiceForm({
             </p>
           </div>
         </div>
-      </div>
-      <div>
-        <label htmlFor="service-image-file" className="block text-sm font-medium text-gray-700 mb-1">
-          Service Image 
-        </label>
-        <input
-          id="service-image-file"
-          type="file"
-          accept="image/*"
-          onChange={(e) => {
-            const file = e.target.files?.[0] ?? null;
-            setImageFile(file);
-          }}
-          className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-[#f8c6d0] focus:border-transparent outline-none transition-all bg-white file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-[#fef5f7] file:text-[#D96A86] hover:file:bg-[#f8e0e6]"
-        />
-        <p className="mt-1 text-xs text-gray-500">
-          Upload an image from your device. This will be used inside the admin panel.
-        </p>
       </div>
       <div>
         <label htmlFor="service-status" className="block text-sm font-medium text-gray-700 mb-1">

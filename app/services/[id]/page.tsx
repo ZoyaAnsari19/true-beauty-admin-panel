@@ -196,6 +196,21 @@ export default function ServiceDetailPage() {
                 </div>
                 <div className="flex items-start gap-3">
                   <div className="p-2 rounded-lg bg-[#fef5f7]">
+                    <Calendar className="w-5 h-5 text-gray-600" />
+                  </div>
+                  <div>
+                    <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Booking confirmation
+                    </p>
+                    <p className="text-gray-900 font-medium mt-0.5">
+                      {service.bookingConfirmationMode === "instant"
+                        ? "Instantly after booking"
+                        : "Confirmed after 24 hours"}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3">
+                  <div className="p-2 rounded-lg bg-[#fef5f7]">
                     <Scissors className="w-5 h-5 text-gray-600" />
                   </div>
                   <div>
