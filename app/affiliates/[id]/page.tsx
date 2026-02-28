@@ -383,11 +383,17 @@ export default function AffiliateDetailPage() {
                           <p className="text-sm font-medium text-gray-900 truncate">
                             {order.productName}
                           </p>
-                          <p className="text-[11px] text-gray-500 truncate">
-                            {order.category}
+                          <p className="text-xs text-gray-700 mt-0.5">
+                            <span className="text-gray-500">Category:</span>{" "}
+                            <span className="font-medium text-emerald-700">
+                              {order.category ?? "—"}
+                            </span>
                           </p>
-                          <p className="text-[11px] text-gray-500">
-                            Qty: {order.quantity}
+                          <p className="text-xs text-gray-700 mt-0.5">
+                            <span className="text-gray-500">Qty:</span>{" "}
+                            <span className="font-semibold">
+                              {order.quantity ?? 0}
+                            </span>
                           </p>
                         </div>
                       </div>
