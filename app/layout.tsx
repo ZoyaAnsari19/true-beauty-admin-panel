@@ -31,7 +31,7 @@ const pageTitles: Record<string, string> = {
   "/orders": "Order Management",
   "/affiliates": "Affiliate Users",
   "/withdraw-requests": "Withdraw Requests",
-  "/commission": "Add Commissions",
+  "/notifications": "Notifications",
   "/coupons": "Add Coupons",
   "/theme": "Web Theme",
   "/inventory": "Inventory",
