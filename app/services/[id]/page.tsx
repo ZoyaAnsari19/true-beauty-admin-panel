@@ -123,6 +123,30 @@ export default function ServiceDetailPage() {
               )}
             </div>
           </div>
+
+          {service.howToUseVideoUrl && (
+            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+              <div className="px-4 py-3 border-b border-gray-100 bg-[#fef5f7] flex items-center gap-2">
+                <FileText className="w-5 h-5 text-gray-600" />
+                <h2 className="text-lg font-semibold text-gray-900">How to use video</h2>
+              </div>
+              <div className="p-4">
+                <div className="relative aspect-square rounded-xl bg-[#fef5f7] overflow-hidden">
+                  <iframe
+                    src={
+                      service.howToUseVideoUrl.includes("?")
+                        ? `${service.howToUseVideoUrl}&autoplay=1`
+                        : `${service.howToUseVideoUrl}?autoplay=1`
+                    }
+                    title={`${service.name} how to use video`}
+                    className="w-full h-full border-0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                    allowFullScreen
+                  />
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Details */}
@@ -235,32 +259,6 @@ export default function ServiceDetailPage() {
                   <p className="text-gray-600 text-sm leading-relaxed whitespace-pre-wrap">
                     {service.description}
                   </p>
-                </div>
-              )}
-
-              {(service.howToUseText || service.howToUseVideoUrl) && (
-                <div className="pt-4 border-t border-gray-100">
-                  <div className="flex items-center gap-2 mb-2">
-                    <FileText className="w-5 h-5 text-gray-600" />
-                    <h3 className="text-sm font-semibold text-gray-900">
-                      How to use
-                    </h3>
-                  </div>
-                  {service.howToUseText && (
-                    <p className="text-gray-600 text-sm leading-relaxed whitespace-pre-wrap mb-2">
-                      {service.howToUseText}
-                    </p>
-                  )}
-                  {service.howToUseVideoUrl && (
-                    <a
-                      href={service.howToUseVideoUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1.5 text-sm font-medium text-[#D96A86] hover:underline"
-                    >
-                      Watch how-to video →
-                    </a>
-                  )}
                 </div>
               )}
 
