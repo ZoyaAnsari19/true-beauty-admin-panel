@@ -11,7 +11,13 @@ export interface CommissionLog {
   orderId?: string;
 }
 
-export type WithdrawalStatus = "pending" | "approved" | "rejected";
+export type WithdrawalStatus = "pending" | "approved" | "rejected" | "paid";
+
+export interface WithdrawalAuditEvent {
+  date: string;
+  action: "approved" | "rejected" | "marked_paid";
+  notes?: string;
+}
 
 export interface Withdrawal {
   id: string;
@@ -19,8 +25,10 @@ export interface Withdrawal {
   method: string;
   requestedAt: string;
   processedAt?: string;
+  paidAt?: string;
   status: WithdrawalStatus;
   notes?: string;
+  auditEvents?: WithdrawalAuditEvent[];
 }
 
 export interface ReferredUser {

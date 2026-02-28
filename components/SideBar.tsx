@@ -10,6 +10,7 @@ import {
   UserCheck,
   Wallet,
   Gift,
+  Bell,
   Palette,
   Boxes,
   Settings,
@@ -32,8 +33,8 @@ const menuItems: MenuItem[] = [
   { label: "Add Service", icon: Scissors, href: "/services" },
   // { label: "Order Management", icon: ShoppingCart, href: "/orders" },
   { label: "Affiliate Users", icon: UserCheck, href: "/affiliates" },
-  { label: "Withdraw Request", icon: Wallet, href: "/withdrawals" },
-  { label: "Add Commissions", icon: Gift, href: "/commission" },
+  { label: "Withdraw Request", icon: Wallet, href: "/withdraw-requests" },
+  { label: "Notification", icon: Bell, href: "/notifications" },
   { label: "Add Coupons", icon: Gift, href: "/coupons" },
   { label: "Web Theme", icon: Palette, href: "/theme" },
   { label: "Inventory", icon: Boxes, href: "/inventory" },
@@ -106,6 +107,8 @@ export default function SideBar() {
                 (item.href === "/services" && pathname.startsWith("/services")) ||
                 // (item.href === "/orders" && pathname.startsWith("/orders")) ||
                 (item.href === "/affiliates" && pathname.startsWith("/affiliates/")) ||
+                (item.href === "/withdraw-requests" && pathname.startsWith("/withdraw-requests")) ||
+                (item.href === "/notifications" && pathname.startsWith("/notifications")) ||
                 (item.href === "/coupons" && pathname.startsWith("/coupons"));
               return (
                 <Link

@@ -12,6 +12,7 @@ import { ProductsProvider } from "@/lib/products-context";
 import { ServicesProvider } from "@/lib/services-context";
 import { OrdersProvider } from "@/lib/orders-context";
 import { AffiliatesProvider } from "@/lib/affiliates-context";
+import { NotificationsProvider } from "@/lib/notifications-context";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -30,8 +31,8 @@ const pageTitles: Record<string, string> = {
   "/services": "Services",
   "/orders": "Order Management",
   "/affiliates": "Affiliate Users",
-  "/withdrawals": "Withdraw Request",
-  "/commission": "Add Commissions",
+  "/withdraw-requests": "Withdraw Requests",
+  "/notifications": "Notifications",
   "/coupons": "Add Coupons",
   "/theme": "Web Theme",
   "/inventory": "Inventory",
@@ -60,6 +61,10 @@ export default function RootLayout({
     typeof pathname === "string" &&
     pathname.startsWith("/affiliates/") &&
     pathname !== "/affiliates";
+  const isWithdrawRequestDetail =
+    typeof pathname === "string" &&
+    pathname.startsWith("/withdraw-requests/") &&
+    pathname !== "/withdraw-requests";
   const pageTitle = isUserDetail
     ? "User Details"
     : isProductDetail
@@ -68,7 +73,9 @@ export default function RootLayout({
         ? "Service Details"
         : isAffiliateDetail
           ? "Affiliate Details"
-          : (pageTitles[pathname] || "Dashboard");
+          : isWithdrawRequestDetail
+            ? "Withdrawal Request Details"
+            : (pageTitles[pathname] || "Dashboard");
 
   return (
     <html lang="en">
@@ -84,6 +91,7 @@ export default function RootLayout({
         <ServicesProvider>
         <OrdersProvider>
         <AffiliatesProvider>
+        <NotificationsProvider>
         <SidebarProvider>
         <div className="flex h-screen bg-[#fef5f7]">
           <SideBar />
@@ -95,6 +103,7 @@ export default function RootLayout({
           </div>
         </div>
         </SidebarProvider>
+        </NotificationsProvider>
         </AffiliatesProvider>
         </OrdersProvider>
         </ServicesProvider>
