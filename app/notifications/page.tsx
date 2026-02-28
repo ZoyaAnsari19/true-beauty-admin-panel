@@ -13,6 +13,10 @@ import {
   UserCheck,
   Package,
   Scissors,
+  Eye,
+  CheckCircle2,
+  XCircle,
+  RotateCcw,
   type LucideIcon,
 } from "lucide-react";
 import { Drawer } from "@/components/ui/Drawer";
@@ -89,6 +93,221 @@ function formatTimestamp(iso: string): string {
   });
 }
 
+function formatDateTime(iso: string): string {
+  return new Date(iso).toLocaleString("en-US", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
+function formatCurrency(amount: number): string {
+  return new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR" }).format(amount);
+}
+
+function NotificationDetailDrawer({
+  notification,
+  onClose,
+  onNavigate,
+}: {
+  notification: Notification;
+  onClose: () => void;
+  onNavigate: (path: string) => void;
+}) {
+  const { payload } = notification;
+  const isWithdraw = notification.category === "withdraw_request" && payload?.withdraw;
+  const isOrder = (notification.category === "new_orders" && payload?.order) || false;
+  const isReturn = !!payload?.return;
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <h3 className="text-base font-semibold text-gray-900">{notification.title}</h3>
+        <p className="text-sm text-gray-500 mt-1">{formatDateTime(notification.timestamp)}</p>
+        <span
+          className={`inline-flex mt-2 px-2.5 py-1 rounded-full text-xs font-medium ${
+            notification.read ? "bg-gray-100 text-gray-600" : "bg-[#D96A86]/10 text-[#D96A86]"
+          }`}
+        >
+          {notification.read ? "Read" : "Unread"}
+        </span>
+      </div>
+
+      <div className="rounded-xl border border-gray-100 bg-gray-50/50 p-4">
+        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">
+          Event summary
+        </p>
+        <p className="text-sm text-gray-700">{notification.description}</p>
+      </div>
+
+      {isWithdraw && payload?.withdraw && (
+        <div className="rounded-xl border border-gray-100 bg-[#fef5f7]/50 p-4 space-y-3">
+          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+            Withdraw details
+          </p>
+          <dl className="space-y-2 text-sm">
+            <div className="flex justify-between">
+              <dt className="text-gray-500">Affiliate</dt>
+              <dd className="font-medium text-gray-900">{payload.withdraw.affiliateName}</dd>
+            </div>
+            <div className="flex justify-between">
+              <dt className="text-gray-500">Requested amount</dt>
+              <dd className="font-medium text-gray-900">
+                {formatCurrency(payload.withdraw.requestedAmount)}
+              </dd>
+            </div>
+            <div className="flex justify-between">
+              <dt className="text-gray-500">Wallet balance</dt>
+              <dd className="font-medium text-gray-900">
+                {formatCurrency(payload.withdraw.walletBalance)}
+              </dd>
+            </div>
+            <div className="flex justify-between">
+              <dt className="text-gray-500">Bank/UPI</dt>
+              <dd className="font-mono text-gray-700">{payload.withdraw.bankUpiMasked}</dd>
+            </div>
+          </dl>
+          <div className="flex flex-wrap gap-2 pt-2">
+            <button
+              type="button"
+              onClick={() => {
+                onClose();
+                onNavigate(notification.redirectLink || "/withdraw-requests");
+              }}
+              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium text-[#D96A86] bg-[#fef5f7] hover:bg-[#f8c6d0]/50 transition-colors"
+            >
+              <Eye className="w-4 h-4" />
+              View
+            </button>
+            {notification.title.toLowerCase().includes("request") && (
+              <>
+                <button
+                  type="button"
+                  onClick={() => {
+                    onClose();
+                    onNavigate(
+                      payload.withdraw?.affiliateId && payload.withdraw?.withdrawalId
+                        ? `/withdraw-requests/${payload.withdraw.affiliateId}/${payload.withdraw.withdrawalId}`
+                        : "/withdraw-requests"
+                    );
+                  }}
+                  className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium text-emerald-700 bg-emerald-50 hover:bg-emerald-100 transition-colors"
+                >
+                  <CheckCircle2 className="w-4 h-4" />
+                  Approve
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    onClose();
+                    onNavigate("/withdraw-requests");
+                  }}
+                  className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium text-red-700 bg-red-50 hover:bg-red-100 transition-colors"
+                >
+                  <XCircle className="w-4 h-4" />
+                  Reject
+                </button>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+
+      {isOrder && payload?.order && (
+        <div className="rounded-xl border border-gray-100 bg-[#fef5f7]/50 p-4 space-y-3">
+          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+            Order details
+          </p>
+          <dl className="space-y-2 text-sm">
+            <div className="flex justify-between">
+              <dt className="text-gray-500">Order ID</dt>
+              <dd className="font-mono font-medium text-gray-900">{payload.order.orderId}</dd>
+            </div>
+            <div className="flex justify-between">
+              <dt className="text-gray-500">Customer</dt>
+              <dd className="font-medium text-gray-900">{payload.order.customerName}</dd>
+            </div>
+            <div className="flex justify-between">
+              <dt className="text-gray-500">Amount</dt>
+              <dd className="font-medium text-gray-900">
+                {formatCurrency(payload.order.amount)}
+              </dd>
+            </div>
+            <div className="flex justify-between">
+              <dt className="text-gray-500">Payment method</dt>
+              <dd className="text-gray-700">{payload.order.paymentMethod}</dd>
+            </div>
+          </dl>
+          <button
+            type="button"
+            onClick={() => {
+              onClose();
+              onNavigate(notification.redirectLink || "/orders");
+            }}
+            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium text-white bg-[#D96A86] hover:bg-[#C85A76] transition-colors"
+          >
+            <Eye className="w-4 h-4" />
+            View Order
+          </button>
+        </div>
+      )}
+
+      {isReturn && payload?.return && (
+        <div className="rounded-xl border border-gray-100 bg-[#fef5f7]/50 p-4 space-y-3">
+          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+            Return details
+          </p>
+          <dl className="space-y-2 text-sm">
+            <div className="flex justify-between">
+              <dt className="text-gray-500">Order ID</dt>
+              <dd className="font-mono font-medium text-gray-900">{payload.return.orderId}</dd>
+            </div>
+            <div className="flex justify-between">
+              <dt className="text-gray-500">Product</dt>
+              <dd className="font-medium text-gray-900">{payload.return.productName}</dd>
+            </div>
+            <div className="flex flex-col gap-1">
+              <dt className="text-gray-500 text-xs">Return reason</dt>
+              <dd className="text-sm text-gray-700">{payload.return.returnReason}</dd>
+            </div>
+            <div className="flex justify-between">
+              <dt className="text-gray-500">Status</dt>
+              <dd className="font-medium text-gray-900">{payload.return.returnStatus}</dd>
+            </div>
+          </dl>
+          <button
+            type="button"
+            onClick={() => {
+              onClose();
+              onNavigate(notification.redirectLink || "/users");
+            }}
+            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium text-white bg-[#D96A86] hover:bg-[#C85A76] transition-colors"
+          >
+            <RotateCcw className="w-4 h-4" />
+            View Return
+          </button>
+        </div>
+      )}
+
+      {!isWithdraw && !isOrder && !isReturn && notification.redirectLink && (
+        <button
+          type="button"
+          onClick={() => {
+            onClose();
+            onNavigate(notification.redirectLink!);
+          }}
+          className="w-full inline-flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl text-sm font-medium text-white bg-[#D96A86] hover:bg-[#C85A76] transition-colors"
+        >
+          <Eye className="w-4 h-4" />
+          View details
+        </button>
+      )}
+    </div>
+  );
+}
+
 function NotificationCard({
   notification,
   onClick,
@@ -152,6 +371,7 @@ export default function NotificationsPage() {
   } = useNotifications();
 
   const [filter, setFilter] = useState<FilterValue>("all");
+  const [selectedNotification, setSelectedNotification] = useState<Notification | null>(null);
   const [createOpen, setCreateOpen] = useState(false);
   const [createTitle, setCreateTitle] = useState("");
   const [createDescription, setCreateDescription] = useState("");
@@ -167,9 +387,7 @@ export default function NotificationsPage() {
 
   const handleNotificationClick = (n: Notification) => {
     markAsRead(n.id);
-    if (n.redirectLink) {
-      router.push(n.redirectLink);
-    }
+    setSelectedNotification({ ...n, read: true });
   };
 
   const handleCreateSubmit = (e: React.FormEvent) => {
@@ -253,6 +471,22 @@ export default function NotificationsPage() {
           ))}
         </div>
       )}
+
+      {/* Notification detail drawer */}
+      <Drawer
+        open={!!selectedNotification}
+        onClose={() => setSelectedNotification(null)}
+        title="Notification"
+        width="md"
+      >
+        {selectedNotification && (
+          <NotificationDetailDrawer
+            notification={selectedNotification}
+            onClose={() => setSelectedNotification(null)}
+            onNavigate={(path) => router.push(path)}
+          />
+        )}
+      </Drawer>
 
       {/* Create Notification Drawer */}
       <Drawer

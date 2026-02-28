@@ -9,6 +9,33 @@ export type NotificationCategory =
 
 export type TargetRole = "all" | "customers" | "affiliate_users";
 
+/** Type-specific payload for drawer details */
+export interface NotificationPayload {
+  /** Withdraw: affiliate name, amount, wallet balance, masked bank/upi, request id */
+  withdraw?: {
+    affiliateName: string;
+    requestedAmount: number;
+    walletBalance: number;
+    bankUpiMasked: string;
+    withdrawalId?: string;
+    affiliateId?: string;
+  };
+  /** Order: order id, customer name, amount, payment method */
+  order?: {
+    orderId: string;
+    customerName: string;
+    amount: number;
+    paymentMethod: string;
+  };
+  /** Return: order id, product name, return reason, status */
+  return?: {
+    orderId: string;
+    productName: string;
+    returnReason: string;
+    returnStatus: string;
+  };
+}
+
 export interface Notification {
   id: string;
   icon: NotificationCategory;
@@ -22,6 +49,8 @@ export interface Notification {
   targetRole?: TargetRole;
   /** True when created by admin via "Create Notification" */
   sentByAdmin?: boolean;
+  /** Type-specific details for drawer (withdraw / order / return) */
+  payload?: NotificationPayload;
 }
 
 const now = new Date();
@@ -39,6 +68,16 @@ export const MOCK_NOTIFICATIONS: Notification[] = [
     read: false,
     category: "withdraw_request",
     redirectLink: "/withdraw-requests",
+    payload: {
+      withdraw: {
+        affiliateName: "Sarah Johnson",
+        requestedAmount: 3000,
+        walletBalance: 7250,
+        bankUpiMasked: "Bank ****1234",
+        withdrawalId: "wd-2",
+        affiliateId: "aff-1001",
+      },
+    },
   },
   {
     id: "notif-2",
@@ -50,6 +89,14 @@ export const MOCK_NOTIFICATIONS: Notification[] = [
     read: false,
     category: "new_orders",
     redirectLink: "/orders",
+    payload: {
+      order: {
+        orderId: "ORD-1042",
+        customerName: "Riya Sharma",
+        amount: 2499,
+        paymentMethod: "UPI",
+      },
+    },
   },
   {
     id: "notif-3",
@@ -61,6 +108,14 @@ export const MOCK_NOTIFICATIONS: Notification[] = [
     read: true,
     category: "system",
     redirectLink: "/users",
+    payload: {
+      return: {
+        orderId: "ORD-1038",
+        productName: "Beauty Serum 50ml",
+        returnReason: "Product damaged on arrival",
+        returnStatus: "Pending",
+      },
+    },
   },
   {
     id: "notif-4",
@@ -82,6 +137,15 @@ export const MOCK_NOTIFICATIONS: Notification[] = [
     read: true,
     category: "withdraw_request",
     redirectLink: "/withdraw-requests",
+    payload: {
+      withdraw: {
+        affiliateName: "Emma Williams",
+        requestedAmount: 4000,
+        walletBalance: 2450,
+        bankUpiMasked: "UPI ****@upi",
+        withdrawalId: "wd-3",
+      },
+    },
   },
 ];
 
