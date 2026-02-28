@@ -7,6 +7,7 @@ import { ArrowLeft } from "lucide-react";
 import { useUsers } from "@/lib/users-context";
 import type { OrderItem, ReturnStatus } from "@/lib/users-data";
 import { ProductOrderCard } from "@/components/ui/Card";
+import { useProducts } from "@/lib/products-context";
 
 const RETURN_STATUS_LABELS: Record<ReturnStatus, string> = {
   pending_review: "Pending review",
@@ -52,6 +53,7 @@ export default function ReturnDetailsPage() {
   const params = useParams();
   const searchParams = useSearchParams();
   const { getUserById } = useUsers();
+  const { products } = useProducts();
 
   const id = typeof params.id === "string" ? params.id : params.id?.[0];
   const orderId = searchParams.get("orderId");
@@ -74,6 +76,9 @@ export default function ReturnDetailsPage() {
   }, [user, orderId, productName]);
 
   const [returnItem, setReturnItem] = useState<OrderItem | undefined>(initialItem);
+  const matchedProduct = returnItem
+    ? products.find((p) => p.name === returnItem.productName)
+    : undefined;
 
   if (!id || !user) {
     return (
@@ -177,11 +182,13 @@ export default function ReturnDetailsPage() {
             )}
           </section>
 
-          {/* Product info — reuse ProductOrderCard */}
-          <section>
+          {/* Product info — horizontal card */}
+          <section className="w-full">
             <ProductOrderCard
+              layout="horizontal"
               productImage={returnItem.productImage}
               productName={returnItem.productName}
+              category={matchedProduct?.category}
               price={returnItem.price}
               quantity={returnItem.quantity}
               totalAmount={returnItem.totalAmount}
