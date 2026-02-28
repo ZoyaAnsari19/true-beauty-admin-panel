@@ -57,12 +57,16 @@ export default function AffiliateDetailPage() {
   );
   const [showRegistrations, setShowRegistrations] = useState(false);
   const [registrationsPage, setRegistrationsPage] = useState(1);
+  const [showOrders, setShowOrders] = useState(false);
+  const [ordersPage, setOrdersPage] = useState(1);
   useEffect(() => {
     if (affiliate != null) {
       const normalized = String(Number(affiliate.commissionRate));
       setCommissionRateDraft(normalized === "NaN" ? "0" : normalized);
       setRegistrationsPage(1);
       setShowRegistrations(false);
+       setOrdersPage(1);
+       setShowOrders(false);
     }
   }, [affiliate?.id, affiliate?.commissionRate]);
 
@@ -167,6 +171,19 @@ export default function AffiliateDetailPage() {
     registrationStartIndex + REGISTRATIONS_PER_PAGE
   );
 
+  const referredOrders = affiliate.referredOrders ?? [];
+  const ORDERS_PER_PAGE = 5;
+  const totalOrderPages =
+    referredOrders.length === 0
+      ? 1
+      : Math.ceil(referredOrders.length / ORDERS_PER_PAGE);
+  const currentOrdersPage = Math.min(ordersPage, totalOrderPages);
+  const orderStartIndex = (currentOrdersPage - 1) * ORDERS_PER_PAGE;
+  const currentOrders = referredOrders.slice(
+    orderStartIndex,
+    orderStartIndex + ORDERS_PER_PAGE
+  );
+
   return (
     <div className="space-y-6">
       <Link
@@ -183,6 +200,7 @@ export default function AffiliateDetailPage() {
           onClick={() => {
             setShowRegistrations(true);
             setRegistrationsPage(1);
+            setShowOrders(false);
           }}
           className="min-w-[260px] md:min-w-0 shrink-0 md:shrink text-left"
         >
@@ -195,13 +213,24 @@ export default function AffiliateDetailPage() {
             helperText="Click to view"
           />
         </button>
-        <KpiCard
-          title="Total Orders"
-          value={affiliate.totalOrders.toLocaleString()}
-          icon="shopping-cart"
-          iconClassName="bg-amber-50 text-amber-600"
-          className="min-w-[260px] md:min-w-0 shrink-0 md:shrink"
-        />
+        <button
+          type="button"
+          onClick={() => {
+            setShowOrders(true);
+            setOrdersPage(1);
+            setShowRegistrations(false);
+          }}
+          className="min-w-[260px] md:min-w-0 shrink-0 md:shrink text-left"
+        >
+          <KpiCard
+            title="Total Orders"
+            value={affiliate.totalOrders.toLocaleString()}
+            icon="shopping-cart"
+            iconClassName="bg-amber-50 text-amber-600"
+            className="w-full cursor-pointer"
+            helperText="Click to view"
+          />
+        </button>
         <KpiCard
           title="Wallet Balance"
           value={formatCurrency(affiliate.walletBalance)}
@@ -296,6 +325,116 @@ export default function AffiliateDetailPage() {
                         disabled={
                           currentRegistrationPage === totalRegistrationPages
                         }
+                        className="px-3 py-1.5 rounded-lg text-xs font-medium border border-gray-200 text-gray-700 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-gray-50"
+                      >
+                        Next
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+        </div>
+      )}
+
+      {showOrders && (
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+          <div className="px-6 py-4 border-b border-gray-100 bg-[#fef5f7] flex items-center justify-between gap-3">
+            <div>
+              <h2 className="text-sm font-semibold text-gray-900">
+                Orders from referrals
+              </h2>
+              <p className="text-xs text-gray-600">
+                Products purchased by users who came via this affiliate&apos;s link.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setShowOrders(false)}
+              className="text-xs font-medium text-gray-500 hover:text-gray-800"
+            >
+              Close
+            </button>
+          </div>
+          <div className="p-4 sm:p-6 space-y-4">
+            {currentOrders.length === 0 ? (
+              <p className="text-sm text-gray-500">
+                No orders found for this affiliate&apos;s referrals.
+              </p>
+            ) : (
+              <>
+                <ul className="space-y-3">
+                  {currentOrders.map((order) => (
+                    <li
+                      key={order.id}
+                      className="flex items-center justify-between gap-3 rounded-xl border border-gray-100 bg-[#fef5f7]/60 px-3 py-2"
+                    >
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className="h-12 w-12 rounded-lg bg-white overflow-hidden border border-pink-100 flex items-center justify-center shrink-0">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src={order.productImage}
+                            alt={order.productName}
+                            className="h-full w-full object-cover"
+                          />
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-sm font-medium text-gray-900 truncate">
+                            {order.productName}
+                          </p>
+                          <p className="text-[11px] text-gray-500 truncate">
+                            {order.category}
+                          </p>
+                          <p className="text-[11px] text-gray-500">
+                            Qty: {order.quantity}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="shrink-0 text-right">
+                        <p className="text-sm font-semibold text-gray-900">
+                          {formatCurrency(order.amount)}
+                        </p>
+                        <p className="text-[11px] text-gray-500">
+                          Ordered on{" "}
+                          {new Date(order.orderedAt).toLocaleDateString(
+                            "en-US",
+                            {
+                              year: "numeric",
+                              month: "short",
+                              day: "numeric",
+                            }
+                          )}
+                        </p>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+
+                {referredOrders.length > ORDERS_PER_PAGE && (
+                  <div className="flex items-center justify-between gap-3 pt-2 border-t border-gray-100 mt-2">
+                    <p className="text-xs text-gray-500">
+                      Page {currentOrdersPage} of {totalOrderPages}
+                    </p>
+                    <div className="inline-flex gap-2">
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setOrdersPage((prev) => Math.max(1, prev - 1))
+                        }
+                        disabled={currentOrdersPage === 1}
+                        className="px-3 py-1.5 rounded-lg text-xs font-medium border border-gray-200 text-gray-700 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-gray-50"
+                      >
+                        Previous
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setOrdersPage((prev) =>
+                            Math.min(totalOrderPages, prev + 1)
+                          )
+                        }
+                        disabled={currentOrdersPage === totalOrderPages}
                         className="px-3 py-1.5 rounded-lg text-xs font-medium border border-gray-200 text-gray-700 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-gray-50"
                       >
                         Next
