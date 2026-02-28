@@ -161,7 +161,11 @@ function NotificationDetailDrawer({
 
   const handleReject = () => {
     onClose();
-    onNavigate("/withdraw-requests");
+    onNavigate(
+      payload?.withdraw?.affiliateId && payload?.withdraw?.withdrawalId
+        ? `/withdraw-requests/${payload.withdraw.affiliateId}/${payload.withdraw.withdrawalId}`
+        : "/withdraw-requests"
+    );
     setConfirmAction(null);
   };
 
@@ -277,48 +281,36 @@ function NotificationDetailDrawer({
         <div className="flex flex-col gap-3">
           {(isWithdraw || isOrder || isReturn || notification.redirectLink) && (
             <>
-              <div className="flex flex-wrap gap-3">
-                <button
-                  type="button"
-                  onClick={() => {
-                    onClose();
-                    onNavigate(
-                      notification.redirectLink ||
-                        (isWithdraw ? "/withdraw-requests" : isOrder ? "/orders" : "/users")
-                    );
-                  }}
-                  className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 transition-colors"
-                >
-                  <Eye className="w-4 h-4" />
-                  View
-                </button>
-                {isWithdraw && notification.title.toLowerCase().includes("request") && (
-                  <>
-                    <button
-                      type="button"
-                      onClick={() => setConfirmAction("approve")}
-                      className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium text-white bg-emerald-600 hover:bg-emerald-700 transition-colors"
-                    >
-                      <CheckCircle2 className="w-4 h-4" />
-                      Approve
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setConfirmAction("reject")}
-                      className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium text-red-700 border border-red-200 hover:bg-red-50 transition-colors"
-                    >
-                      <XCircle className="w-4 h-4" />
-                      Reject
-                    </button>
-                  </>
-                )}
-              </div>
+              {isWithdraw && notification.title.toLowerCase().includes("request") && (
+                <div className="flex justify-between items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setConfirmAction("reject")}
+                    className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium text-red-700 border border-red-200 hover:bg-red-50 transition-colors"
+                  >
+                    <XCircle className="w-4 h-4" />
+                    Reject
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setConfirmAction("approve")}
+                    className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium text-white bg-emerald-600 hover:bg-emerald-700 transition-colors"
+                  >
+                    <CheckCircle2 className="w-4 h-4" />
+                    Approve
+                  </button>
+                </div>
+              )}
               {isOrder && (
                 <button
                   type="button"
                   onClick={() => {
                     onClose();
-                    onNavigate(notification.redirectLink || "/orders");
+                    const path =
+                      payload?.order?.userId
+                        ? `/users/${payload.order.userId}`
+                        : (notification.redirectLink || "/orders");
+                    onNavigate(path);
                   }}
                   className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium text-white bg-[#D96A86] hover:bg-[#C85A76] transition-colors"
                 >
@@ -331,7 +323,11 @@ function NotificationDetailDrawer({
                   type="button"
                   onClick={() => {
                     onClose();
-                    onNavigate(notification.redirectLink || "/users");
+                    const path =
+                      payload?.return?.userId
+                        ? `/users/${payload.return.userId}`
+                        : (notification.redirectLink || "/users");
+                    onNavigate(path);
                   }}
                   className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium text-white bg-[#D96A86] hover:bg-[#C85A76] transition-colors"
                 >
@@ -373,7 +369,7 @@ function NotificationDetailDrawer({
             <p className="text-sm font-medium text-gray-900">
               {confirmAction === "approve"
                 ? "Approve this withdrawal request? You will be taken to the request details."
-                : "Reject this withdrawal request? You will be taken to withdraw requests."}
+                : "Reject this withdrawal request? You will be taken to the request details."}
             </p>
             <div className="flex gap-3 mt-5">
               <button

@@ -22,19 +22,21 @@ export interface NotificationPayload {
     withdrawalId?: string;
     affiliateId?: string;
   };
-  /** Order: order id, customer name, amount, payment method */
+  /** Order: order id, customer name, amount, payment method, user (customer) id for detail page */
   order?: {
     orderId: string;
     customerName: string;
     amount: number;
     paymentMethod: string;
+    userId?: string;
   };
-  /** Return: order id, product name, return reason, status */
+  /** Return: order id, product name, return reason, status, user id for detail page */
   return?: {
     orderId: string;
     productName: string;
     returnReason: string;
     returnStatus: string;
+    userId?: string;
   };
 }
 
@@ -98,6 +100,7 @@ export const MOCK_NOTIFICATIONS: Notification[] = [
         customerName: "Riya Sharma",
         amount: 2499,
         paymentMethod: "UPI",
+        userId: "user-1",
       },
     },
   },
@@ -110,13 +113,14 @@ export const MOCK_NOTIFICATIONS: Notification[] = [
     timestamp: new Date(now.getTime() - 1 * oneDay).toISOString(),
     read: true,
     category: "system",
-    redirectLink: "/users",
+    redirectLink: "/users/user-2",
     payload: {
       return: {
         orderId: "ORD-1038",
         productName: "Beauty Serum 50ml",
         returnReason: "Product damaged on arrival",
         returnStatus: "Pending",
+        userId: "user-2",
       },
     },
   },
