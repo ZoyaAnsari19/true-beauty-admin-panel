@@ -28,6 +28,7 @@ const emptyForm: ProductFormValues = {
   stockStatus: "in_stock",
   status: "active",
   image: "",
+  images: [],
   description: "",
   imageFile: null,
   isAffiliateProduct: false,
@@ -52,7 +53,7 @@ export function ProductForm({
         stockStatus: initialValues.stockStatus,
         status: initialValues.status,
         image: initialValues.image ?? "",
-        images: initialValues.images,
+        images: initialValues.images ?? (initialValues.image ? [initialValues.image] : []),
         description: initialValues.description ?? "",
         imageFile: null,
         isAffiliateProduct: initialValues.isAffiliateProduct ?? false,
@@ -72,10 +73,11 @@ export function ProductForm({
       price: values.price || 0,
       discountPrice: values.discountPrice || 0,
       stock: values.stock ?? 0,
-      commissionRate:
-        typeof values.commissionRate === "number" && !Number.isNaN(values.commissionRate)
+      commissionRate: values.isAffiliateProduct
+        ? typeof values.commissionRate === "number" && !Number.isNaN(values.commissionRate)
           ? Math.max(0, values.commissionRate)
-          : 0,
+          : 0
+        : 0,
       description: values.description?.trim() ?? "",
       isAffiliateProduct: values.isAffiliateProduct ?? false,
     });
@@ -118,6 +120,78 @@ export function ProductForm({
           ))}
         </select>
       </div>
+      <div className="rounded-xl border border-gray-100 bg-[#fef5f7] p-4">
+        <span className="block text-sm font-medium text-gray-700 mb-1">
+          Add this Affiliate product
+        </span>
+        <div className="flex items-center gap-4 mt-1">
+          <label className="inline-flex items-center gap-2 text-sm text-gray-700">
+            <input
+              type="radio"
+              name="isAffiliateProduct"
+              checked={values.isAffiliateProduct === true}
+              onChange={() =>
+                setValues((v) => ({
+                  ...v,
+                  isAffiliateProduct: true,
+                }))
+              }
+              className="h-4 w-4 text-[#D96A86] border-gray-300 focus:ring-[#f8c6d0]"
+            />
+            <span>Yes</span>
+          </label>
+          <label className="inline-flex items-center gap-2 text-sm text-gray-700">
+            <input
+              type="radio"
+              name="isAffiliateProduct"
+              checked={values.isAffiliateProduct === false}
+              onChange={() =>
+                setValues((v) => ({
+                  ...v,
+                  isAffiliateProduct: false,
+                  commissionRate: 0,
+                }))
+              }
+              className="h-4 w-4 text-[#D96A86] border-gray-300 focus:ring-[#f8c6d0]"
+            />
+            <span>No</span>
+          </label>
+        </div>
+        <p className="mt-1 text-xs text-gray-500">
+          If you select &quot;Yes&quot;, this product will be available in the affiliate product list
+          on the user side.
+        </p>
+      </div>
+      {values.isAffiliateProduct && (
+        <div>
+          <label htmlFor="commissionRate" className="block text-sm font-medium text-gray-700 mb-1">
+            Commission Rate (%)
+          </label>
+          <input
+            id="commissionRate"
+            type="number"
+            min={0}
+            max={100}
+            step={0.1}
+            value={
+              typeof values.commissionRate === "number" && values.commissionRate !== 0
+                ? values.commissionRate
+                : ""
+            }
+            onChange={(e) =>
+              setValues((v) => ({
+                ...v,
+                commissionRate: e.target.value === "" ? 0 : Number(e.target.value) || 0,
+              }))
+            }
+            className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-[#f8c6d0] focus:border-transparent outline-none transition-all"
+            placeholder="e.g. 10"
+          />
+          <p className="mt-1 text-xs text-gray-500">
+            Percentage of the product price that will be given as commission.
+          </p>
+        </div>
+      )}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div>
           <label htmlFor="price" className="block text-sm font-medium text-gray-700 mb-1">
@@ -170,75 +244,6 @@ export function ProductForm({
         </div>
       </div>
       <div>
-        <label htmlFor="commissionRate" className="block text-sm font-medium text-gray-700 mb-1">
-          Commission Rate (%)
-        </label>
-        <input
-          id="commissionRate"
-          type="number"
-          min={0}
-          max={100}
-          step={0.1}
-          value={
-            typeof values.commissionRate === "number" && values.commissionRate !== 0
-              ? values.commissionRate
-              : ""
-          }
-          onChange={(e) =>
-            setValues((v) => ({
-              ...v,
-              commissionRate: e.target.value === "" ? 0 : Number(e.target.value) || 0,
-            }))
-          }
-          className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-[#f8c6d0] focus:border-transparent outline-none transition-all"
-          placeholder="e.g. 10"
-        />
-        <p className="mt-1 text-xs text-gray-500">
-          Percentage of the product price that will be given as commission.
-        </p>
-      </div>
-      <div className="rounded-xl border border-gray-100 bg-[#fef5f7] p-4">
-        <span className="block text-sm font-medium text-gray-700 mb-1">
-          Add this Affiliate product
-        </span>
-        <div className="flex items-center gap-4 mt-1">
-          <label className="inline-flex items-center gap-2 text-sm text-gray-700">
-            <input
-              type="radio"
-              name="isAffiliateProduct"
-              checked={values.isAffiliateProduct === true}
-              onChange={() =>
-                setValues((v) => ({
-                  ...v,
-                  isAffiliateProduct: true,
-                }))
-              }
-              className="h-4 w-4 text-[#D96A86] border-gray-300 focus:ring-[#f8c6d0]"
-            />
-            <span>Yes</span>
-          </label>
-          <label className="inline-flex items-center gap-2 text-sm text-gray-700">
-            <input
-              type="radio"
-              name="isAffiliateProduct"
-              checked={values.isAffiliateProduct === false}
-              onChange={() =>
-                setValues((v) => ({
-                  ...v,
-                  isAffiliateProduct: false,
-                }))
-              }
-              className="h-4 w-4 text-[#D96A86] border-gray-300 focus:ring-[#f8c6d0]"
-            />
-            <span>No</span>
-          </label>
-        </div>
-        <p className="mt-1 text-xs text-gray-500">
-          If you select &quot;Yes&quot;, this product will be available in the affiliate product list
-          on the user side.
-        </p>
-      </div>
-      <div>
         <label htmlFor="status" className="block text-sm font-medium text-gray-700 mb-1">
           Status
         </label>
@@ -265,18 +270,35 @@ export function ProductForm({
           id="image"
           type="file"
           accept="image/*"
+          multiple
           onChange={(e) => {
-            const file = e.target.files?.[0] ?? null;
+            const files = Array.from(e.target.files ?? []);
+
+            if (files.length === 0) {
+              setValues((v) => ({
+                ...v,
+                imageFile: null,
+                image: "",
+                images: [],
+              }));
+              return;
+            }
+
+            const limitedFiles = files.slice(0, 5);
+            const imageUrls = limitedFiles.map((file) => URL.createObjectURL(file));
+            const primaryFile = limitedFiles[0] ?? null;
+
             setValues((v) => ({
               ...v,
-              imageFile: file,
-              image: file ? URL.createObjectURL(file) : null,
+              imageFile: primaryFile,
+              image: imageUrls[0] ?? null,
+              images: imageUrls,
             }));
           }}
           className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-[#f8c6d0] focus:border-transparent outline-none transition-all bg-white file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-[#fef5f7] file:text-[#D96A86] hover:file:bg-[#f8e0e6]"
         />
         <p className="mt-1 text-xs text-gray-500">
-          Upload a product image (JPEG, PNG, etc.). This replaces the URL input.
+          Upload up to 5 product images (JPEG, PNG, etc.). This replaces the URL input.
         </p>
       </div>
       <div>
