@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import {
   ArrowLeft,
   Ban,
@@ -228,6 +228,12 @@ function ReturnsTabContent({
   userId: string;
 }) {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const subtabFromUrl = searchParams.get("subtab");
+  const defaultSubTabId =
+    subtabFromUrl === "refund" || subtabFromUrl === "exchange"
+      ? subtabFromUrl
+      : "refund";
 
   const refundTab: TabItem<"refund" | "exchange"> = {
     id: "refund",
@@ -322,7 +328,7 @@ function ReturnsTabContent({
   return (
     <Tabination
       tabs={subTabs}
-      defaultTabId="refund"
+      defaultTabId={defaultSubTabId}
       className="mt-0"
       panelClassName="bg-transparent border-none shadow-none p-0"
     />
@@ -734,31 +740,81 @@ export default function UserDetailPage() {
   );
 
   const walletContent = (
-    <div className="space-y-6">
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-        <div className="px-6 py-4 border-b border-gray-100 bg-[#fef5f7] flex items-center gap-2">
-          <Wallet className="w-5 h-5 text-gray-600" />
-          <h2 className="text-base font-semibold text-gray-900">
-            Wallet Amount
-          </h2>
-        </div>
-        <div className="p-6">
-          {affiliateForUser ? (
-            <>
-              <p className="text-sm text-gray-600 mb-2">
-                Current affiliate wallet balance for this user.
+    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+      {affiliateForUser ? (
+        <>
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+            <div className="px-5 py-3 border-b border-gray-100 bg-[#fef5f7] flex items-center gap-2">
+              <Wallet className="w-5 h-5 text-gray-600 shrink-0" />
+              <h3 className="text-sm font-semibold text-gray-900">
+                Wallet Amount
+              </h3>
+            </div>
+            <div className="p-5">
+              <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">
+                Current balance
               </p>
-              <p className="text-2xl font-semibold text-gray-900">
+              <p className="text-xl font-bold text-gray-900">
                 {formatCurrency(affiliateForUser.walletBalance)}
               </p>
-            </>
-          ) : (
+            </div>
+          </div>
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+            <div className="px-5 py-3 border-b border-gray-100 bg-[#fef5f7] flex items-center gap-2">
+              <IndianRupee className="w-5 h-5 text-gray-600 shrink-0" />
+              <h3 className="text-sm font-semibold text-gray-900">
+                Total Withdrawn
+              </h3>
+            </div>
+            <div className="p-5">
+              <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">
+                Approved payouts
+              </p>
+              <p className="text-xl font-bold text-gray-900">
+                {formatCurrency(
+                  affiliateForUser.withdrawals
+                    .filter((w) => w.status === "approved")
+                    .reduce((sum, w) => sum + w.amount, 0)
+                )}
+              </p>
+            </div>
+          </div>
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+            <div className="px-5 py-3 border-b border-gray-100 bg-[#fef5f7] flex items-center gap-2">
+              <Wallet className="w-5 h-5 text-gray-600 shrink-0" />
+              <h3 className="text-sm font-semibold text-gray-900">
+                Pending Withdrawals
+              </h3>
+            </div>
+            <div className="p-5">
+              <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">
+                Awaiting approval
+              </p>
+              <p className="text-xl font-bold text-gray-900">
+                {formatCurrency(
+                  affiliateForUser.withdrawals
+                    .filter((w) => w.status === "pending")
+                    .reduce((sum, w) => sum + w.amount, 0)
+                )}
+              </p>
+            </div>
+          </div>
+        </>
+      ) : (
+        <div className="md:col-span-3 bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+          <div className="px-6 py-4 border-b border-gray-100 bg-[#fef5f7] flex items-center gap-2">
+            <Wallet className="w-5 h-5 text-gray-600" />
+            <h2 className="text-base font-semibold text-gray-900">
+              Wallet Amount
+            </h2>
+          </div>
+          <div className="p-6">
             <p className="text-sm text-gray-500">
               This user does not have an affiliate wallet.
             </p>
-          )}
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 
@@ -808,62 +864,74 @@ export default function UserDetailPage() {
                   No withdrawal requests for this affiliate.
                 </p>
               ) : (
-                <div className="space-y-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                   {affiliateForUser.withdrawals.map((w) => {
                     const statusLabel =
                       WITHDRAW_STATUS_LABELS[w.status] ?? w.status;
                     const statusClass =
                       WITHDRAW_STATUS_CLASSES[w.status] ??
                       "bg-gray-50 text-gray-700";
+                    const dateOpts: Intl.DateTimeFormatOptions = {
+                      year: "numeric",
+                      month: "short",
+                      day: "numeric",
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    };
                     return (
                       <div
                         key={w.id}
-                        className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3"
+                        className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden transition-shadow hover:shadow-md"
                       >
-                        <div className="space-y-1">
-                          <p className="text-sm font-semibold text-gray-900">
-                            {formatCurrency(w.amount)}
-                          </p>
-                          <p className="text-xs text-gray-500">
-                            {w.method}
-                          </p>
-                          <p className="text-xs text-gray-500">
-                            Requested on{" "}
-                            {new Date(w.requestedAt).toLocaleString("en-US", {
-                              year: "numeric",
-                              month: "short",
-                              day: "numeric",
-                              hour: "2-digit",
-                              minute: "2-digit",
-                            })}
-                          </p>
-                          {w.processedAt && (
-                            <p className="text-xs text-gray-500">
-                              Processed on{" "}
-                              {new Date(w.processedAt).toLocaleString(
-                                "en-US",
-                                {
-                                  year: "numeric",
-                                  month: "short",
-                                  day: "numeric",
-                                  hour: "2-digit",
-                                  minute: "2-digit",
-                                }
+                        <div className="p-5 sm:p-6 flex flex-col gap-4">
+                          {/* Top row: amount + status */}
+                          <div className="flex items-start justify-between gap-4">
+                            <p className="text-xl sm:text-2xl font-bold text-gray-900 tracking-tight">
+                              {formatCurrency(w.amount)}
+                            </p>
+                            <span
+                              className={`shrink-0 inline-flex px-3 py-1.5 rounded-full text-xs font-semibold uppercase tracking-wide ${statusClass}`}
+                            >
+                              {statusLabel}
+                            </span>
+                          </div>
+                          {/* Payment details */}
+                          <div className="border-t border-gray-100 pt-4 space-y-3">
+                            <p className="text-sm font-medium text-gray-700">
+                              {w.method}
+                            </p>
+                            <dl className="space-y-2 text-sm">
+                              <div className="flex flex-wrap items-baseline gap-x-2">
+                                <dt className="text-gray-500 font-normal">
+                                  Requested on
+                                </dt>
+                                <dd className="text-gray-900 font-medium">
+                                  {new Date(w.requestedAt).toLocaleString(
+                                    "en-US",
+                                    dateOpts
+                                  )}
+                                </dd>
+                              </div>
+                              {w.processedAt && (
+                                <div className="flex flex-wrap items-baseline gap-x-2">
+                                  <dt className="text-gray-500 font-normal">
+                                    Processed on
+                                  </dt>
+                                  <dd className="text-gray-900 font-medium">
+                                    {new Date(w.processedAt).toLocaleString(
+                                      "en-US",
+                                      dateOpts
+                                    )}
+                                  </dd>
+                                </div>
                               )}
-                            </p>
-                          )}
-                          {w.notes && (
-                            <p className="text-xs text-gray-600">
-                              {w.notes}
-                            </p>
-                          )}
-                        </div>
-                        <div className="sm:text-right">
-                          <span
-                            className={`inline-flex px-2.5 py-1 rounded-full text-xs font-medium ${statusClass}`}
-                          >
-                            {statusLabel}
-                          </span>
+                            </dl>
+                            {w.notes && (
+                              <p className="text-sm text-gray-600 pt-1 border-t border-gray-50">
+                                {w.notes}
+                              </p>
+                            )}
+                          </div>
                         </div>
                       </div>
                     );
@@ -885,6 +953,11 @@ export default function UserDetailPage() {
         { id: "kyc", label: "KYC", content: kycContent },
       ];
 
+  const searchParams = useSearchParams();
+  const tabFromUrl = searchParams.get("tab");
+  const defaultTabId =
+    tabFromUrl && tabs.some((t) => t.id === tabFromUrl) ? tabFromUrl : "basic";
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between gap-3">
@@ -902,7 +975,7 @@ export default function UserDetailPage() {
       </div>
 
       {/* Tabs */}
-      <Tabination tabs={tabs} defaultTabId="basic" />
+      <Tabination tabs={tabs} defaultTabId={defaultTabId} />
 
       {selectedWishlistItem && (
         <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/40 px-4">

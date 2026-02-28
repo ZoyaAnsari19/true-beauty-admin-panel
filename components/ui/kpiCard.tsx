@@ -40,6 +40,8 @@ export interface KpiCardProps {
   iconClassName?: string;
   /** Optional extra class for the card root */
   className?: string;
+  /** Optional helper text shown under the value (e.g. "Click to view"). */
+  helperText?: string;
 }
 
 export function KpiCard({
@@ -48,6 +50,7 @@ export function KpiCard({
   icon: iconName,
   iconClassName = "bg-gray-100 text-gray-600",
   className = "",
+  helperText,
 }: KpiCardProps) {
   const Icon = KPI_ICONS[iconName];
   return (
@@ -59,11 +62,18 @@ export function KpiCard({
           <p className="text-sm text-gray-600 mb-1">{title}</p>
           <p className="text-2xl font-semibold text-gray-900">{value}</p>
         </div>
-        <div
-          className={`shrink-0 p-3 rounded-xl ${iconClassName}`}
-          aria-hidden
-        >
-          <Icon className="w-6 h-6" />
+        <div className="shrink-0 flex flex-col items-center gap-1">
+          <div
+            className={`p-3 rounded-xl ${iconClassName}`}
+            aria-hidden
+          >
+            <Icon className="w-6 h-6" />
+          </div>
+          {helperText && (
+            <p className="text-[11px] font-medium text-blue-600 whitespace-nowrap">
+              {helperText}
+            </p>
+          )}
         </div>
       </div>
     </div>

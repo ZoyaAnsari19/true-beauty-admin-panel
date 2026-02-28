@@ -113,11 +113,11 @@ export default function OrderDetailsPage() {
     return (
       <div className="space-y-6">
         <Link
-          href={`/users/${userId}`}
+          href={`/users/${userId}?tab=purchases`}
           className="inline-flex items-center gap-2 text-sm font-medium text-gray-600 hover:text-gray-900"
         >
           <ArrowLeft className="w-4 h-4" />
-          Back to User
+          Back to Orders
         </Link>
         <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100 text-center">
           <p className="text-gray-500">Order not found.</p>
@@ -130,11 +130,11 @@ export default function OrderDetailsPage() {
     return (
       <div className="space-y-6">
         <Link
-          href={`/users/${userId}`}
+          href={`/users/${userId}?tab=purchases`}
           className="inline-flex items-center gap-2 text-sm font-medium text-gray-600 hover:text-gray-900"
         >
           <ArrowLeft className="w-4 h-4" />
-          Back to User
+          Back to Orders
         </Link>
         <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100 text-center">
           <p className="text-gray-500">Product item not found.</p>
@@ -175,11 +175,11 @@ export default function OrderDetailsPage() {
   return (
     <div className="space-y-6">
       <Link
-        href={`/users/${userId}`}
+        href={`/users/${userId}?tab=purchases`}
         className="inline-flex items-center gap-2 text-sm font-medium text-gray-600 hover:text-gray-900"
       >
         <ArrowLeft className="w-4 h-4" />
-        Back to User
+        Back to Orders
       </Link>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

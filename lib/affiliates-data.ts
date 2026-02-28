@@ -23,6 +23,23 @@ export interface Withdrawal {
   notes?: string;
 }
 
+export interface ReferredUser {
+  id: string;
+  name: string;
+  email: string;
+  registeredAt: string;
+}
+
+export interface ReferredOrder {
+  id: string;
+  productName: string;
+  productImage: string;
+  category: string;
+  quantity: number;
+  orderedAt: string;
+  amount: number;
+}
+
 export interface Affiliate {
   id: string;
   name: string;
@@ -39,6 +56,10 @@ export interface Affiliate {
   lastActiveAt?: string;
   commissionLogs: CommissionLog[];
   withdrawals: Withdrawal[];
+  /** Optional list of users who registered via this affiliate. */
+  referredUsers?: ReferredUser[];
+  /** Optional list of orders placed via this affiliate's referral links. */
+  referredOrders?: ReferredOrder[];
 }
 
 export const MOCK_AFFILIATES: Affiliate[] = [
@@ -99,6 +120,36 @@ export const MOCK_AFFILIATES: Affiliate[] = [
         status: "pending",
       },
     ],
+    referredUsers: Array.from({ length: 42 }, (_, index) => ({
+      id: `sarah-ref-${index + 1}`,
+      name: `Sarah Referral ${index + 1}`,
+      email: `sarah.ref${index + 1}@example.com`,
+      registeredAt: new Date(
+        Date.UTC(2024, 0, 10 + Math.min(index, 25))
+      ).toISOString(),
+    })),
+    referredOrders: Array.from({ length: 31 }, (_, index) => {
+      const productIndex = (index % 6) + 1;
+      const category =
+        productIndex <= 2
+          ? "Skin Care"
+          : productIndex <= 4
+          ? "Hair Care"
+          : "Makeup";
+      const quantity = (index % 3) + 1;
+      const unitPrice = 499 + (index % 5) * 150;
+      return {
+        id: `sarah-ord-${index + 1}`,
+        productName: `Beauty Product ${productIndex.toString().padStart(2, "0")}`,
+        productImage: `https://picsum.photos/seed/sarah-prod-${productIndex}/80/80`,
+        category,
+        quantity,
+        orderedAt: new Date(
+          Date.UTC(2024, 0, 12 + Math.min(index, 28))
+        ).toISOString(),
+        amount: unitPrice * quantity,
+      };
+    }),
   },
   {
     id: "aff-1002",
@@ -150,6 +201,31 @@ export const MOCK_AFFILIATES: Affiliate[] = [
         notes: "Invalid bank details",
       },
     ],
+    referredUsers: Array.from({ length: 18 }, (_, index) => ({
+      id: `emma-ref-${index + 1}`,
+      name: `Emma Referral ${index + 1}`,
+      email: `emma.ref${index + 1}@example.com`,
+      registeredAt: new Date(
+        Date.UTC(2024, 1, 18 + Math.min(index, 20))
+      ).toISOString(),
+    })),
+    referredOrders: Array.from({ length: 12 }, (_, index) => {
+      const productIndex = (index % 4) + 1;
+      const category = "Skin Care";
+      const quantity = (index % 2) + 1;
+      const unitPrice = 799 + (index % 3) * 200;
+      return {
+        id: `emma-ord-${index + 1}`,
+        productName: `Skin Care Combo ${productIndex.toString().padStart(2, "0")}`,
+        productImage: `https://picsum.photos/seed/emma-prod-${productIndex}/80/80`,
+        category,
+        quantity,
+        orderedAt: new Date(
+          Date.UTC(2024, 1, 20 + Math.min(index, 15))
+        ).toISOString(),
+        amount: unitPrice * quantity,
+      };
+    }),
   },
   {
     id: "aff-1003",
@@ -176,6 +252,31 @@ export const MOCK_AFFILIATES: Affiliate[] = [
       },
     ],
     withdrawals: [],
+    referredUsers: Array.from({ length: 5 }, (_, index) => ({
+      id: `olivia-ref-${index + 1}`,
+      name: `Olivia Referral ${index + 1}`,
+      email: `olivia.ref${index + 1}@example.com`,
+      registeredAt: new Date(
+        Date.UTC(2024, 2, 5 + Math.min(index, 10))
+      ).toISOString(),
+    })),
+    referredOrders: Array.from({ length: 3 }, (_, index) => {
+      const productIndex = index + 1;
+      const category = "Hair Care";
+      const quantity = 1 + index;
+      const unitPrice = 649 + index * 100;
+      return {
+        id: `olivia-ord-${index + 1}`,
+        productName: `Hair Care Kit ${productIndex}`,
+        productImage: `https://picsum.photos/seed/olivia-prod-${productIndex}/80/80`,
+        category,
+        quantity,
+        orderedAt: new Date(
+          Date.UTC(2024, 2, 10 + Math.min(index, 5))
+        ).toISOString(),
+        amount: unitPrice * quantity,
+      };
+    }),
   },
 ];
 

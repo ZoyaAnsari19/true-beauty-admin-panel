@@ -130,37 +130,22 @@ export function ProductOrderCard({
   const isHorizontal = layout === "horizontal";
 
   const detailsBlock = isHorizontal ? (
-    <div className="flex-1 min-w-0 flex flex-col gap-2 justify-center">
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
-          <h3 className="text-sm font-semibold text-gray-900 line-clamp-2">
-            {productName}
-          </h3>
-          {displayCategory && (
-            <p className="mt-1.5 text-xs text-gray-500">
-              Category:{" "}
-              <span className="font-medium text-gray-800">
-                {displayCategory}
-              </span>
-            </p>
-          )}
-        </div>
-        <span
-          className={`inline-flex px-2.5 py-1 rounded-full text-xs font-medium shrink-0 ${statusClass}`}
-        >
-          {orderStatus}
-        </span>
-      </div>
-
-      <p className="text-sm font-semibold text-gray-900 flex items-center justify-between gap-2">
-        <span>{defaultFormatCurrency(price, currency)}</span>
-        <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">
-          Total
-        </span>
-      </p>
-
-      <div className="flex items-center justify-between gap-3 text-xs text-gray-500">
-        <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
+    <div className="flex-1 min-w-0 flex flex-row gap-4 items-stretch">
+      {/* Center: name, category, unit price, qty + date */}
+      <div className="flex-1 min-w-0 flex flex-col gap-1.5 justify-center">
+        <h3 className="text-sm font-semibold text-gray-900 line-clamp-2">
+          {productName}
+        </h3>
+        {displayCategory && (
+          <p className="text-xs text-gray-500">
+            Category:{" "}
+            <span className="font-medium text-gray-800">{displayCategory}</span>
+          </p>
+        )}
+        <p className="text-sm font-semibold text-gray-900">
+          {defaultFormatCurrency(price, currency)}
+        </p>
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-gray-500">
           <span>Qty: {quantity}</span>
           <span>{formatDate(orderDate)}</span>
           {showAffiliateBadge && (
@@ -169,7 +154,18 @@ export function ProductOrderCard({
             </span>
           )}
         </div>
-        <span className="text-sm font-semibold text-red-600">
+      </div>
+      {/* Right: status, TOTAL label, total price (red) */}
+      <div className="flex flex-col items-end justify-center gap-1.5 shrink-0">
+        <span
+          className={`inline-flex px-2.5 py-1 rounded-full text-xs font-medium ${statusClass}`}
+        >
+          {orderStatus}
+        </span>
+        <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">
+          TOTAL
+        </span>
+        <span className="text-sm font-bold text-red-600">
           {defaultFormatCurrency(totalAmount, currency)}
         </span>
       </div>

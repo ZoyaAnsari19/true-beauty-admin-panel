@@ -101,11 +101,11 @@ export default function ReturnDetailsPage() {
     return (
       <div className="space-y-6">
         <Link
-          href={`/users/${id}`}
+          href={`/users/${id}?tab=returns`}
           className="inline-flex items-center gap-2 text-sm font-medium text-gray-600 hover:text-gray-900"
         >
           <ArrowLeft className="w-4 h-4" />
-          Back to User
+          Back to Returns
         </Link>
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-8 text-center">
           <p className="text-gray-500 text-sm">
@@ -136,11 +136,11 @@ export default function ReturnDetailsPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <Link
-          href={`/users/${id}`}
+          href={`/users/${id}?tab=returns`}
           className="inline-flex items-center gap-2 text-sm font-medium text-gray-600 hover:text-gray-900"
         >
           <ArrowLeft className="w-4 h-4" />
-          Back to User
+          Back to Returns
         </Link>
       </div>
 
