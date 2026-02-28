@@ -15,7 +15,7 @@ import {
   type TargetRole,
 } from "./notifications-data";
 
-type FilterValue = "all" | "unread" | NotificationCategory;
+type FilterValue = "all" | "unread" | "send" | NotificationCategory;
 
 interface NotificationsContextValue {
   notifications: Notification[];
@@ -63,10 +63,13 @@ export function NotificationsProvider({
       category: NotificationCategory;
     }) => {
       const iconMap: Record<NotificationCategory, NotificationCategory> = {
-        orders: "orders",
-        returns: "returns",
-        withdraw: "withdraw",
         system: "system",
+        customers: "customers",
+        affiliate_users: "affiliate_users",
+        new_products: "new_products",
+        new_services: "new_services",
+        new_orders: "new_orders",
+        withdraw_request: "withdraw_request",
       };
       const newNotif: Notification = {
         id: generateNotificationId(),
@@ -79,6 +82,7 @@ export function NotificationsProvider({
         category: payload.category,
         redirectLink: payload.redirectLink,
         targetRole: payload.targetRole,
+        sentByAdmin: true,
       };
       setNotifications((prev) => [newNotif, ...prev]);
     },
@@ -90,6 +94,8 @@ export function NotificationsProvider({
       let list = [...notifications];
       if (filter === "unread") {
         list = list.filter((n) => !n.read);
+      } else if (filter === "send") {
+        list = list.filter((n) => n.sentByAdmin === true);
       } else if (filter !== "all") {
         list = list.filter((n) => n.category === filter);
       }

@@ -7,9 +7,12 @@ import {
   CheckCheck,
   Plus,
   ShoppingCart,
-  RotateCcw,
   Wallet,
   Settings,
+  Users,
+  UserCheck,
+  Package,
+  Scissors,
   type LucideIcon,
 } from "lucide-react";
 import { Drawer } from "@/components/ui/Drawer";
@@ -17,42 +20,54 @@ import { useNotifications } from "@/lib/notifications-context";
 import type { Notification, NotificationCategory, TargetRole } from "@/lib/notifications-data";
 
 const CATEGORY_ICONS: Record<NotificationCategory, LucideIcon> = {
-  orders: ShoppingCart,
-  returns: RotateCcw,
-  withdraw: Wallet,
   system: Settings,
+  customers: Users,
+  affiliate_users: UserCheck,
+  new_products: Package,
+  new_services: Scissors,
+  new_orders: ShoppingCart,
+  withdraw_request: Wallet,
 };
 
 const CATEGORY_LABELS: Record<NotificationCategory, string> = {
-  orders: "Orders",
-  returns: "Returns",
-  withdraw: "Withdraw",
   system: "System",
+  customers: "Customers",
+  affiliate_users: "Affiliate Users",
+  new_products: "New Products",
+  new_services: "New Services",
+  new_orders: "New Orders",
+  withdraw_request: "Withdraw Request",
 };
 
 const TARGET_ROLE_OPTIONS: { value: TargetRole; label: string }[] = [
   { value: "all", label: "All" },
-  { value: "customer", label: "Customer" },
-  { value: "seller", label: "Seller" },
-  { value: "affiliate", label: "Affiliate" },
+  { value: "customers", label: "Customers" },
+  { value: "affiliate_users", label: "Affiliate Users" },
 ];
 
 const CATEGORY_OPTIONS: { value: NotificationCategory; label: string }[] = [
-  { value: "orders", label: "Orders" },
-  { value: "returns", label: "Returns" },
-  { value: "withdraw", label: "Withdraw" },
   { value: "system", label: "System" },
+  { value: "customers", label: "Customers" },
+  { value: "affiliate_users", label: "Affiliate Users" },
+  { value: "new_products", label: "New Products" },
+  { value: "new_services", label: "New Services" },
+  { value: "new_orders", label: "New Orders" },
+  { value: "withdraw_request", label: "Withdraw Request" },
 ];
 
-type FilterValue = "all" | "unread" | NotificationCategory;
+type FilterValue = "all" | "unread" | "send" | NotificationCategory;
 
 const FILTER_OPTIONS: { value: FilterValue; label: string }[] = [
   { value: "all", label: "All" },
   { value: "unread", label: "Unread" },
-  { value: "orders", label: "Orders" },
-  { value: "returns", label: "Returns" },
-  { value: "withdraw", label: "Withdraw" },
+  { value: "send", label: "Send" },
   { value: "system", label: "System" },
+  { value: "customers", label: "Customers" },
+  { value: "affiliate_users", label: "Affiliate Users" },
+  { value: "new_products", label: "New Products" },
+  { value: "new_services", label: "New Services" },
+  { value: "new_orders", label: "New Orders" },
+  { value: "withdraw_request", label: "Withdraw Request" },
 ];
 
 function formatTimestamp(iso: string): string {

@@ -1,6 +1,13 @@
-export type NotificationCategory = "orders" | "returns" | "withdraw" | "system";
+export type NotificationCategory =
+  | "system"
+  | "customers"
+  | "affiliate_users"
+  | "new_products"
+  | "new_services"
+  | "new_orders"
+  | "withdraw_request";
 
-export type TargetRole = "all" | "customer" | "seller" | "affiliate";
+export type TargetRole = "all" | "customers" | "affiliate_users";
 
 export interface Notification {
   id: string;
@@ -13,6 +20,8 @@ export interface Notification {
   category: NotificationCategory;
   redirectLink?: string;
   targetRole?: TargetRole;
+  /** True when created by admin via "Create Notification" */
+  sentByAdmin?: boolean;
 }
 
 const now = new Date();
@@ -22,35 +31,35 @@ const oneDay = 24 * oneHour;
 export const MOCK_NOTIFICATIONS: Notification[] = [
   {
     id: "notif-1",
-    icon: "withdraw",
+    icon: "withdraw_request",
     title: "New withdrawal request",
     description: "Sarah Johnson requested a withdrawal of ₹3,000.",
     relatedUser: "Sarah Johnson",
     timestamp: new Date(now.getTime() - 2 * oneHour).toISOString(),
     read: false,
-    category: "withdraw",
+    category: "withdraw_request",
     redirectLink: "/withdraw-requests",
   },
   {
     id: "notif-2",
-    icon: "orders",
+    icon: "new_orders",
     title: "Order placed",
     description: "Order #ORD-1042 has been placed by a customer.",
     relatedUser: "Riya Sharma",
     timestamp: new Date(now.getTime() - 5 * oneHour).toISOString(),
     read: false,
-    category: "orders",
+    category: "new_orders",
     redirectLink: "/orders",
   },
   {
     id: "notif-3",
-    icon: "returns",
+    icon: "system",
     title: "Return requested",
     description: "Return request for order #ORD-1038 has been submitted.",
     relatedUser: "Priya Mehta",
     timestamp: new Date(now.getTime() - 1 * oneDay).toISOString(),
     read: true,
-    category: "returns",
+    category: "system",
     redirectLink: "/users",
   },
   {
@@ -65,13 +74,13 @@ export const MOCK_NOTIFICATIONS: Notification[] = [
   },
   {
     id: "notif-5",
-    icon: "withdraw",
+    icon: "withdraw_request",
     title: "Withdrawal approved",
     description: "Withdrawal wd-1 for Emma Williams has been processed.",
     relatedUser: "Emma Williams",
     timestamp: new Date(now.getTime() - 3 * oneDay).toISOString(),
     read: true,
-    category: "withdraw",
+    category: "withdraw_request",
     redirectLink: "/withdraw-requests",
   },
 ];
