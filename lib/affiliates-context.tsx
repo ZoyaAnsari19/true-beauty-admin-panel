@@ -12,6 +12,8 @@ import {
   type Affiliate,
   type AffiliateStatus,
   type CommissionLog,
+  type Withdrawal,
+  type WithdrawalAuditEvent,
   type WithdrawalStatus,
 } from "./affiliates-data";
 
@@ -24,7 +26,8 @@ interface AffiliatesContextValue {
   updateWithdrawalStatus: (
     id: string,
     withdrawalId: string,
-    status: WithdrawalStatus
+    status: WithdrawalStatus,
+    notes?: string
   ) => void;
 }
 
@@ -104,8 +107,22 @@ export function AffiliatesProvider({
     [updateAffiliate]
   );
 
+  const pushAuditEvent = (
+    w: Withdrawal,
+    action: WithdrawalAuditEvent["action"],
+    notes?: string
+  ): Withdrawal => {
+    const event: WithdrawalAuditEvent = {
+      date: new Date().toISOString(),
+      action,
+      notes,
+    };
+    const auditEvents = [...(w.auditEvents ?? []), event];
+    return { ...w, auditEvents };
+  };
+
   const updateWithdrawalStatus = useCallback(
-    (id: string, withdrawalId: string, status: WithdrawalStatus) => {
+    (id: string, withdrawalId: string, status: WithdrawalStatus, notes?: string) => {
       updateAffiliate(id, (prev) => {
         let walletBalance = prev.walletBalance;
         let createdLog: CommissionLog | null = null;
@@ -115,6 +132,8 @@ export function AffiliatesProvider({
           if (w.status === status) return w;
 
           let processedAt = w.processedAt;
+          let paidAt = w.paidAt;
+          let updated: Withdrawal = { ...w };
 
           if (status === "approved" && w.status === "pending") {
             processedAt = new Date().toISOString();
@@ -131,14 +150,21 @@ export function AffiliatesProvider({
               description: `Withdrawal ${w.id} approved`,
               amount: -w.amount,
             };
+
+            updated = pushAuditEvent(updated, "approved", notes);
           } else if (status === "rejected" && w.status === "pending") {
             processedAt = new Date().toISOString();
+            updated = pushAuditEvent(updated, "rejected", notes);
+          } else if (status === "paid" && w.status === "approved") {
+            paidAt = new Date().toISOString();
+            updated = pushAuditEvent(updated, "marked_paid", notes);
           }
 
           return {
-            ...w,
+            ...updated,
             status,
             processedAt,
+            paidAt,
           };
         });
 

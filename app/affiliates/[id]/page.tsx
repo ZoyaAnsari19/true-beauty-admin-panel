@@ -7,6 +7,7 @@ import {
   ArrowLeft,
   BadgeCheck,
   Ban,
+  Banknote,
   CheckCircle2,
   IndianRupee,
   Mail,
@@ -140,10 +141,18 @@ export default function AffiliateDetailPage() {
 
   const handleWithdrawalAction = (
     withdrawalId: string,
-    action: "approve" | "reject"
+    action: "approve" | "reject" | "mark_paid"
   ) => {
     const target = affiliate.withdrawals.find((w) => w.id === withdrawalId);
-    if (!target || target.status !== "pending") return;
+    if (!target) return;
+    if (action === "mark_paid") {
+      if (target.status !== "approved") return;
+      const confirmed = window.confirm("Mark this withdrawal as paid?");
+      if (!confirmed) return;
+      updateWithdrawalStatus(affiliate.id, withdrawalId, "paid");
+      return;
+    }
+    if (target.status !== "pending") return;
 
     const confirmed = window.confirm(
       action === "approve"
@@ -600,7 +609,7 @@ export default function AffiliateDetailPage() {
                             </p>
                           )}
                         </div>
-                        {/* Actions for pending */}
+                        {/* Actions for pending or approved */}
                         {w.status === "pending" ? (
                           <div className="border-t border-gray-100 pt-4 flex gap-2">
                             <button
@@ -622,6 +631,19 @@ export default function AffiliateDetailPage() {
                             >
                               <XCircle className="w-4 h-4" />
                               Reject
+                            </button>
+                          </div>
+                        ) : w.status === "approved" ? (
+                          <div className="border-t border-gray-100 pt-4">
+                            <button
+                              type="button"
+                              onClick={() =>
+                                handleWithdrawalAction(w.id, "mark_paid")
+                              }
+                              className="w-full inline-flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-lg text-sm font-medium text-blue-700 bg-blue-50 hover:bg-blue-100 transition-colors"
+                            >
+                              <Banknote className="w-4 h-4" />
+                              Mark Paid
                             </button>
                           </div>
                         ) : null}
@@ -707,6 +729,17 @@ export default function AffiliateDetailPage() {
                                   Reject
                                 </button>
                               </div>
+                            ) : w.status === "approved" ? (
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  handleWithdrawalAction(w.id, "mark_paid")
+                                }
+                                className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium text-blue-700 bg-blue-50 hover:bg-blue-100 transition-colors"
+                              >
+                                <Banknote className="w-3.5 h-3.5" />
+                                Mark Paid
+                              </button>
                             ) : (
                               <span className="text-xs text-gray-500">
                                 {w.processedAt

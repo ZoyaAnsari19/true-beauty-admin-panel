@@ -30,7 +30,7 @@ const pageTitles: Record<string, string> = {
   "/services": "Services",
   "/orders": "Order Management",
   "/affiliates": "Affiliate Users",
-  "/withdrawals": "Withdraw Request",
+  "/withdraw-requests": "Withdraw Requests",
   "/commission": "Add Commissions",
   "/coupons": "Add Coupons",
   "/theme": "Web Theme",
@@ -60,6 +60,10 @@ export default function RootLayout({
     typeof pathname === "string" &&
     pathname.startsWith("/affiliates/") &&
     pathname !== "/affiliates";
+  const isWithdrawRequestDetail =
+    typeof pathname === "string" &&
+    pathname.startsWith("/withdraw-requests/") &&
+    pathname !== "/withdraw-requests";
   const pageTitle = isUserDetail
     ? "User Details"
     : isProductDetail
@@ -68,7 +72,9 @@ export default function RootLayout({
         ? "Service Details"
         : isAffiliateDetail
           ? "Affiliate Details"
-          : (pageTitles[pathname] || "Dashboard");
+          : isWithdrawRequestDetail
+            ? "Withdrawal Request Details"
+            : (pageTitles[pathname] || "Dashboard");
 
   return (
     <html lang="en">

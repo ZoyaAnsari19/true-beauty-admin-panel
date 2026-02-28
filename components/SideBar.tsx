@@ -32,7 +32,7 @@ const menuItems: MenuItem[] = [
   { label: "Add Service", icon: Scissors, href: "/services" },
   // { label: "Order Management", icon: ShoppingCart, href: "/orders" },
   { label: "Affiliate Users", icon: UserCheck, href: "/affiliates" },
-  { label: "Withdraw Request", icon: Wallet, href: "/withdrawals" },
+  { label: "Withdraw Request", icon: Wallet, href: "/withdraw-requests" },
   { label: "Add Commissions", icon: Gift, href: "/commission" },
   { label: "Add Coupons", icon: Gift, href: "/coupons" },
   { label: "Web Theme", icon: Palette, href: "/theme" },
@@ -106,6 +106,7 @@ export default function SideBar() {
                 (item.href === "/services" && pathname.startsWith("/services")) ||
                 // (item.href === "/orders" && pathname.startsWith("/orders")) ||
                 (item.href === "/affiliates" && pathname.startsWith("/affiliates/")) ||
+                (item.href === "/withdraw-requests" && pathname.startsWith("/withdraw-requests")) ||
                 (item.href === "/coupons" && pathname.startsWith("/coupons"));
               return (
                 <Link
