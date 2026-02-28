@@ -55,10 +55,14 @@ export default function AffiliateDetailPage() {
   const [commissionRateDraft, setCommissionRateDraft] = useState<string>(() =>
     affiliate != null ? String(Number(affiliate.commissionRate)) : "0"
   );
+  const [showRegistrations, setShowRegistrations] = useState(false);
+  const [registrationsPage, setRegistrationsPage] = useState(1);
   useEffect(() => {
     if (affiliate != null) {
       const normalized = String(Number(affiliate.commissionRate));
       setCommissionRateDraft(normalized === "NaN" ? "0" : normalized);
+      setRegistrationsPage(1);
+      setShowRegistrations(false);
     }
   }, [affiliate?.id, affiliate?.commissionRate]);
 
@@ -146,6 +150,23 @@ export default function AffiliateDetailPage() {
     .filter((w) => w.status === "approved")
     .reduce((sum, w) => sum + w.amount, 0);
 
+  const referredUsers = affiliate.referredUsers ?? [];
+  const REGISTRATIONS_PER_PAGE = 5;
+  const totalRegistrationPages =
+    referredUsers.length === 0
+      ? 1
+      : Math.ceil(referredUsers.length / REGISTRATIONS_PER_PAGE);
+  const currentRegistrationPage = Math.min(
+    registrationsPage,
+    totalRegistrationPages
+  );
+  const registrationStartIndex =
+    (currentRegistrationPage - 1) * REGISTRATIONS_PER_PAGE;
+  const currentRegistrations = referredUsers.slice(
+    registrationStartIndex,
+    registrationStartIndex + REGISTRATIONS_PER_PAGE
+  );
+
   return (
     <div className="space-y-6">
       <Link
@@ -155,6 +176,138 @@ export default function AffiliateDetailPage() {
         <ArrowLeft className="w-4 h-4" />
         Back to Affiliates
       </Link>
+
+      <div className="flex gap-4 overflow-x-auto pb-2 -mx-4 px-4 md:mx-0 md:px-0 md:grid md:grid-cols-3 md:gap-6">
+        <button
+          type="button"
+          onClick={() => {
+            setShowRegistrations(true);
+            setRegistrationsPage(1);
+          }}
+          className="min-w-[260px] md:min-w-0 shrink-0 md:shrink text-left"
+        >
+          <KpiCard
+            title="Total Registered"
+            value={affiliate.totalReferrals.toLocaleString()}
+            icon="users"
+            iconClassName="bg-blue-50 text-blue-600"
+            className="w-full cursor-pointer"
+            helperText="Click to view"
+          />
+        </button>
+        <KpiCard
+          title="Total Orders"
+          value={affiliate.totalOrders.toLocaleString()}
+          icon="shopping-cart"
+          iconClassName="bg-amber-50 text-amber-600"
+          className="min-w-[260px] md:min-w-0 shrink-0 md:shrink"
+        />
+        <KpiCard
+          title="Wallet Balance"
+          value={formatCurrency(affiliate.walletBalance)}
+          icon="user-check"
+          iconClassName="bg-emerald-50 text-emerald-700"
+          className="min-w-[260px] md:min-w-0 shrink-0 md:shrink"
+        />
+      </div>
+
+      {showRegistrations && (
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+          <div className="px-6 py-4 border-b border-gray-100 bg-[#fef5f7] flex items-center justify-between gap-3">
+            <div>
+              <h2 className="text-sm font-semibold text-gray-900">
+                Registered Users
+              </h2>
+              <p className="text-xs text-gray-600">
+                Users who registered via this affiliate&apos;s referral.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setShowRegistrations(false)}
+              className="text-xs font-medium text-gray-500 hover:text-gray-800"
+            >
+              Close
+            </button>
+          </div>
+          <div className="p-4 sm:p-6 space-y-4">
+            {currentRegistrations.length === 0 ? (
+              <p className="text-sm text-gray-500">
+                No registered users found for this affiliate.
+              </p>
+            ) : (
+              <>
+                <ul className="space-y-3">
+                  {currentRegistrations.map((user) => (
+                    <li
+                      key={user.id}
+                      className="flex items-center justify-between gap-3 rounded-xl border border-gray-100 bg-[#fef5f7]/60 px-3 py-2"
+                    >
+                      <div className="min-w-0">
+                        <p className="text-sm font-medium text-gray-900 truncate">
+                          {user.name}
+                        </p>
+                        <p className="text-xs text-gray-600 truncate">
+                          {user.email}
+                        </p>
+                      </div>
+                      <div className="shrink-0 text-right">
+                        <p className="text-[11px] text-gray-500">
+                          Registered on{" "}
+                          {new Date(user.registeredAt).toLocaleDateString(
+                            "en-US",
+                            {
+                              year: "numeric",
+                              month: "short",
+                              day: "numeric",
+                            }
+                          )}
+                        </p>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+
+                {referredUsers.length > REGISTRATIONS_PER_PAGE && (
+                  <div className="flex items-center justify-between gap-3 pt-2 border-t border-gray-100 mt-2">
+                    <p className="text-xs text-gray-500">
+                      Page {currentRegistrationPage} of {totalRegistrationPages}
+                    </p>
+                    <div className="inline-flex gap-2">
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setRegistrationsPage((prev) =>
+                            Math.max(1, prev - 1)
+                          )
+                        }
+                        disabled={currentRegistrationPage === 1}
+                        className="px-3 py-1.5 rounded-lg text-xs font-medium border border-gray-200 text-gray-700 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-gray-50"
+                      >
+                        Previous
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setRegistrationsPage((prev) =>
+                            Math.min(totalRegistrationPages, prev + 1)
+                          )
+                        }
+                        disabled={
+                          currentRegistrationPage === totalRegistrationPages
+                        }
+                        className="px-3 py-1.5 rounded-lg text-xs font-medium border border-gray-200 text-gray-700 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-gray-50"
+                      >
+                        Next
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+        </div>
+      )}
 
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
         <div className="px-6 py-4 border-b border-gray-100 bg-[#fef5f7] flex flex-wrap items-center justify-between gap-3">
@@ -220,30 +373,6 @@ export default function AffiliateDetailPage() {
             </span>
           </div>
         </div>
-      </div>
-
-      <div className="flex gap-4 overflow-x-auto pb-2 -mx-4 px-4 md:mx-0 md:px-0 md:grid md:grid-cols-3 md:gap-6">
-        <KpiCard
-          title="Total Referrals"
-          value={affiliate.totalReferrals.toLocaleString()}
-          icon="users"
-          iconClassName="bg-blue-50 text-blue-600"
-          className="min-w-[260px] md:min-w-0 shrink-0 md:shrink"
-        />
-        <KpiCard
-          title="Total Orders"
-          value={affiliate.totalOrders.toLocaleString()}
-          icon="shopping-cart"
-          iconClassName="bg-amber-50 text-amber-600"
-          className="min-w-[260px] md:min-w-0 shrink-0 md:shrink"
-        />
-        <KpiCard
-          title="Wallet Balance"
-          value={formatCurrency(affiliate.walletBalance)}
-          icon="user-check"
-          iconClassName="bg-emerald-50 text-emerald-700"
-          className="min-w-[260px] md:min-w-0 shrink-0 md:shrink"
-        />
       </div>
 
       <div className="space-y-6">

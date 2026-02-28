@@ -23,6 +23,13 @@ export interface Withdrawal {
   notes?: string;
 }
 
+export interface ReferredUser {
+  id: string;
+  name: string;
+  email: string;
+  registeredAt: string;
+}
+
 export interface Affiliate {
   id: string;
   name: string;
@@ -39,6 +46,8 @@ export interface Affiliate {
   lastActiveAt?: string;
   commissionLogs: CommissionLog[];
   withdrawals: Withdrawal[];
+  /** Optional list of users who registered via this affiliate. */
+  referredUsers?: ReferredUser[];
 }
 
 export const MOCK_AFFILIATES: Affiliate[] = [
@@ -99,6 +108,14 @@ export const MOCK_AFFILIATES: Affiliate[] = [
         status: "pending",
       },
     ],
+    referredUsers: Array.from({ length: 42 }, (_, index) => ({
+      id: `sarah-ref-${index + 1}`,
+      name: `Sarah Referral ${index + 1}`,
+      email: `sarah.ref${index + 1}@example.com`,
+      registeredAt: new Date(
+        Date.UTC(2024, 0, 10 + Math.min(index, 25))
+      ).toISOString(),
+    })),
   },
   {
     id: "aff-1002",
@@ -150,6 +167,14 @@ export const MOCK_AFFILIATES: Affiliate[] = [
         notes: "Invalid bank details",
       },
     ],
+    referredUsers: Array.from({ length: 18 }, (_, index) => ({
+      id: `emma-ref-${index + 1}`,
+      name: `Emma Referral ${index + 1}`,
+      email: `emma.ref${index + 1}@example.com`,
+      registeredAt: new Date(
+        Date.UTC(2024, 1, 18 + Math.min(index, 20))
+      ).toISOString(),
+    })),
   },
   {
     id: "aff-1003",
@@ -176,6 +201,14 @@ export const MOCK_AFFILIATES: Affiliate[] = [
       },
     ],
     withdrawals: [],
+    referredUsers: Array.from({ length: 5 }, (_, index) => ({
+      id: `olivia-ref-${index + 1}`,
+      name: `Olivia Referral ${index + 1}`,
+      email: `olivia.ref${index + 1}@example.com`,
+      registeredAt: new Date(
+        Date.UTC(2024, 2, 5 + Math.min(index, 10))
+      ).toISOString(),
+    })),
   },
 ];
 
