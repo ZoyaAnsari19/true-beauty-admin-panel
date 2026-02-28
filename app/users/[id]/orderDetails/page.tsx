@@ -282,21 +282,23 @@ export default function OrderDetailsPage() {
                     Category: {matchedProduct.category}
                   </p>
                 )}
-                <p className="text-base font-medium text-red-600">
-                  {formatCurrency(selectedItem.price)} × {selectedItem.quantity}
+                <p className="text-base font-medium text-red-600 flex items-center justify-between gap-2">
+                  <span>
+                    {formatCurrency(selectedItem.price)} × {selectedItem.quantity}
+                  </span>
+                  <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Total
+                  </span>
                 </p>
-                <div className="flex flex-wrap items-center gap-2 mt-1">
+                <div className="flex flex-wrap items-center justify-between gap-2 mt-1">
                   <span
                     className={`inline-flex px-2.5 py-1 rounded-full text-xs font-medium ${statusBadgeClass}`}
                   >
                     {ORDER_STATUS_LABELS[statusKey] ?? order.orderStatus}
                   </span>
-                </div>
-                <div className="pt-2 border-t border-gray-100">
-                  <p className="text-2xl font-semibold text-gray-900">
+                  <p className="text-xl font-semibold text-gray-900">
                     {formatCurrency(selectedItem.totalAmount)}
                   </p>
-                  <p className="text-xs text-gray-500 mt-0.5">Total</p>
                 </div>
               </div>
             </div>

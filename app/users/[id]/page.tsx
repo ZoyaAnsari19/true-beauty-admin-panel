@@ -190,7 +190,7 @@ function OrderCardsList({
     );
   }
   return (
-    <div className="space-y-4">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
       {items.map((item, index) => {
         const orderId = resolveOrderId(item);
         const affiliate = orderId ? getAffiliateByOrderId(orderId) : undefined;
@@ -240,9 +240,9 @@ function ReturnsTabContent({
           countLabel="Total Refund Requests"
           amountLabel="Total Amount"
         />
-        <div className="space-y-3">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {user.returnsOrders.length === 0 ? (
-            <p className="text-sm text-gray-500 text-center py-6">
+            <p className="text-sm text-gray-500 text-center py-6 col-span-full">
               No refund requests for this user.
             </p>
           ) : (
@@ -285,9 +285,9 @@ function ReturnsTabContent({
           countLabel="Total Exchanges"
           amountLabel="Total Amount"
         />
-        <div className="space-y-3">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {exchangeOrders.length === 0 ? (
-            <p className="text-sm text-gray-500 text-center py-6">
+            <p className="text-sm text-gray-500 text-center py-6 col-span-full">
               No exchange requests for this user.
             </p>
           ) : (
@@ -701,83 +701,32 @@ export default function UserDetailPage() {
           User has not liked any products yet.
         </p>
       ) : (
-        <div className="space-y-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {wishlist.map((item) => (
-            <div
+            <ProductOrderCard
               key={item.id}
-              className="flex flex-col sm:flex-row gap-4 p-4 rounded-2xl border border-[#f8c6d0]/60 bg-white shadow-sm cursor-pointer hover:shadow-md transition-shadow"
+              productImage={item.productImage}
+              productName={item.productName}
+              price={item.price}
+              quantity={1}
+              totalAmount={item.price}
+              orderDate={item.likedAt}
+              orderStatus={
+                item.stockStatus === "in_stock"
+                  ? "In stock"
+                  : item.stockStatus === "low_stock"
+                  ? "Low stock"
+                  : "Out of stock"
+              }
+              formatDate={(d) =>
+                `Liked on ${new Date(d).toLocaleDateString("en-US", {
+                  year: "numeric",
+                  month: "short",
+                  day: "numeric",
+                })}`
+              }
               onClick={() => setSelectedWishlistItem(item)}
-            >
-              <div className="shrink-0 w-full sm:w-24 h-24 rounded-xl bg-[#fef5f7] overflow-hidden flex items-center justify-center">
-                {item.productImage ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={item.productImage}
-                    alt={item.productName}
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center text-gray-400 text-3xl font-light">
-                    —
-                  </div>
-                )}
-              </div>
-              <div className="flex-1 min-w-0 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                <div className="space-y-1">
-                  <h3 className="text-sm font-semibold text-gray-900 truncate">
-                    {item.productName}
-                  </h3>
-                  <p className="text-xs text-gray-500 uppercase tracking-wider">
-                    {item.category}
-                  </p>
-                  <p className="text-sm font-medium text-red-600">
-                    {formatCurrency(item.price)}
-                  </p>
-                  <div className="flex items-center flex-wrap gap-x-4 gap-y-1 mt-1 text-xs text-gray-500">
-                    <span className="text-gray-500">
-                      Liked on{" "}
-                      {new Date(item.likedAt).toLocaleDateString("en-US", {
-                        year: "numeric",
-                        month: "short",
-                        day: "numeric",
-                      })}
-                    </span>
-                    <span
-                      className="inline-flex px-2.5 py-1 rounded-full text-xs font-medium bg-green-50 text-green-700"
-                    >
-                      {item.stockStatus === "in_stock"
-                        ? "In stock"
-                        : item.stockStatus === "low_stock"
-                        ? "Low stock"
-                        : "Out of stock"}
-                    </span>
-                  </div>
-                </div>
-                <div className="shrink-0 sm:text-right">
-                  <p className="text-xs text-gray-500">Total</p>
-                  <p className="text-base font-semibold text-gray-900 mt-0.5">
-                    {formatCurrency(item.price)}
-                  </p>
-                  <div className="mt-2 flex justify-start sm:justify-end">
-                    <span
-                      className={`inline-flex px-2.5 py-1 rounded-full text-xs font-medium ${
-                        item.productStatus === "active"
-                          ? "bg-emerald-50 text-emerald-700"
-                          : item.productStatus === "draft"
-                          ? "bg-gray-100 text-gray-700"
-                          : "bg-red-50 text-red-700"
-                      }`}
-                    >
-                      {item.productStatus === "active"
-                        ? "Active"
-                        : item.productStatus === "draft"
-                        ? "Draft"
-                        : "Inactive"}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </div>
+            />
           ))}
         </div>
       )}

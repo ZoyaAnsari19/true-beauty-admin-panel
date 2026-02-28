@@ -10,6 +10,8 @@ export interface Service {
   durationMinutes: number;
   image?: string | null;
   status: ServiceStatus;
+  /** Booking confirmation timing (optional, defaults to after_24h) */
+  bookingConfirmationMode?: "instant" | "after_24h";
   /** How to use (optional) */
   howToUseType?: "text" | "video";
   howToUseText?: string;
