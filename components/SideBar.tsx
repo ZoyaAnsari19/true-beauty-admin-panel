@@ -35,7 +35,7 @@ const menuItems: MenuItem[] = [
   { label: "Affiliate Users", icon: UserCheck, href: "/affiliates" },
   { label: "Withdraw Request", icon: Wallet, href: "/withdraw-requests" },
   { label: "Notification", icon: Bell, href: "/notifications" },
-  { label: "Add Coupons", icon: Gift, href: "/coupons" },
+  { label: "Add Coupons", icon: Gift, href: "/addCoupons" },
   { label: "Web Theme", icon: Palette, href: "/theme" },
   { label: "Inventory", icon: Boxes, href: "/inventory" },
   { label: "Settings", icon: Settings, href: "/settings" },
@@ -109,7 +109,7 @@ export default function SideBar() {
                 (item.href === "/affiliates" && pathname.startsWith("/affiliates/")) ||
                 (item.href === "/withdraw-requests" && pathname.startsWith("/withdraw-requests")) ||
                 (item.href === "/notifications" && pathname.startsWith("/notifications")) ||
-                (item.href === "/coupons" && pathname.startsWith("/coupons"));
+                (item.href === "/addCoupons" && pathname.startsWith("/addCoupons"));
               return (
                 <Link
                   key={item.href}

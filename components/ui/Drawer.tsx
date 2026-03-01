@@ -8,13 +8,14 @@ interface DrawerProps {
   onClose: () => void;
   title: string;
   children: React.ReactNode;
-  width?: "sm" | "md" | "lg";
+  width?: "sm" | "md" | "lg" | "xl";
 }
 
 const widthClasses = {
   sm: "max-w-md",
   md: "max-w-lg",
   lg: "max-w-xl",
+  xl: "max-w-2xl",
 };
 
 export function Drawer({
