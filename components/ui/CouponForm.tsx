@@ -2,7 +2,6 @@
 
 import React, { useEffect, useMemo, useState } from "react";
 import {
-  APPLICABLE_ROLES,
   generateCouponCode,
   type ApplicableRole,
   type Coupon,
@@ -23,10 +22,14 @@ const DISCOUNT_TYPE_OPTIONS: { value: CouponDiscountType; label: string }[] = [
 ];
 
 const ROLE_OPTIONS: { value: ApplicableRole; label: string }[] = [
-  { value: "all", label: "All users" },
-  { value: "guest", label: "Guest" },
-  { value: "registered", label: "Registered" },
-  { value: "affiliate", label: "Affiliate" },
+  { value: "all", label: "All" },
+  { value: "customers", label: "Customers" },
+  { value: "affiliate", label: "Affiliate users" },
+];
+
+const CATEGORY_OPTIONS = [
+  { value: "", label: "All categories" },
+  ...PRODUCT_CATEGORIES.map((cat) => ({ value: cat, label: cat })),
 ];
 
 const emptyForm: CouponFormValues = {
@@ -157,28 +160,6 @@ export function CouponForm({
       usageLimitPerUser: num(v.usageLimitPerUser),
       applicableProductIds: v.applicableProductIds ?? [],
       applicableCategoryIds: v.applicableCategoryIds ?? [],
-    });
-  };
-
-  const toggleCategory = (cat: string) => {
-    setValues((prev) => {
-      const list = prev.applicableCategoryIds ?? [];
-      const has = list.includes(cat);
-      return {
-        ...prev,
-        applicableCategoryIds: has ? list.filter((c) => c !== cat) : [...list, cat],
-      };
-    });
-  };
-
-  const toggleProduct = (id: string) => {
-    setValues((prev) => {
-      const list = prev.applicableProductIds ?? [];
-      const has = list.includes(id);
-      return {
-        ...prev,
-        applicableProductIds: has ? list.filter((p) => p !== id) : [...list, id],
-      };
     });
   };
 
@@ -401,55 +382,52 @@ export function CouponForm({
 
       {/* Applicable Categories */}
       <div>
-        <span className={labelClass}>Applicable Categories</span>
-        <div className="flex flex-wrap gap-2 mt-1">
-          {PRODUCT_CATEGORIES.map((cat) => {
-            const selected = (values.applicableCategoryIds ?? []).includes(cat);
-            return (
-              <button
-                key={cat}
-                type="button"
-                onClick={() => toggleCategory(cat)}
-                className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-                  selected
-                    ? "bg-[#D96A86] text-white"
-                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                }`}
-              >
-                {cat}
-              </button>
-            );
-          })}
-        </div>
+        <label htmlFor="applicable-categories" className={labelClass}>
+          Applicable Categories
+        </label>
+        <select
+          id="applicable-categories"
+          value={(values.applicableCategoryIds ?? [])[0] ?? ""}
+          onChange={(e) =>
+            setValues((v) => ({
+              ...v,
+              applicableCategoryIds: e.target.value ? [e.target.value] : [],
+            }))
+          }
+          className={`${inputClass} bg-white`}
+        >
+          {CATEGORY_OPTIONS.map((opt) => (
+            <option key={opt.value || "all"} value={opt.value}>
+              {opt.label}
+            </option>
+          ))}
+        </select>
       </div>
 
       {/* Applicable Products */}
-      {productOptions.length > 0 && (
-        <div>
-          <span className={labelClass}>Applicable Products</span>
-          <div className="max-h-32 overflow-y-auto border border-gray-200 rounded-xl p-2 space-y-1">
-            {productOptions.map((prod) => {
-              const selected = (values.applicableProductIds ?? []).includes(
-                prod.id
-              );
-              return (
-                <label
-                  key={prod.id}
-                  className="flex items-center gap-2 cursor-pointer hover:bg-[#fef5f7] p-2 rounded-lg"
-                >
-                  <input
-                    type="checkbox"
-                    checked={selected}
-                    onChange={() => toggleProduct(prod.id)}
-                    className="rounded border-gray-300 text-[#D96A86] focus:ring-[#f8c6d0]"
-                  />
-                  <span className="text-sm text-gray-800">{prod.name}</span>
-                </label>
-              );
-            })}
-          </div>
-        </div>
-      )}
+      <div>
+        <label htmlFor="applicable-products" className={labelClass}>
+          Applicable Products
+        </label>
+        <select
+          id="applicable-products"
+          value={(values.applicableProductIds ?? [])[0] ?? ""}
+          onChange={(e) =>
+            setValues((v) => ({
+              ...v,
+              applicableProductIds: e.target.value ? [e.target.value] : [],
+            }))
+          }
+          className={`${inputClass} bg-white`}
+        >
+          <option value="">All products</option>
+          {productOptions.map((prod) => (
+            <option key={prod.id} value={prod.id}>
+              {prod.name}
+            </option>
+          ))}
+        </select>
+      </div>
 
       {/* Start & Expiry Date */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -511,7 +489,7 @@ export function CouponForm({
       </div>
 
       {/* Actions */}
-      <div className="flex flex-wrap items-center justify-end gap-3 pt-4 border-t border-gray-200">
+      <div className="flex flex-wrap items-center justify-between gap-3 pt-4 border-t border-gray-200">
         <button
           type="button"
           onClick={onCancel}

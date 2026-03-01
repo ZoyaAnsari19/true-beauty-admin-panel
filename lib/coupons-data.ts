@@ -1,7 +1,7 @@
 export type CouponDiscountType = "percentage" | "fixed";
 export type CouponStatus = "active" | "disabled";
 
-export const APPLICABLE_ROLES = ["all", "guest", "registered", "affiliate"] as const;
+export const APPLICABLE_ROLES = ["all", "customers", "affiliate"] as const;
 export type ApplicableRole = (typeof APPLICABLE_ROLES)[number];
 
 export interface Coupon {
@@ -35,7 +35,7 @@ const MOCK_COUPONS: Coupon[] = [
     usageLimitTotal: 1000,
     usageLimitPerUser: 1,
     usedCount: 234,
-    applicableRole: "registered",
+    applicableRole: "customers",
     applicableProductIds: [],
     applicableCategoryIds: [],
     startDate: "2024-01-01T00:00:00Z",

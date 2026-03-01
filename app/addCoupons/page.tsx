@@ -63,6 +63,30 @@ function formatDate(iso: string) {
   }
 }
 
+/** Two-column detail row: label left, value right (Notification drawer style). */
+function DetailRow({
+  label,
+  value,
+  valueBold = false,
+}: {
+  label: string;
+  value: React.ReactNode;
+  valueBold?: boolean;
+}) {
+  return (
+    <div className="flex justify-between items-baseline gap-4 py-3 border-b border-gray-100 last:border-0">
+      <dt className="text-sm text-gray-500 shrink-0">{label}</dt>
+      <dd
+        className={`text-sm text-right text-gray-900 min-w-0 ${
+          valueBold ? "font-semibold" : "font-medium"
+        }`}
+      >
+        {value}
+      </dd>
+    </div>
+  );
+}
+
 function CouponActionsMenu({
   coupon,
   onView,
@@ -173,81 +197,116 @@ function ViewCouponDrawer({
   coupon,
   open,
   onClose,
+  onEdit,
+  productOptions = [],
 }: {
   coupon: Coupon | null;
   open: boolean;
   onClose: () => void;
+  onEdit?: (c: Coupon) => void;
+  productOptions?: { id: string; name: string }[];
 }) {
+  const sectionPadding = "px-5 py-5 sm:px-6 sm:py-6";
+  const cardBg = "rounded-xl bg-gray-50/80 border border-gray-100";
+
+  const applicableRoleLabel =
+    coupon?.applicableRole === "all"
+      ? "All"
+      : coupon?.applicableRole === "customers"
+        ? "Customers"
+        : coupon?.applicableRole === "affiliate"
+          ? "Affiliate users"
+          : coupon?.applicableRole ?? "";
+
+  const applicableCategoryLabel =
+    coupon?.applicableCategoryIds?.length && coupon.applicableCategoryIds[0]
+      ? coupon.applicableCategoryIds[0]
+      : "All categories";
+
+  const applicableProductLabel =
+    coupon?.applicableProductIds?.length && coupon.applicableProductIds[0]
+      ? productOptions.find((p) => p.id === coupon.applicableProductIds[0])?.name ?? coupon.applicableProductIds[0]
+      : "All products";
+
   if (!coupon) return null;
   return (
     <Drawer open={open} onClose={onClose} title="Coupon Details" width="md">
-      <div className="space-y-4 text-sm">
-        <div>
-          <span className="text-gray-500 block mb-0.5">Coupon Code</span>
-          <span className="font-mono font-semibold text-gray-900">{coupon.code}</span>
-        </div>
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <span className="text-gray-500 block mb-0.5">Type</span>
-            <span className="capitalize">{coupon.discountType}</span>
-          </div>
-          <div>
-            <span className="text-gray-500 block mb-0.5">Discount</span>
-            <span>
-              {coupon.discountType === "percentage"
-                ? `${coupon.discountValue}%`
-                : formatCurrency(coupon.discountValue)}
+      <div className="min-h-0 flex flex-col">
+        {/* Header Section */}
+        <div className={`${sectionPadding} pb-5 border-b border-gray-100`}>
+          <div className="flex items-start justify-between gap-4">
+            <h2 className="text-xl font-bold text-gray-900 leading-tight flex-1 min-w-0 font-mono">
+              {coupon.code}
+            </h2>
+            <span
+              className={`shrink-0 inline-flex px-2.5 py-1 rounded-full text-xs font-medium ${
+                STATUS_CLASSES[coupon.status] ?? "bg-gray-100 text-gray-700"
+              }`}
+            >
+              {STATUS_LABELS[coupon.status] ?? coupon.status}
             </span>
           </div>
+          <p className="text-sm text-gray-500 mt-2">
+            Valid {formatDate(coupon.startDate)} – {formatDate(coupon.expiryDate)}
+          </p>
         </div>
-        <div>
-          <span className="text-gray-500 block mb-0.5">Min Order Value</span>
-          <span>{formatCurrency(coupon.minOrderValue)}</span>
+
+        {/* Discount & eligibility */}
+        <div className={`${sectionPadding} py-5 border-t border-gray-100`}>
+          <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-4">
+            Discount & eligibility
+          </h3>
+          <div className={`${cardBg} p-4 sm:p-5`}>
+            <dl className="space-y-0">
+              <DetailRow
+                label="Type"
+                value={<span className="capitalize">{coupon.discountType}</span>}
+              />
+              <DetailRow
+                label="Discount"
+                value={
+                  coupon.discountType === "percentage"
+                    ? `${coupon.discountValue}%`
+                    : formatCurrency(coupon.discountValue)
+                }
+                valueBold
+              />
+              <DetailRow label="Min order value" value={formatCurrency(coupon.minOrderValue)} />
+              {coupon.discountType === "percentage" && coupon.maxDiscountCap != null && (
+                <DetailRow label="Max discount cap" value={formatCurrency(coupon.maxDiscountCap)} />
+              )}
+              <DetailRow
+                label="Usage limit (total)"
+                value={coupon.usageLimitTotal ?? "Unlimited"}
+              />
+              <DetailRow
+                label="Usage limit (per user)"
+                value={coupon.usageLimitPerUser ?? "Unlimited"}
+              />
+              <DetailRow label="Used count" value={coupon.usedCount} />
+              <DetailRow label="Applicable role" value={applicableRoleLabel} />
+              <DetailRow label="Applicable category" value={applicableCategoryLabel} />
+              <DetailRow label="Applicable product" value={applicableProductLabel} />
+            </dl>
+          </div>
         </div>
-        {coupon.discountType === "percentage" && coupon.maxDiscountCap != null && (
-          <div>
-            <span className="text-gray-500 block mb-0.5">Max Discount Cap</span>
-            <span>{formatCurrency(coupon.maxDiscountCap)}</span>
+
+        {/* Action */}
+        {onEdit && (
+          <div className={`${sectionPadding} pt-5 mt-auto border-t border-gray-100`}>
+            <button
+              type="button"
+              onClick={() => {
+                onClose();
+                onEdit(coupon);
+              }}
+              className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium text-white bg-[#D96A86] hover:bg-[#C85A76] transition-colors"
+            >
+              <Pencil className="w-4 h-4" />
+              Edit coupon
+            </button>
           </div>
         )}
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <span className="text-gray-500 block mb-0.5">Usage Limit (Total)</span>
-            <span>{coupon.usageLimitTotal ?? "Unlimited"}</span>
-          </div>
-          <div>
-            <span className="text-gray-500 block mb-0.5">Usage Limit (Per User)</span>
-            <span>{coupon.usageLimitPerUser ?? "Unlimited"}</span>
-          </div>
-        </div>
-        <div>
-          <span className="text-gray-500 block mb-0.5">Used Count</span>
-          <span>{coupon.usedCount}</span>
-        </div>
-        <div>
-          <span className="text-gray-500 block mb-0.5">Applicable Role</span>
-          <span className="capitalize">{coupon.applicableRole}</span>
-        </div>
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <span className="text-gray-500 block mb-0.5">Start Date</span>
-            <span>{formatDate(coupon.startDate)}</span>
-          </div>
-          <div>
-            <span className="text-gray-500 block mb-0.5">Expiry Date</span>
-            <span>{formatDate(coupon.expiryDate)}</span>
-          </div>
-        </div>
-        <div>
-          <span className="text-gray-500 block mb-0.5">Status</span>
-          <span
-            className={`inline-flex px-2.5 py-1 rounded-full text-xs font-medium ${
-              STATUS_CLASSES[coupon.status] ?? "bg-gray-100 text-gray-700"
-            }`}
-          >
-            {STATUS_LABELS[coupon.status] ?? coupon.status}
-          </span>
-        </div>
       </div>
     </Drawer>
   );
@@ -510,6 +569,13 @@ export default function AddCouponsPage() {
           setViewDrawerOpen(false);
           setViewingCoupon(null);
         }}
+        onEdit={(c) => {
+          setViewDrawerOpen(false);
+          setViewingCoupon(null);
+          setEditingCoupon(c);
+          setDrawerOpen(true);
+        }}
+        productOptions={productOptions}
       />
 
       <DeletePopup
