@@ -37,6 +37,7 @@ const pageTitles: Record<string, string> = {
   "/coupons": "Add Coupons",
   "/addCoupons": "Add Coupons",
   "/theme": "Web Theme",
+  "/web-theme": "Web Theme",
   "/inventory": "Inventory",
   "/settings": "Settings",
 };

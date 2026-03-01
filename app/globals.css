@@ -39,3 +39,55 @@ body {
 * {
   border-color: var(--border);
 }
+
+/* Web theme presets (used by /web-theme and storefront) */
+.theme-royal-blue {
+  --theme-primary: #2563EB;
+  --theme-secondary: #EFF6FF;
+  --theme-accent: #1E40AF;
+}
+.theme-emerald-green {
+  --theme-primary: #059669;
+  --theme-secondary: #ECFDF5;
+  --theme-accent: #047857;
+}
+.theme-purple-glow {
+  --theme-primary: #7C3AED;
+  --theme-secondary: #F5F3FF;
+  --theme-accent: #5B21B6;
+}
+.theme-sunset-orange {
+  --theme-primary: #F97316;
+  --theme-secondary: #FFF7ED;
+  --theme-accent: #EA580C;
+}
+.theme-teal-ocean {
+  --theme-primary: #0D9488;
+  --theme-secondary: #F0FDFA;
+  --theme-accent: #0F766E;
+}
+.theme-hot-pink {
+  --theme-primary: #EC4899;
+  --theme-secondary: #FDF2F8;
+  --theme-accent: #DB2777;
+}
+.theme-coffee-brown {
+  --theme-primary: #92400E;
+  --theme-secondary: #FEF3C7;
+  --theme-accent: #78350F;
+}
+.theme-dark-mode-pro {
+  --theme-primary: #0F172A;
+  --theme-secondary: #1E293B;
+  --theme-accent: #38BDF8;
+}
+.theme-mint-fresh {
+  --theme-primary: #22C55E;
+  --theme-secondary: #F0FDF4;
+  --theme-accent: #16A34A;
+}
+.theme-soft-lavender {
+  --theme-primary: #A78BFA;
+  --theme-secondary: #F5F3FF;
+  --theme-accent: #7C3AED;
+}
