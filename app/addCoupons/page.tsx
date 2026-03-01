@@ -366,20 +366,6 @@ export default function AddCouponsPage() {
         ),
       },
       {
-        header: "Usage Limit",
-        accessor: (c: Coupon) => (
-          <span className="text-gray-700">
-            {c.usageLimitTotal ?? "∞"}
-          </span>
-        ),
-      },
-      {
-        header: "Used Count",
-        accessor: (c: Coupon) => (
-          <span className="text-gray-700">{c.usedCount}</span>
-        ),
-      },
-      {
         header: "Expiry Date",
         accessor: (c: Coupon) => (
           <span className="text-gray-700">{formatDate(c.expiryDate)}</span>
