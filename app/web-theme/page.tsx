@@ -486,7 +486,7 @@ export default function WebThemePage() {
                 </div>
               </section>
             </div>
-            <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-gray-100 bg-gray-50/80 shrink-0">
+            <div className="flex items-center justify-between gap-3 px-6 py-4 border-t border-gray-100 bg-gray-50/80 shrink-0">
               <button
                 type="button"
                 onClick={() => setPreviewModalOpen(false)}
