@@ -15,7 +15,7 @@ export default function TopBar({ pageTitle = "Dashboard" }: TopBarProps) {
 
   return (
     <header className="sticky top-0 z-30 bg-[#fef5f7] border-b border-gray-200 shadow-sm">
-      <div className="flex items-center justify-between gap-3 px-4 py-3 md:px-6 md:py-4">
+      <div className="flex items-center justify-between gap-3 h-16 px-4 md:px-6">
         {/* Left: Hamburger (mobile) + Title */}
         <div className="flex min-w-0 flex-1 items-center gap-3">
           <button

@@ -84,8 +84,8 @@ export default function SideBar() {
         `}
       >
         <div className="flex flex-col h-full">
-          {/* Logo and close button */}
-          <div className="flex items-center justify-between p-6 border-b border-gray-200">
+          {/* Logo and close button - height matches TopBar */}
+          <div className="flex items-center justify-between h-16 px-6 border-b border-gray-200">
             <h1 className="text-xl font-semibold text-gray-900">True Beauty</h1>
             <button
               onClick={toggleSidebar}
