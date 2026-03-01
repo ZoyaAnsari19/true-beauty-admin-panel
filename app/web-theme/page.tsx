@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useEffect, useRef } from "react";
 import {
   Image as ImageIcon,
   Palette,
@@ -9,6 +9,8 @@ import {
   Store,
   Save,
   RotateCcw,
+  X,
+  CheckCircle,
   Facebook,
   Instagram,
   Twitter,
@@ -16,6 +18,7 @@ import {
   Youtube,
   type LucideIcon,
 } from "lucide-react";
+import { useTheme, type WebThemeState } from "@/lib/theme-context";
 
 /* Predefined theme CSS variables (for reference and preset application) */
 const THEME_PRESETS = [
@@ -117,6 +120,21 @@ const DEFAULT_THEME = {
   background: "#FFFFFF",
 };
 
+async function blobUrlToDataUrl(blobUrl: string): Promise<string | null> {
+  try {
+    const res = await fetch(blobUrl);
+    const blob = await res.blob();
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+    });
+  } catch {
+    return null;
+  }
+}
+
 export default function WebThemePage() {
   const [brandName, setBrandName] = useState("True Beauty");
   const [footerText, setFooterText] = useState("© 2025 True Beauty. All rights reserved.");
@@ -151,6 +169,36 @@ export default function WebThemePage() {
   const [bannerCta, setBannerCta] = useState("Shop Now");
 
   const [sellerThemeOverride, setSellerThemeOverride] = useState(false);
+  const [previewModalOpen, setPreviewModalOpen] = useState(false);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [confirmLoading, setConfirmLoading] = useState(false);
+
+  const { theme: savedTheme, saveTheme } = useTheme();
+  const hasHydrated = useRef(false);
+  useEffect(() => {
+    if (!savedTheme || hasHydrated.current) return;
+    hasHydrated.current = true;
+    setBrandName(savedTheme.brandName);
+    setFooterText(savedTheme.footerText);
+    setSocialLinks(savedTheme.socialLinks ?? { facebook: "", instagram: "", twitter: "", linkedin: "", youtube: "" });
+    setPrimaryColor(savedTheme.primaryColor);
+    setSecondaryColor(savedTheme.secondaryColor);
+    setAccentColor(savedTheme.accentColor);
+    setButtonColor(savedTheme.buttonColor);
+    setBackgroundColor(savedTheme.backgroundColor);
+    setBannerTitle(savedTheme.bannerTitle);
+    setBannerDescription(savedTheme.bannerDescription);
+    setBannerCta(savedTheme.bannerCta);
+    setHeroBanner(savedTheme.heroBanner);
+    setFeaturedProducts(savedTheme.featuredProducts);
+    setServices(savedTheme.services);
+    setTestimonials(savedTheme.testimonials);
+    setAffiliateSection(savedTheme.affiliateSection);
+    setSellerThemeOverride(savedTheme.sellerThemeOverride);
+    if (savedTheme.logoDataUrl) setLogoPreview(savedTheme.logoDataUrl);
+    if (savedTheme.faviconDataUrl) setFaviconPreview(savedTheme.faviconDataUrl);
+    if (savedTheme.bannerDataUrl) setBannerPreview(savedTheme.bannerDataUrl);
+  }, [savedTheme]);
 
   const handleLogoChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -210,25 +258,60 @@ export default function WebThemePage() {
     setBannerPreview(null);
   };
 
-  const handleSave = () => {
-    // In a real app: persist to API / localStorage
-    console.log("Save theme", {
-      brandName,
-      footerText,
-      primaryColor,
-      secondaryColor,
-      accentColor,
-      buttonColor,
-      backgroundColor,
-      layout: { heroBanner, featuredProducts, services, testimonials, affiliateSection },
-      banner: { bannerTitle, bannerDescription, bannerCta },
-      sellerThemeOverride,
-    });
-    alert("Theme settings saved successfully.");
+  const openPreviewModal = () => setPreviewModalOpen(true);
+
+  const handleConfirmApply = async () => {
+    setConfirmLoading(true);
+    try {
+      const logoDataUrl =
+        logoPreview?.startsWith("blob:") ? await blobUrlToDataUrl(logoPreview) : logoPreview ?? null;
+      const faviconDataUrl =
+        faviconPreview?.startsWith("blob:") ? await blobUrlToDataUrl(faviconPreview) : faviconPreview ?? null;
+      const bannerDataUrl =
+        bannerPreview?.startsWith("blob:") ? await blobUrlToDataUrl(bannerPreview) : bannerPreview ?? null;
+
+      const state: WebThemeState = {
+        brandName,
+        footerText,
+        logoDataUrl,
+        faviconDataUrl,
+        socialLinks: { ...socialLinks },
+        primaryColor,
+        secondaryColor,
+        accentColor,
+        buttonColor,
+        backgroundColor,
+        heroBanner,
+        featuredProducts,
+        services,
+        testimonials,
+        affiliateSection,
+        bannerTitle,
+        bannerDescription,
+        bannerCta,
+        bannerDataUrl,
+        sellerThemeOverride,
+      };
+      await saveTheme(state);
+      setPreviewModalOpen(false);
+      setSuccessMessage("Theme applied successfully.");
+      setTimeout(() => setSuccessMessage(null), 3000);
+    } finally {
+      setConfirmLoading(false);
+    }
   };
 
   return (
     <div className="space-y-8 max-w-6xl">
+      {successMessage && (
+        <div
+          role="alert"
+          className="flex items-center gap-2 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 px-4 py-3 text-sm font-medium"
+        >
+          <CheckCircle className="w-5 h-5 shrink-0" />
+          {successMessage}
+        </div>
+      )}
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-semibold text-gray-900">Web Theme</h1>
         <div className="flex items-center gap-3">
@@ -242,7 +325,7 @@ export default function WebThemePage() {
           </button>
           <button
             type="button"
-            onClick={handleSave}
+            onClick={openPreviewModal}
             className="inline-flex items-center gap-2 px-5 py-2 rounded-xl bg-[#D96A86] text-white text-sm font-medium hover:bg-[#C85A76] transition-colors"
           >
             <Save className="w-4 h-4" />
@@ -250,6 +333,179 @@ export default function WebThemePage() {
           </button>
         </div>
       </div>
+
+      {/* Full-screen preview modal */}
+      {previewModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
+          <div
+            className="bg-white rounded-2xl shadow-xl w-full max-w-3xl max-h-[90vh] overflow-hidden flex flex-col"
+            role="dialog"
+            aria-labelledby="preview-modal-title"
+            aria-modal="true"
+          >
+            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 shrink-0">
+              <h2 id="preview-modal-title" className="text-lg font-semibold text-gray-900">
+                Preview theme
+              </h2>
+              <button
+                type="button"
+                onClick={() => setPreviewModalOpen(false)}
+                className="p-2 rounded-lg text-gray-500 hover:bg-gray-100 hover:text-gray-700 transition-colors"
+                aria-label="Close"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="overflow-y-auto flex-1 px-6 py-5 space-y-6">
+              {/* Branding preview */}
+              <section>
+                <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">
+                  Branding
+                </h3>
+                <div className="flex flex-wrap items-center gap-4">
+                  {logoPreview ? (
+                    <img src={logoPreview} alt="" className="h-12 w-auto object-contain rounded" />
+                  ) : (
+                    <div
+                      className="h-12 w-24 rounded-lg flex items-center justify-center text-white text-sm font-semibold"
+                      style={{ backgroundColor: primaryColor }}
+                    >
+                      {(brandName || "Brand").slice(0, 2).toUpperCase()}
+                    </div>
+                  )}
+                  <div>
+                    <p className="font-semibold text-gray-900">{brandName || "Brand name"}</p>
+                    <p className="text-sm text-gray-600 mt-0.5 line-clamp-2">{footerText || "Footer text"}</p>
+                  </div>
+                </div>
+              </section>
+
+              {/* Social links preview */}
+              <section>
+                <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-2">
+                  Social links
+                </h3>
+                <div className="flex flex-wrap gap-2">
+                  {SOCIAL_ICONS.map(({ key, label, icon: Icon }) => {
+                    const url = socialLinks[key];
+                    if (!url) return null;
+                    return (
+                      <a
+                        key={key}
+                        href={url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-100 text-gray-700 text-sm hover:bg-gray-200"
+                      >
+                        <Icon className="w-4 h-4" />
+                        {label}
+                      </a>
+                    );
+                  })}
+                  {Object.values(socialLinks).every((v) => !v) && (
+                    <span className="text-sm text-gray-400">No social links added</span>
+                  )}
+                </div>
+              </section>
+
+              {/* Live theme preview */}
+              <section>
+                <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">
+                  Live theme preview
+                </h3>
+                <div
+                  className="rounded-xl border border-gray-200 p-5 min-h-[200px] transition-colors"
+                  style={{ backgroundColor }}
+                >
+                  <div className="flex items-center gap-2 mb-4 pb-3 border-b border-gray-200/80">
+                    {logoPreview ? (
+                      <img src={logoPreview} alt="" className="h-8 w-auto object-contain" />
+                    ) : (
+                      <div
+                        className="h-8 w-20 rounded flex items-center justify-center text-white text-xs font-semibold"
+                        style={{ backgroundColor: primaryColor }}
+                      >
+                        {(brandName || "TB").slice(0, 2).toUpperCase()}
+                      </div>
+                    )}
+                    <span className="text-sm font-semibold" style={{ color: primaryColor }}>
+                      {brandName || "Header"}
+                    </span>
+                  </div>
+                  <div
+                    className="rounded-lg p-4 mb-4"
+                    style={{ backgroundColor: secondaryColor, borderLeft: `4px solid ${accentColor}` }}
+                  >
+                    <p className="text-sm font-medium mb-1" style={{ color: accentColor }}>
+                      {bannerTitle || "Card title"}
+                    </p>
+                    <p className="text-xs opacity-90" style={{ color: accentColor }}>
+                      {bannerDescription || "Card description."}
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    className="px-4 py-2 rounded-lg text-white text-sm font-medium"
+                    style={{ backgroundColor: buttonColor }}
+                  >
+                    {bannerCta || "Button"}
+                  </button>
+                </div>
+              </section>
+
+              {/* Selected colors */}
+              <section>
+                <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">
+                  Selected colors
+                </h3>
+                <div className="flex flex-wrap gap-4">
+                  <div className="flex items-center gap-2">
+                    <div
+                      className="w-10 h-10 rounded-lg border border-gray-200 shrink-0"
+                      style={{ backgroundColor: primaryColor }}
+                    />
+                    <span className="text-sm text-gray-600">Primary</span>
+                    <span className="text-xs font-mono text-gray-400">{primaryColor}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div
+                      className="w-10 h-10 rounded-lg border border-gray-200 shrink-0"
+                      style={{ backgroundColor: secondaryColor }}
+                    />
+                    <span className="text-sm text-gray-600">Secondary</span>
+                    <span className="text-xs font-mono text-gray-400">{secondaryColor}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div
+                      className="w-10 h-10 rounded-lg border border-gray-200 shrink-0"
+                      style={{ backgroundColor: accentColor }}
+                    />
+                    <span className="text-sm text-gray-600">Accent</span>
+                    <span className="text-xs font-mono text-gray-400">{accentColor}</span>
+                  </div>
+                </div>
+              </section>
+            </div>
+            <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-gray-100 bg-gray-50/80 shrink-0">
+              <button
+                type="button"
+                onClick={() => setPreviewModalOpen(false)}
+                className="px-4 py-2.5 rounded-xl border border-gray-200 bg-white text-gray-700 text-sm font-medium hover:bg-gray-50 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmApply}
+                disabled={confirmLoading}
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#D96A86] text-white text-sm font-medium hover:bg-[#C85A76] transition-colors disabled:opacity-60 disabled:pointer-events-none"
+              >
+                {confirmLoading ? "Applying…" : "Confirm & Apply Theme"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
         {/* Left column: forms */}
