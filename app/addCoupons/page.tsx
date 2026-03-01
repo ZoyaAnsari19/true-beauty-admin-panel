@@ -556,7 +556,7 @@ export default function AddCouponsPage() {
         open={drawerOpen}
         onClose={handleFormCancel}
         title={editingCoupon ? "Edit Coupon" : "Create Coupon"}
-        width="xl"
+        width="lg"
       >
         <CouponForm
           initialValues={editingCoupon}
