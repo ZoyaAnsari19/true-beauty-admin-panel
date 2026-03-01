@@ -12,12 +12,26 @@ import {
 } from "lucide-react";
 import { useCoupons } from "@/lib/coupons-context";
 import { useProducts } from "@/lib/products-context";
-import type { Coupon } from "@/lib/coupons-data";
+import type { Coupon, CouponDiscountType, CouponStatus } from "@/lib/coupons-data";
 import type { CouponFormValues } from "@/lib/coupons-context";
 import { Drawer } from "@/components/ui/Drawer";
 import { CouponForm } from "@/components/ui/CouponForm";
 import Table from "@/components/Table";
+import { Filters, type FilterOption } from "@/components/ui/filters";
+import { KpiCard } from "@/components/ui/kpiCard";
 import DeletePopup from "@/components/ui/deletePopup";
+
+const STATUS_FILTER_OPTIONS: FilterOption[] = [
+  { value: "", label: "All statuses" },
+  { value: "active", label: "Active" },
+  { value: "disabled", label: "Disabled" },
+];
+
+const TYPE_FILTER_OPTIONS: FilterOption[] = [
+  { value: "", label: "All types" },
+  { value: "percentage", label: "Percentage" },
+  { value: "fixed", label: "Fixed" },
+];
 
 const STATUS_LABELS: Record<string, string> = {
   active: "Active",
@@ -248,11 +262,40 @@ export default function AddCouponsPage() {
   const [editingCoupon, setEditingCoupon] = useState<Coupon | null>(null);
   const [viewingCoupon, setViewingCoupon] = useState<Coupon | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Coupon | null>(null);
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState<"" | CouponStatus>("");
+  const [typeFilter, setTypeFilter] = useState<"" | CouponDiscountType>("");
 
   const productOptions = useMemo(
     () => products.filter((p) => !p.deletedAt).map((p) => ({ id: p.id, name: p.name })),
     [products]
   );
+
+  const kpis = useMemo(() => {
+    const now = Date.now();
+    const total = coupons.length;
+    const active = coupons.filter((c) => c.status === "active").length;
+    const disabled = coupons.filter((c) => c.status === "disabled").length;
+    const expired = coupons.filter(
+      (c) => new Date(c.expiryDate).getTime() < now
+    ).length;
+    return { total, active, disabled, expired };
+  }, [coupons]);
+
+  const filteredCoupons = useMemo(() => {
+    let list = [...coupons];
+    const q = search.trim().toLowerCase();
+    if (q) {
+      list = list.filter((c) => c.code.toLowerCase().includes(q));
+    }
+    if (statusFilter) {
+      list = list.filter((c) => c.status === statusFilter);
+    }
+    if (typeFilter) {
+      list = list.filter((c) => c.discountType === typeFilter);
+    }
+    return list;
+  }, [coupons, search, statusFilter, typeFilter]);
 
   const handleCreate = () => {
     setEditingCoupon(null);
@@ -389,15 +432,76 @@ export default function AddCouponsPage() {
         </button>
       </div>
 
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-        <Table<Coupon>
-          data={coupons}
-          columns={columns}
-          searchable={true}
-          filterable={false}
-          itemsPerPage={10}
+      {/* KPI Cards */}
+      <div className="flex gap-4 overflow-x-auto pb-2 -mx-4 px-4 md:mx-0 md:px-0 md:grid md:grid-cols-2 lg:grid-cols-4 md:gap-6">
+        <KpiCard
+          title="Total Coupons"
+          value={kpis.total.toLocaleString()}
+          icon="shopping-cart"
+          iconClassName="bg-blue-50 text-blue-600"
+          className="min-w-[260px] md:min-w-0 shrink-0 md:shrink"
+        />
+        <KpiCard
+          title="Total Active"
+          value={kpis.active.toLocaleString()}
+          icon="user-check"
+          iconClassName="bg-emerald-50 text-emerald-600"
+          className="min-w-[260px] md:min-w-0 shrink-0 md:shrink"
+        />
+        <KpiCard
+          title="Total Disabled"
+          value={kpis.disabled.toLocaleString()}
+          icon="user-x"
+          iconClassName="bg-gray-100 text-gray-600"
+          className="min-w-[260px] md:min-w-0 shrink-0 md:shrink"
+        />
+        <KpiCard
+          title="Total Expired"
+          value={kpis.expired.toLocaleString()}
+          icon="trending-up"
+          iconClassName="bg-red-50 text-red-600"
+          className="min-w-[260px] md:min-w-0 shrink-0 md:shrink"
         />
       </div>
+
+      <Filters
+        search={search}
+        onSearchChange={setSearch}
+        searchPlaceholder="Search by coupon code..."
+        searchPlaceholderMobile="Search..."
+        filterOptions={STATUS_FILTER_OPTIONS}
+        filterValue={statusFilter}
+        onFilterChange={(value) => setStatusFilter(value as "" | CouponStatus)}
+        categoryOptions={TYPE_FILTER_OPTIONS}
+        categoryValue={typeFilter}
+        onCategoryChange={(value) => setTypeFilter(value as "" | CouponDiscountType)}
+      />
+
+      {filteredCoupons.length === 0 ? (
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-8 sm:p-12 text-center">
+          <p className="text-gray-500 mb-4 text-sm sm:text-base">
+            No coupons match your filters.
+          </p>
+          <button
+            type="button"
+            onClick={handleCreate}
+            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl font-medium text-white bg-[#D96A86] hover:bg-[#C85A76] transition-colors text-sm sm:text-base"
+          >
+            <Plus className="w-4 h-4 sm:w-5 sm:h-5" />
+            Create Coupon
+          </button>
+        </div>
+      ) : (
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+          <Table<Coupon>
+            data={filteredCoupons}
+            columns={columns}
+            searchable={false}
+            filterable={false}
+            itemsPerPage={10}
+          />
+        </div>
+      )}
 
       <Drawer
         open={drawerOpen}
