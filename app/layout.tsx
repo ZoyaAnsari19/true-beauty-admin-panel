@@ -13,6 +13,7 @@ import { ServicesProvider } from "@/lib/services-context";
 import { OrdersProvider } from "@/lib/orders-context";
 import { AffiliatesProvider } from "@/lib/affiliates-context";
 import { NotificationsProvider } from "@/lib/notifications-context";
+import { CouponsProvider } from "@/lib/coupons-context";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -34,6 +35,7 @@ const pageTitles: Record<string, string> = {
   "/withdraw-requests": "Withdraw Requests",
   "/notifications": "Notifications",
   "/coupons": "Add Coupons",
+  "/addCoupons": "Add Coupons",
   "/theme": "Web Theme",
   "/inventory": "Inventory",
   "/settings": "Settings",
@@ -92,6 +94,7 @@ export default function RootLayout({
         <OrdersProvider>
         <AffiliatesProvider>
         <NotificationsProvider>
+        <CouponsProvider>
         <SidebarProvider>
         <div className="flex h-screen bg-[#fef5f7]">
           <SideBar />
@@ -103,6 +106,7 @@ export default function RootLayout({
           </div>
         </div>
         </SidebarProvider>
+        </CouponsProvider>
         </NotificationsProvider>
         </AffiliatesProvider>
         </OrdersProvider>

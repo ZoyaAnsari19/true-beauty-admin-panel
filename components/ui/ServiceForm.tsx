@@ -700,17 +700,17 @@ export function ServiceForm({
 
       <div className="flex gap-3 pt-2">
         <button
+          type="button"
+          onClick={onCancel}
+          className="flex-1 px-4 py-2.5 rounded-xl font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 transition-colors"
+        >
+          Cancel
+        </button>
+        <button
           type="submit"
           className="flex-1 px-4 py-2.5 rounded-xl font-medium text-white bg-[#D96A86] hover:bg-[#C85A76] transition-colors"
         >
           {initialValues ? "Update Service" : "Add Service"}
-        </button>
-        <button
-          type="button"
-          onClick={onCancel}
-          className="px-4 py-2.5 rounded-xl font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 transition-colors"
-        >
-          Cancel
         </button>
       </div>
     </form>

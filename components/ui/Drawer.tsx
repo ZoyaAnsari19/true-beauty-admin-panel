@@ -8,13 +8,14 @@ interface DrawerProps {
   onClose: () => void;
   title: string;
   children: React.ReactNode;
-  width?: "sm" | "md" | "lg";
+  width?: "sm" | "md" | "lg" | "xl";
 }
 
 const widthClasses = {
   sm: "max-w-md",
   md: "max-w-lg",
   lg: "max-w-xl",
+  xl: "max-w-2xl",
 };
 
 export function Drawer({
@@ -50,7 +51,7 @@ export function Drawer({
         aria-labelledby="drawer-title"
         className={`fixed right-0 top-0 h-full w-full ${widthClasses[width]} bg-white shadow-xl z-50 flex flex-col transform transition-transform duration-300 ease-out`}
       >
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 bg-[#fef5f7]">
+        <div className="flex items-center justify-between h-16 px-6 border-b border-gray-200 bg-[#fef5f7]">
           <h2 id="drawer-title" className="text-lg font-semibold text-gray-900">
             {title}
           </h2>
