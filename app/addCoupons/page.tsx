@@ -544,6 +544,10 @@ export default function AddCouponsPage() {
             searchable={false}
             filterable={false}
             itemsPerPage={10}
+            onRowClick={(coupon) => {
+              setViewingCoupon(coupon);
+              setViewDrawerOpen(true);
+            }}
           />
         </div>
       )}
