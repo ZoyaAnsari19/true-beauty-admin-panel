@@ -27,6 +27,7 @@ interface NotificationsContextValue {
     targetRole: TargetRole;
     redirectLink?: string;
     category: NotificationCategory;
+    timestamp?: string;
   }) => void;
   filterNotifications: (filter: FilterValue) => Notification[];
 }
@@ -61,6 +62,7 @@ export function NotificationsProvider({
       targetRole: TargetRole;
       redirectLink?: string;
       category: NotificationCategory;
+      timestamp?: string;
     }) => {
       const iconMap: Record<NotificationCategory, NotificationCategory> = {
         system: "system",
@@ -77,7 +79,7 @@ export function NotificationsProvider({
         title: payload.title,
         description: payload.description,
         relatedUser: "Admin",
-        timestamp: new Date().toISOString(),
+        timestamp: payload.timestamp ?? new Date().toISOString(),
         read: false,
         category: payload.category,
         redirectLink: payload.redirectLink,

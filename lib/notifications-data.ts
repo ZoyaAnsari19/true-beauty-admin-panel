@@ -7,7 +7,10 @@ export type NotificationCategory =
   | "new_orders"
   | "withdraw_request";
 
-export type TargetRole = "all" | "customers" | "affiliate_users";
+export type TargetRole =
+  | "all"
+  | "customers"
+  | "affiliate_users";
 
 /** Type-specific payload for drawer details */
 export interface NotificationPayload {

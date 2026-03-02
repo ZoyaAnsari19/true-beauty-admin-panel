@@ -17,11 +17,16 @@ import {
   CheckCircle2,
   XCircle,
   RotateCcw,
+  Plus,
   type LucideIcon,
 } from "lucide-react";
 import { Drawer } from "@/components/ui/Drawer";
 import { useNotifications } from "@/lib/notifications-context";
-import type { Notification, NotificationCategory } from "@/lib/notifications-data";
+import type {
+  Notification,
+  NotificationCategory,
+  TargetRole,
+} from "@/lib/notifications-data";
 
 const CATEGORY_ICONS: Record<NotificationCategory, LucideIcon> = {
   system: Settings,
@@ -52,6 +57,52 @@ const FILTER_OPTIONS: { value: FilterValue; label: string }[] = [
   { value: "new_orders", label: "New Orders" },
   { value: "withdraw_request", label: "Withdraw Request" },
 ];
+
+const CREATE_CATEGORIES = [
+  { value: "orders", label: "Orders" },
+  { value: "returns", label: "Returns" },
+  { value: "refunds", label: "Refunds" },
+  { value: "withdrawals", label: "Withdrawals" },
+  { value: "promotions", label: "Promotions" },
+  { value: "system_updates", label: "System Updates" },
+  { value: "account_alerts", label: "Account Alerts" },
+  { value: "kyc_verification", label: "KYC / Verification" },
+  { value: "wallet", label: "Wallet" },
+  { value: "commission", label: "Commission" },
+] as const;
+
+type CreateCategory = (typeof CREATE_CATEGORIES)[number]["value"];
+
+const CREATE_CATEGORY_TO_NOTIFICATION: Record<CreateCategory, NotificationCategory> = {
+  orders: "new_orders",
+  returns: "system",
+  refunds: "system",
+  withdrawals: "withdraw_request",
+  promotions: "system",
+  system_updates: "system",
+  account_alerts: "system",
+  kyc_verification: "system",
+  wallet: "withdraw_request",
+  commission: "affiliate_users",
+};
+
+const SEND_TO_OPTIONS = [
+  { value: "all_users", label: "All users" },
+  { value: "paid_users", label: "Paid users" },
+  { value: "unpaid_users", label: "Unpaid users" },
+  { value: "all_affiliates", label: "All affiliates" },
+  { value: "non_affiliates", label: "Non-affiliates" },
+] as const;
+
+type SendToOption = (typeof SEND_TO_OPTIONS)[number]["value"];
+
+const SEND_TO_TO_TARGET_ROLE: Record<SendToOption, TargetRole> = {
+  all_users: "all",
+  paid_users: "customers",
+  unpaid_users: "customers",
+  all_affiliates: "affiliate_users",
+  non_affiliates: "customers",
+};
 
 function formatTimestamp(iso: string): string {
   const date = new Date(iso);
@@ -436,10 +487,36 @@ export default function NotificationsPage() {
     markAsRead,
     markAllAsRead,
     filterNotifications,
+    createNotification,
   } = useNotifications();
 
   const [filter, setFilter] = useState<FilterValue>("all");
   const [selectedNotification, setSelectedNotification] = useState<Notification | null>(null);
+  const [createOpen, setCreateOpen] = useState(false);
+  const [createSubmitting, setCreateSubmitting] = useState(false);
+  const [createError, setCreateError] = useState<string | null>(null);
+
+  const [createForm, setCreateForm] = useState<{
+    title: string;
+    description: string;
+    image: string;
+    link: string;
+    category: CreateCategory | "";
+    sendTo: SendToOption;
+    scheduleType: "now" | "later";
+    scheduleDate: string;
+    scheduleTime: string;
+  }>({
+    title: "",
+    description: "",
+    image: "",
+    link: "",
+    category: "",
+    sendTo: "all_users",
+    scheduleType: "now",
+    scheduleDate: "",
+    scheduleTime: "",
+  });
 
   const filtered = useMemo(
     () => filterNotifications(filter),
@@ -461,11 +538,79 @@ export default function NotificationsPage() {
     setSelectedNotification({ ...n, read: true });
   };
 
+  const resetCreateForm = () => {
+    setCreateForm({
+      title: "",
+      description: "",
+      image: "",
+      link: "",
+      category: "",
+      sendTo: "all_users",
+      scheduleType: "now",
+      scheduleDate: "",
+      scheduleTime: "",
+    });
+    setCreateError(null);
+  };
+
+  const handleCreateSubmit: React.FormEventHandler<HTMLFormElement> = (e) => {
+    e.preventDefault();
+    if (!createForm.title.trim() || !createForm.description.trim()) {
+      setCreateError("Title and description are required.");
+      return;
+    }
+    if (!createForm.category) {
+      setCreateError("Please select a category.");
+      return;
+    }
+
+    let scheduledTimestamp: string | undefined;
+    if (createForm.scheduleType === "later") {
+      if (!createForm.scheduleDate || !createForm.scheduleTime) {
+        setCreateError("Please select schedule date and time.");
+        return;
+      }
+      const dt = new Date(`${createForm.scheduleDate}T${createForm.scheduleTime}:00`);
+      if (Number.isNaN(dt.getTime())) {
+        setCreateError("Invalid schedule date or time.");
+        return;
+      }
+      scheduledTimestamp = dt.toISOString();
+    }
+
+    setCreateSubmitting(true);
+    try {
+      createNotification({
+        title: createForm.title.trim(),
+        description: createForm.description.trim(),
+        targetRole: SEND_TO_TO_TARGET_ROLE[createForm.sendTo],
+        redirectLink: createForm.link.trim() || undefined,
+        category: CREATE_CATEGORY_TO_NOTIFICATION[createForm.category],
+        timestamp: scheduledTimestamp,
+      });
+      setCreateOpen(false);
+      resetCreateForm();
+    } finally {
+      setCreateSubmitting(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <h1 className="text-xl font-semibold text-gray-900">All Notifications</h1>
         <div className="flex flex-wrap items-center gap-3">
+          <button
+            type="button"
+            onClick={() => {
+              resetCreateForm();
+              setCreateOpen(true);
+            }}
+            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium text-white bg-[#D96A86] hover:bg-[#C85A76] transition-colors"
+          >
+            <Plus className="w-4 h-4" />
+            Add Notification
+          </button>
           <button
             type="button"
             onClick={markAllAsRead}
@@ -527,6 +672,217 @@ export default function NotificationsPage() {
             onNavigate={(path) => router.push(path)}
           />
         )}
+      </Drawer>
+
+      {/* Create notification drawer */}
+      <Drawer
+        open={createOpen}
+        onClose={() => {
+          setCreateOpen(false);
+        }}
+        title="Add Notification"
+        width="xl"
+      >
+        <form onSubmit={handleCreateSubmit} className="space-y-6">
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                Title
+              </label>
+              <input
+                type="text"
+                value={createForm.title}
+                onChange={(e) =>
+                  setCreateForm((prev) => ({ ...prev, title: e.target.value }))
+                }
+                placeholder="Enter notification title"
+                className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#D96A86] focus:border-transparent"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                Description
+              </label>
+              <textarea
+                value={createForm.description}
+                onChange={(e) =>
+                  setCreateForm((prev) => ({ ...prev, description: e.target.value }))
+                }
+                placeholder="Write a short message for users"
+                rows={4}
+                className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#D96A86] focus:border-transparent resize-none"
+              />
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                  Add image
+                </label>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) =>
+                    setCreateForm((prev) => ({
+                      ...prev,
+                      image: e.target.files?.[0]?.name ?? "",
+                    }))
+                  }
+                  className="block w-full text-sm text-gray-500 file:mr-3 file:py-2.5 file:px-3 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-[#fef5f7] file:text-[#D96A86] hover:file:bg-[#f8c6d0]"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                  Add link
+                </label>
+                <input
+                  type="text"
+                  value={createForm.link}
+                  onChange={(e) =>
+                    setCreateForm((prev) => ({ ...prev, link: e.target.value }))
+                  }
+                  placeholder="https:// or internal path (optional)"
+                  className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#D96A86] focus:border-transparent"
+                />
+              </div>
+            </div>
+          </div>
+
+          <div className="space-y-3">
+            <p className="text-sm font-medium text-gray-700">
+              Category <span className="text-red-500">*</span>
+            </p>
+            <select
+              value={createForm.category}
+              onChange={(e) =>
+                setCreateForm((prev) => ({
+                  ...prev,
+                  category: e.target.value as CreateCategory,
+                }))
+              }
+              className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#D96A86] focus:border-transparent"
+            >
+              <option value="">Select category</option>
+              {CREATE_CATEGORIES.map((cat) => (
+                <option key={cat.value} value={cat.value}>
+                  {cat.label}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="space-y-3">
+            <p className="text-sm font-medium text-gray-700">
+              Send to <span className="text-red-500">*</span>
+            </p>
+            <select
+              value={createForm.sendTo}
+              onChange={(e) =>
+                setCreateForm((prev) => ({
+                  ...prev,
+                  sendTo: e.target.value as SendToOption,
+                }))
+              }
+              className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#D96A86] focus:border-transparent"
+            >
+              {SEND_TO_OPTIONS.map((opt) => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="space-y-3">
+            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+              Schedule
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {(["now", "later"] as const).map((mode) => {
+                const active = createForm.scheduleType === mode;
+                return (
+                  <button
+                    key={mode}
+                    type="button"
+                    onClick={() =>
+                      setCreateForm((prev) => ({ ...prev, scheduleType: mode }))
+                    }
+                    className={`px-3 py-1.5 rounded-xl text-xs font-medium border transition-colors ${
+                      active
+                        ? "border-[#D96A86] bg-[#fef5f7] text-[#D96A86]"
+                        : "border-gray-200 bg-white text-gray-700 hover:bg-[#fef5f7]"
+                    }`}
+                  >
+                    {mode === "now" ? "Send now" : "Schedule for later"}
+                  </button>
+                );
+              })}
+            </div>
+            {createForm.scheduleType === "later" && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-medium text-gray-600 mb-1.5">
+                    Date
+                  </label>
+                  <input
+                    type="date"
+                    value={createForm.scheduleDate}
+                    onChange={(e) =>
+                      setCreateForm((prev) => ({
+                        ...prev,
+                        scheduleDate: e.target.value,
+                      }))
+                    }
+                    className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#D96A86] focus:border-transparent"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-600 mb-1.5">
+                    Time
+                  </label>
+                  <input
+                    type="time"
+                    value={createForm.scheduleTime}
+                    onChange={(e) =>
+                      setCreateForm((prev) => ({
+                        ...prev,
+                        scheduleTime: e.target.value,
+                      }))
+                    }
+                    className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#D96A86] focus:border-transparent"
+                  />
+                </div>
+              </div>
+            )}
+          </div>
+
+          {createError && (
+            <p className="text-xs text-red-600 bg-red-50 border border-red-100 rounded-lg px-3 py-2">
+              {createError}
+            </p>
+          )}
+
+          <div className="flex items-center justify-end gap-3 pt-2 border-t border-gray-100">
+            <button
+              type="button"
+              onClick={() => {
+                setCreateOpen(false);
+              }}
+              className="px-4 py-2.5 rounded-xl text-sm font-medium text-gray-700 bg-white border border-gray-200 hover:bg-gray-50"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={createSubmitting}
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium text-white bg-[#D96A86] hover:bg-[#C85A76] disabled:opacity-60 disabled:cursor-not-allowed"
+            >
+              <Bell className="w-4 h-4" />
+              {createSubmitting ? "Sending..." : "Send notification"}
+            </button>
+          </div>
+        </form>
       </Drawer>
 
     </div>
