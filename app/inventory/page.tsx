@@ -10,38 +10,29 @@ import {
   Plus,
   Minus,
   Boxes,
+  Trash2,
 } from "lucide-react";
 import { useProducts } from "@/lib/products-context";
 import { PRODUCT_CATEGORIES, DEFAULT_STOCK_THRESHOLD } from "@/lib/products-data";
-import type { Product, ProductStockStatus } from "@/lib/products-data";
+import type { Product } from "@/lib/products-data";
 import { Drawer } from "@/components/ui/Drawer";
 import { Filters, type FilterOption } from "@/components/ui/filters";
 import { KpiCard } from "@/components/ui/kpiCard";
 import Table from "@/components/Table";
 
-const STOCK_LABELS: Record<ProductStockStatus, string> = {
-  in_stock: "In Stock",
-  low_stock: "Low Stock",
-  out_of_stock: "Out of Stock",
-};
-
-const STOCK_CLASSES: Record<ProductStockStatus, string> = {
-  in_stock: "bg-green-100 text-green-800",
-  low_stock: "bg-amber-100 text-amber-800",
-  out_of_stock: "bg-red-100 text-red-800",
-};
-
-const STOCK_FILTER_OPTIONS: FilterOption[] = [
-  { value: "", label: "All statuses" },
-  { value: "in_stock", label: STOCK_LABELS.in_stock },
-  { value: "low_stock", label: STOCK_LABELS.low_stock },
-  { value: "out_of_stock", label: STOCK_LABELS.out_of_stock },
-];
-
 const CATEGORY_OPTIONS: FilterOption[] = [
   { value: "", label: "All categories" },
   ...PRODUCT_CATEGORIES.map((c) => ({ value: c, label: c })),
 ];
+
+const STOCK_ADJUST_REASONS = [
+  "Restock",
+  "Sale / Order",
+  "Inventory correction",
+  "Damage / Write-off",
+  "Return",
+  "Other",
+] as const;
 
 export interface StockHistoryEntry {
   id: string;
@@ -52,6 +43,8 @@ export interface StockHistoryEntry {
   quantity: number;
   previousStock: number;
   newStock: number;
+  reason: (typeof STOCK_ADJUST_REASONS)[number];
+  note?: string | null;
 }
 
 function formatDate(iso: string) {
@@ -65,10 +58,12 @@ function InventoryActionMenu({
   product,
   onUpdateStock,
   onViewHistory,
+  onDelete,
 }: {
   product: Product;
   onUpdateStock: (p: Product) => void;
   onViewHistory: (p: Product) => void;
+  onDelete: (p: Product) => void;
 }) {
   const [open, setOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -121,23 +116,23 @@ function InventoryActionMenu({
             type="button"
             onClick={() => {
               setOpen(false);
-              onUpdateStock(product);
-            }}
-            className="flex w-full items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-[#fef5f7] transition-colors text-left"
-          >
-            <Plus className="w-4 h-4 shrink-0" />
-            Adjust Stock
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              setOpen(false);
               onViewHistory(product);
             }}
             className="flex w-full items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-[#fef5f7] transition-colors text-left"
           >
             <History className="w-4 h-4 shrink-0" />
             View Stock History
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setOpen(false);
+              onDelete(product);
+            }}
+            className="flex w-full items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors text-left"
+          >
+            <Trash2 className="w-4 h-4 shrink-0" />
+            Delete
           </button>
         </div>
       )}
@@ -146,10 +141,9 @@ function InventoryActionMenu({
 }
 
 export default function InventoryPage() {
-  const { products, updateProduct } = useProducts();
+  const { products, updateProduct, softDeleteProduct } = useProducts();
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("");
-  const [statusFilter, setStatusFilter] = useState<"" | ProductStockStatus>("");
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [historyDrawerOpen, setHistoryDrawerOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
@@ -175,9 +169,8 @@ export default function InventoryPage() {
       );
     }
     if (categoryFilter) list = list.filter((p) => p.category === categoryFilter);
-    if (statusFilter) list = list.filter((p) => p.stockStatus === statusFilter);
     return list;
-  }, [products, search, categoryFilter, statusFilter]);
+  }, [products, search, categoryFilter]);
 
   const openUpdateDrawer = (product: Product) => {
     setSelectedProduct(product);
@@ -187,6 +180,16 @@ export default function InventoryPage() {
   const openHistoryDrawer = (product: Product) => {
     setSelectedProduct(product);
     setHistoryDrawerOpen(true);
+  };
+
+  const handleDeleteProduct = (product: Product) => {
+    if (typeof window !== "undefined") {
+      const confirmed = window.confirm(
+        `Delete product "${product.name}" from inventory?`
+      );
+      if (!confirmed) return;
+    }
+    softDeleteProduct(product.id);
   };
 
   const productHistory = useMemo(() => {
@@ -247,6 +250,7 @@ export default function InventoryPage() {
               product={row}
               onUpdateStock={openUpdateDrawer}
               onViewHistory={openHistoryDrawer}
+              onDelete={handleDeleteProduct}
             />
           </div>
         ),
@@ -298,9 +302,6 @@ export default function InventoryPage() {
         categoryOptions={CATEGORY_OPTIONS}
         categoryValue={categoryFilter}
         onCategoryChange={setCategoryFilter}
-        filterOptions={STOCK_FILTER_OPTIONS}
-        filterValue={statusFilter}
-        onFilterChange={(v) => setStatusFilter(v as "" | ProductStockStatus)}
       />
 
       {/* Table */}
@@ -323,13 +324,21 @@ export default function InventoryPage() {
           setSelectedProduct(null);
         }}
         product={selectedProduct}
-        onSave={(type, quantity) => {
+        onSave={(operation, quantity, reason, note) => {
           if (!selectedProduct) return;
           const prev = selectedProduct.stock;
-          const newStock = Math.max(
-            0,
-            type === "add" ? prev + quantity : prev - quantity
-          );
+
+          let target = prev;
+          if (operation === "add") {
+            target = prev + quantity;
+          } else if (operation === "reduce") {
+            target = prev - quantity;
+          } else {
+            target = quantity;
+          }
+
+          const newStock = Math.max(0, target);
+
           updateProduct(selectedProduct.id, { stock: newStock });
           setStockHistory((h) => [
             ...h,
@@ -338,10 +347,12 @@ export default function InventoryPage() {
               productId: selectedProduct.id,
               productName: selectedProduct.name,
               at: new Date().toISOString(),
-              type,
+              type: operation === "set" ? (newStock >= prev ? "add" : "reduce") : operation,
               quantity,
               previousStock: prev,
               newStock,
+              reason,
+              note: note?.trim() || null,
             },
           ]);
           setDrawerOpen(false);
@@ -396,10 +407,21 @@ export default function InventoryPage() {
                       </span>
                       <div className="min-w-0">
                         <p className="text-sm font-medium text-gray-900">
-                          {entry.type === "add" ? "Added" : "Reduced"} {entry.quantity}
+                          {entry.type === "add" ? "Added" : "Reduced"} {entry.quantity}{" "}
+                          {entry.reason && (
+                            <span className="text-xs font-normal text-gray-500">
+                              ({entry.reason})
+                            </span>
+                          )}
                         </p>
                         <p className="text-xs text-gray-500">
                           {formatDate(entry.at)}
+                          {entry.note && (
+                            <>
+                              {" · "}
+                              <span className="text-gray-600">{entry.note}</span>
+                            </>
+                          )}
                         </p>
                       </div>
                     </div>
@@ -426,14 +448,25 @@ function UpdateStockDrawer({
   open: boolean;
   onClose: () => void;
   product: Product | null;
-  onSave: (type: "add" | "reduce", quantity: number) => void;
+  onSave: (
+    operation: "add" | "reduce" | "set",
+    quantity: number,
+    reason: (typeof STOCK_ADJUST_REASONS)[number],
+    note: string
+  ) => void;
 }) {
-  const [type, setType] = useState<"add" | "reduce">("add");
+  const [operation, setOperation] = useState<"add" | "reduce" | "set">("add");
   const [quantity, setQuantity] = useState("");
+  const [reason, setReason] = useState<(typeof STOCK_ADJUST_REASONS)[number]>(
+    STOCK_ADJUST_REASONS[0]
+  );
+  const [note, setNote] = useState("");
 
   const reset = () => {
-    setType("add");
+    setOperation("add");
     setQuantity("");
+    setReason(STOCK_ADJUST_REASONS[0]);
+    setNote("");
   };
 
   const handleClose = () => {
@@ -443,20 +476,46 @@ function UpdateStockDrawer({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const q = Math.floor(Number(quantity)) || 0;
-    if (q <= 0) return;
-    if (product && type === "reduce" && q > product.stock) return;
-    onSave(type, q);
+    const qRaw = Number(quantity);
+    const q = Number.isNaN(qRaw) ? NaN : Math.floor(qRaw);
+
+    if (!product) return;
+
+    if (operation === "set") {
+      if (Number.isNaN(q) || q < 0) return;
+    } else {
+      if (Number.isNaN(q) || q <= 0) return;
+      if (operation === "reduce" && q > product.stock) return;
+    }
+
+    onSave(operation, q, reason, note);
     reset();
   }
 
   if (!open) return null;
 
   const currentStock = product?.stock ?? 0;
-  const qNum = Math.floor(Number(quantity)) || 0;
-  const canReduce = type === "reduce" && qNum > 0 && qNum <= currentStock;
-  const canAdd = type === "add" && qNum > 0;
-  const valid = type === "add" ? canAdd : canReduce;
+  const qNumRaw = Number(quantity);
+  const qNum = Number.isNaN(qNumRaw) ? NaN : Math.floor(qNumRaw);
+  const hasQty = quantity.trim() !== "" && !Number.isNaN(qNum);
+
+  const canAdd = operation === "add" && hasQty && qNum > 0;
+  const canReduce =
+    operation === "reduce" && hasQty && qNum > 0 && qNum <= currentStock;
+  const canSet = operation === "set" && hasQty && qNum >= 0;
+
+  const valid = (canAdd || canReduce || canSet) && !!reason;
+
+  let resultingStock = currentStock;
+  if (hasQty) {
+    if (operation === "add") {
+      resultingStock = currentStock + Math.max(0, qNum);
+    } else if (operation === "reduce") {
+      resultingStock = Math.max(0, currentStock - Math.max(0, qNum));
+    } else if (operation === "set") {
+      resultingStock = Math.max(0, qNum);
+    }
+  }
 
   return (
     <Drawer
@@ -474,14 +533,14 @@ function UpdateStockDrawer({
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Add or Reduce
+              Operation
             </label>
             <div className="flex gap-3">
               <button
                 type="button"
-                onClick={() => setType("add")}
+                onClick={() => setOperation("add")}
                 className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl border-2 text-sm font-medium transition-colors ${
-                  type === "add"
+                  operation === "add"
                     ? "border-[#D96A86] bg-[#fef5f7] text-[#D96A86]"
                     : "border-gray-200 bg-white text-gray-600 hover:border-gray-300"
                 }`}
@@ -491,15 +550,27 @@ function UpdateStockDrawer({
               </button>
               <button
                 type="button"
-                onClick={() => setType("reduce")}
+                onClick={() => setOperation("reduce")}
                 className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl border-2 text-sm font-medium transition-colors ${
-                  type === "reduce"
+                  operation === "reduce"
                     ? "border-[#D96A86] bg-[#fef5f7] text-[#D96A86]"
                     : "border-gray-200 bg-white text-gray-600 hover:border-gray-300"
                 }`}
               >
                 <Minus className="w-4 h-4" />
                 Reduce
+              </button>
+              <button
+                type="button"
+                onClick={() => setOperation("set")}
+                className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl border-2 text-sm font-medium transition-colors ${
+                  operation === "set"
+                    ? "border-[#D96A86] bg-[#fef5f7] text-[#D96A86]"
+                    : "border-gray-200 bg-white text-gray-600 hover:border-gray-300"
+                }`}
+              >
+                <Boxes className="w-4 h-4" />
+                Set Exact
               </button>
             </div>
           </div>
@@ -511,18 +582,77 @@ function UpdateStockDrawer({
             <input
               id="inv-qty"
               type="number"
-              min={1}
-              max={type === "reduce" ? currentStock : undefined}
+              min={operation === "set" ? 0 : 1}
+              max={operation === "reduce" ? currentStock : undefined}
               value={quantity}
               onChange={(e) => setQuantity(e.target.value)}
               className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-[#f8c6d0] focus:border-transparent"
-              placeholder={type === "reduce" ? `Max ${currentStock}` : "0"}
+              placeholder={
+                operation === "reduce"
+                  ? `Max ${currentStock}`
+                  : operation === "set"
+                  ? "Enter final stock"
+                  : "Enter quantity"
+              }
             />
-            {type === "reduce" && qNum > currentStock && (
+            {operation === "reduce" && hasQty && qNum > currentStock && (
               <p className="mt-1 text-xs text-red-600">
                 Cannot reduce more than current stock ({currentStock}).
               </p>
             )}
+            {hasQty && (
+              <p className="mt-2 text-xs text-gray-600">
+                Resulting stock:{" "}
+                <span className="font-medium">
+                  {currentStock} →{" "}
+                  <span
+                    className={
+                      resultingStock > currentStock
+                        ? "text-emerald-700"
+                        : resultingStock < currentStock
+                        ? "text-red-700"
+                        : "text-gray-900"
+                    }
+                  >
+                    {resultingStock}
+                  </span>
+                </span>
+              </p>
+            )}
+          </div>
+
+          <div>
+            <label htmlFor="inv-reason" className="block text-sm font-medium text-gray-700 mb-1">
+              Reason <span className="text-red-500">*</span>
+            </label>
+            <select
+              id="inv-reason"
+              value={reason}
+              onChange={(e) =>
+                setReason(e.target.value as (typeof STOCK_ADJUST_REASONS)[number])
+              }
+              className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-[#f8c6d0] focus:border-transparent bg-white"
+            >
+              {STOCK_ADJUST_REASONS.map((r) => (
+                <option key={r} value={r}>
+                  {r}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label htmlFor="inv-note" className="block text-sm font-medium text-gray-700 mb-1">
+              Note (optional)
+            </label>
+            <textarea
+              id="inv-note"
+              rows={2}
+              value={note}
+              onChange={(e) => setNote(e.target.value)}
+              className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-[#f8c6d0] focus:border-transparent resize-none"
+              placeholder="Add an internal note…"
+            />
           </div>
 
           <div className="flex gap-3 pt-2">
