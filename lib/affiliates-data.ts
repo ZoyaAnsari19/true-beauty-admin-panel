@@ -29,6 +29,10 @@ export interface Withdrawal {
   status: WithdrawalStatus;
   notes?: string;
   auditEvents?: WithdrawalAuditEvent[];
+  bankName?: string;
+  accountNumber?: string;
+  ifsc?: string;
+  upiId?: string;
 }
 
 export interface ReferredUser {
@@ -119,6 +123,7 @@ export const MOCK_AFFILIATES: Affiliate[] = [
         processedAt: "2024-06-02T10:00:00Z",
         status: "approved",
         notes: "Monthly payout",
+        upiId: "sarah@upi",
       },
       {
         id: "wd-2",
@@ -126,6 +131,9 @@ export const MOCK_AFFILIATES: Affiliate[] = [
         method: "Bank Transfer - HDFC ****1234",
         requestedAt: "2024-06-12T14:30:00Z",
         status: "pending",
+        bankName: "HDFC Bank",
+        accountNumber: "123456789012",
+        ifsc: "HDFC0001234",
       },
     ],
     referredUsers: Array.from({ length: 42 }, (_, index) => ({
@@ -198,6 +206,7 @@ export const MOCK_AFFILIATES: Affiliate[] = [
         requestedAt: "2024-05-25T09:15:00Z",
         processedAt: "2024-05-26T11:45:00Z",
         status: "approved",
+        upiId: "emma@upi",
       },
       {
         id: "wd-4",
@@ -207,6 +216,9 @@ export const MOCK_AFFILIATES: Affiliate[] = [
         processedAt: "2024-06-11T10:30:00Z",
         status: "rejected",
         notes: "Invalid bank details",
+        bankName: "State Bank of India",
+        accountNumber: "987654321000",
+        ifsc: "SBIN0009876",
       },
     ],
     referredUsers: Array.from({ length: 18 }, (_, index) => ({

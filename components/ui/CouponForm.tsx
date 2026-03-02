@@ -16,8 +16,8 @@ const STATUS_OPTIONS: { value: CouponStatus; label: string }[] = [
 ];
 
 const DISCOUNT_TYPE_OPTIONS: { value: CouponDiscountType; label: string }[] = [
-  { value: "percentage", label: "Percentage" },
-  { value: "fixed", label: "Fixed" },
+  { value: "fixed", label: "Fixed (₹)" },
+  { value: "percentage", label: "Percentage (%)" },
 ];
 
 const CATEGORY_OPTIONS = [
@@ -27,7 +27,7 @@ const CATEGORY_OPTIONS = [
 
 const emptyForm: CouponFormValues = {
   code: "",
-  discountType: "percentage",
+  discountType: "fixed",
   discountValue: 0,
   minOrderValue: 0,
   maxDiscountCap: null,
@@ -100,23 +100,24 @@ export function CouponForm({
     ): Record<string, string> => {
       const err: Record<string, string> = {};
       if (!v.code.trim()) err.code = "Coupon code is required.";
-      if (v.discountType === "percentage") {
-        const n = Number(v.discountValue);
-        if (Number.isNaN(n) || n <= 0 || n > 100)
-          err.discountValue = "Enter a percentage between 1 and 100.";
-        if (v.maxDiscountCap != null && v.maxDiscountCap < 0)
-          err.maxDiscountCap = "Max discount cap cannot be negative.";
-      } else {
-        const n = Number(v.discountValue);
-        if (Number.isNaN(n) || n < 0) err.discountValue = "Enter a valid fixed amount (≥ 0).";
-      }
       const minOrder = Number(v.minOrderValue);
-      if (Number.isNaN(minOrder) || minOrder < 0)
-        err.minOrderValue = "Min order must be 0 or more.";
-      if (v.usageLimitTotal != null && (Number.isNaN(Number(v.usageLimitTotal)) || Number(v.usageLimitTotal) < 0))
-        err.usageLimitTotal = "Usage limit (total) must be 0 or more.";
-      if (v.usageLimitPerUser != null && (Number.isNaN(Number(v.usageLimitPerUser)) || Number(v.usageLimitPerUser) < 0))
-        err.usageLimitPerUser = "Usage limit (per user) must be 0 or more.";
+      if (Number.isNaN(minOrder) || minOrder <= 0)
+        err.minOrderValue = "Min order must be greater than 0.";
+
+      const discount = Number(v.discountValue);
+      if (v.discountType === "fixed") {
+        if (Number.isNaN(discount) || discount <= 0)
+          err.discountValue = "Discount amount must be greater than 0.";
+
+        if (!err.discountValue && !err.minOrderValue && discount >= minOrder) {
+          err.discountValue = "Discount must be less than Min Order.";
+        }
+      } else if (v.discountType === "percentage") {
+        if (Number.isNaN(discount) || discount <= 0 || discount > 100) {
+          err.discountValue = "Percentage must be between 1 and 100.";
+        }
+      }
+
       if (!v.startDate?.trim()) err.startDate = "Start date is required.";
       if (!v.expiryDate?.trim()) err.expiryDate = "Expiry date is required.";
       const start = v.startDate ? new Date(v.startDate).getTime() : 0;
@@ -134,6 +135,24 @@ export function CouponForm({
     setErrors((prev) => ({ ...prev, code: "" }));
   };
 
+  const hasValidMinOrder = Number(values.minOrderValue) > 0;
+
+  const fixedDiscountPercentage =
+    values.discountType === "fixed" &&
+    hasValidMinOrder &&
+    Number(values.discountValue) > 0 &&
+    Number(values.discountValue) < Number(values.minOrderValue)
+      ? (Number(values.discountValue) / Number(values.minOrderValue)) * 100
+      : null;
+
+  const percentageDiscountAmount =
+    values.discountType === "percentage" &&
+    hasValidMinOrder &&
+    Number(values.discountValue) > 0 &&
+    Number(values.discountValue) <= 100
+      ? (Number(values.minOrderValue) * Number(values.discountValue)) / 100
+      : null;
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const v = { ...values };
@@ -146,11 +165,12 @@ export function CouponForm({
     onSubmit({
       ...v,
       code: v.code.trim().toUpperCase(),
+      discountType: v.discountType,
       discountValue: Number(v.discountValue) || 0,
       minOrderValue: Number(v.minOrderValue) || 0,
-      maxDiscountCap: v.discountType === "percentage" ? num(v.maxDiscountCap) : null,
-      usageLimitTotal: num(v.usageLimitTotal),
-      usageLimitPerUser: num(v.usageLimitPerUser),
+      maxDiscountCap: null,
+      usageLimitTotal: null,
+      usageLimitPerUser: null,
       applicableProductIds: v.applicableProductIds ?? [],
       applicableCategoryIds: v.applicableCategoryIds ?? [],
     });
@@ -189,164 +209,6 @@ export function CouponForm({
         {errors.code && (
           <p className="mt-1 text-sm text-red-600">{errors.code}</p>
         )}
-      </div>
-
-      {/* Discount Type & Value */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div>
-          <label htmlFor="discount-type" className={labelClass}>
-            Discount Type
-          </label>
-          <select
-            id="discount-type"
-            value={values.discountType}
-            onChange={(e) =>
-              setValues((v) => ({
-                ...v,
-                discountType: e.target.value as CouponDiscountType,
-              }))
-            }
-            className={`${inputClass} bg-white`}
-          >
-            {DISCOUNT_TYPE_OPTIONS.map((opt) => (
-              <option key={opt.value} value={opt.value}>
-                {opt.label}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div>
-          <label htmlFor="discount-value" className={labelClass}>
-            Discount Value{" "}
-            {values.discountType === "percentage" ? "(%)" : "(₹)"}{" "}
-            <span className="text-red-500">*</span>
-          </label>
-          <input
-            id="discount-value"
-            type="number"
-            min={values.discountType === "percentage" ? 1 : 0}
-            max={values.discountType === "percentage" ? 100 : undefined}
-            step={values.discountType === "percentage" ? 1 : 0.01}
-            value={values.discountValue || ""}
-            onChange={(e) =>
-              setValues((v) => ({
-                ...v,
-                discountValue: e.target.value === "" ? 0 : Number(e.target.value),
-              }))
-            }
-            className={inputClass}
-            placeholder={values.discountType === "percentage" ? "e.g. 20" : "e.g. 100"}
-          />
-          {errors.discountValue && (
-            <p className="mt-1 text-sm text-red-600">{errors.discountValue}</p>
-          )}
-        </div>
-      </div>
-
-      {/* Min Order & Max Discount Cap */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div>
-          <label htmlFor="min-order" className={labelClass}>
-            Min Order (₹)
-          </label>
-          <input
-            id="min-order"
-            type="number"
-            min={0}
-            step={1}
-            value={values.minOrderValue ?? ""}
-            onChange={(e) =>
-              setValues((v) => ({
-                ...v,
-                minOrderValue:
-                  e.target.value === "" ? 0 : Number(e.target.value),
-              }))
-            }
-            className={inputClass}
-            placeholder="0"
-          />
-          {errors.minOrderValue && (
-            <p className="mt-1 text-sm text-red-600">{errors.minOrderValue}</p>
-          )}
-        </div>
-        {values.discountType === "percentage" && (
-          <div>
-            <label htmlFor="max-cap" className={labelClass}>
-              Max Discount Cap (₹)
-            </label>
-            <input
-              id="max-cap"
-              type="number"
-              min={0}
-              step={1}
-              value={values.maxDiscountCap ?? ""}
-              onChange={(e) =>
-                setValues((v) => ({
-                  ...v,
-                  maxDiscountCap:
-                    e.target.value === ""
-                      ? null
-                      : Number(e.target.value),
-                }))
-              }
-              className={inputClass}
-              placeholder="Optional"
-            />
-            {errors.maxDiscountCap && (
-              <p className="mt-1 text-sm text-red-600">{errors.maxDiscountCap}</p>
-            )}
-          </div>
-        )}
-      </div>
-
-      {/* Usage limits */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div>
-          <label htmlFor="usage-total" className={labelClass}>
-            Usage Limit (Total)
-          </label>
-          <input
-            id="usage-total"
-            type="number"
-            min={0}
-            value={values.usageLimitTotal ?? ""}
-            onChange={(e) =>
-              setValues((v) => ({
-                ...v,
-                usageLimitTotal:
-                  e.target.value === "" ? null : Number(e.target.value),
-              }))
-            }
-            className={inputClass}
-            placeholder="Unlimited"
-          />
-          {errors.usageLimitTotal && (
-            <p className="mt-1 text-sm text-red-600">{errors.usageLimitTotal}</p>
-          )}
-        </div>
-        <div>
-          <label htmlFor="usage-per-user" className={labelClass}>
-            Usage Limit (Per User)
-          </label>
-          <input
-            id="usage-per-user"
-            type="number"
-            min={0}
-            value={values.usageLimitPerUser ?? ""}
-            onChange={(e) =>
-              setValues((v) => ({
-                ...v,
-                usageLimitPerUser:
-                  e.target.value === "" ? null : Number(e.target.value),
-              }))
-            }
-            className={inputClass}
-            placeholder="Unlimited"
-          />
-          {errors.usageLimitPerUser && (
-            <p className="mt-1 text-sm text-red-600">{errors.usageLimitPerUser}</p>
-          )}
-        </div>
       </div>
 
       {/* Applicable Categories */}
@@ -396,6 +258,104 @@ export function CouponForm({
             </option>
           ))}
         </select>
+      </div>
+
+      {/* Discount Type & Value */}
+      <div className="space-y-4">
+        <div>
+          <label htmlFor="discount-type" className={labelClass}>
+            Discount Type
+          </label>
+          <select
+            id="discount-type"
+            value={values.discountType}
+            onChange={(e) =>
+              setValues((v) => ({
+                ...v,
+                discountType: e.target.value as CouponDiscountType,
+              }))
+            }
+            className={`${inputClass} bg-white`}
+          >
+            {DISCOUNT_TYPE_OPTIONS.map((opt) => (
+              <option key={opt.value} value={opt.value}>
+                {opt.label}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label htmlFor="discount-value" className={labelClass}>
+            {values.discountType === "fixed"
+              ? "Discount Amount (₹)"
+              : "Discount Percentage (%)"}{" "}
+            <span className="text-red-500">*</span>
+          </label>
+          <input
+            id="discount-value"
+            type="number"
+            min={values.discountType === "fixed" ? 1 : 1}
+            max={values.discountType === "percentage" ? 100 : undefined}
+            step={values.discountType === "fixed" ? 0.01 : 1}
+            value={values.discountValue || ""}
+            onChange={(e) =>
+              setValues((v) => ({
+                ...v,
+                discountValue:
+                  e.target.value === "" ? 0 : Number(e.target.value),
+              }))
+            }
+            className={inputClass}
+            placeholder={
+              values.discountType === "fixed" ? "e.g. 100" : "e.g. 20"
+            }
+          />
+          {errors.discountValue && (
+            <p className="mt-1 text-sm text-red-600">{errors.discountValue}</p>
+          )}
+          {values.discountType === "fixed" && (
+            <p className="mt-1 text-xs text-gray-500">
+              {fixedDiscountPercentage !== null
+                ? `= ${fixedDiscountPercentage.toFixed(0)}% discount`
+                : "Enter Min Order and Discount Amount to see the percentage discount."}
+            </p>
+          )}
+          {values.discountType === "percentage" && (
+            <p className="mt-1 text-xs text-gray-500">
+              {percentageDiscountAmount !== null
+                ? `= ₹${percentageDiscountAmount.toFixed(
+                    0
+                  )} off on minimum order`
+                : "Enter Min Order and Discount % to see the discount amount."}
+            </p>
+          )}
+        </div>
+      </div>
+
+      {/* Min Order */}
+      <div>
+        <label htmlFor="min-order" className={labelClass}>
+          Min Order (₹) <span className="text-red-500">*</span>
+        </label>
+        <input
+          id="min-order"
+          type="number"
+          min={1}
+          step={1}
+          value={values.minOrderValue ?? ""}
+          onChange={(e) =>
+            setValues((v) => ({
+              ...v,
+              minOrderValue:
+                e.target.value === "" ? 0 : Number(e.target.value),
+            }))
+          }
+          className={inputClass}
+          placeholder="0"
+        />
+        {errors.minOrderValue && (
+          <p className="mt-1 text-sm text-red-600">{errors.minOrderValue}</p>
+        )}
       </div>
 
       {/* Start & Expiry Date */}

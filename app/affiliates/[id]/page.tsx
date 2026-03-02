@@ -226,7 +226,7 @@ export default function AffiliateDetailPage() {
           className="min-w-[260px] md:min-w-0 shrink-0 md:shrink text-left"
         >
           <KpiCard
-            title="Total Registered"
+            title="Total Affiliated Registered User"
             value={affiliate.totalReferrals.toLocaleString()}
             icon="users"
             iconClassName="bg-blue-50 text-blue-600"
@@ -385,58 +385,60 @@ export default function AffiliateDetailPage() {
               </p>
             ) : (
               <>
-                <ul className="space-y-3">
-                  {currentOrders.map((order) => (
-                    <li
-                      key={order.id}
-                      className="flex items-center justify-between gap-3 rounded-xl border border-gray-100 bg-[#fef5f7]/60 px-3 py-2"
-                    >
-                      <div className="flex items-center gap-3 min-w-0">
-                        <div className="h-12 w-12 rounded-lg bg-white overflow-hidden border border-pink-100 flex items-center justify-center shrink-0">
-                          {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img
-                            src={order.productImage}
-                            alt={order.productName}
-                            className="h-full w-full object-cover"
-                          />
-                        </div>
-                        <div className="min-w-0">
-                          <p className="text-sm font-medium text-gray-900 truncate">
-                            {order.productName}
-                          </p>
-                          <p className="text-xs text-gray-700 mt-0.5">
-                            <span className="text-gray-500">Category:</span>{" "}
-                            <span className="font-medium text-emerald-700">
+                <div className="overflow-x-auto">
+                  <table className="min-w-full text-sm">
+                    <thead>
+                      <tr className="text-xs text-gray-500 uppercase tracking-wider border-b border-gray-100">
+                        <th className="py-2.5 pr-4 text-left font-semibold">
+                          User Name
+                        </th>
+                        <th className="py-2.5 px-4 text-left font-semibold">
+                          Product Name
+                        </th>
+                        <th className="py-2.5 px-4 text-left font-semibold">
+                          Category
+                        </th>
+                        <th className="py-2.5 px-4 text-left font-semibold">
+                          Date
+                        </th>
+                        <th className="py-2.5 pl-4 text-right font-semibold">
+                          Earnings
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {currentOrders.map((order, index) => {
+                        const globalIndex = orderStartIndex + index;
+                        const userName =
+                          referredUsers[globalIndex]?.name ?? "—";
+                        const earnings =
+                          (order.amount * affiliate.commissionRate) / 100;
+                        return (
+                          <tr
+                            key={order.id}
+                            className="border-b border-gray-50 last:border-0"
+                          >
+                            <td className="py-2.5 pr-4 whitespace-nowrap text-gray-900">
+                              {userName}
+                            </td>
+                            <td className="py-2.5 px-4 whitespace-nowrap text-gray-700">
+                              {order.productName}
+                            </td>
+                            <td className="py-2.5 px-4 whitespace-nowrap text-gray-700">
                               {order.category ?? "—"}
-                            </span>
-                          </p>
-                          <p className="text-xs text-gray-700 mt-0.5">
-                            <span className="text-gray-500">Qty:</span>{" "}
-                            <span className="font-semibold">
-                              {order.quantity ?? 0}
-                            </span>
-                          </p>
-                        </div>
-                      </div>
-                      <div className="shrink-0 text-right">
-                        <p className="text-sm font-semibold text-gray-900">
-                          {formatCurrency(order.amount)}
-                        </p>
-                        <p className="text-[11px] text-gray-500">
-                          Ordered on{" "}
-                          {new Date(order.orderedAt).toLocaleDateString(
-                            "en-US",
-                            {
-                              year: "numeric",
-                              month: "short",
-                              day: "numeric",
-                            }
-                          )}
-                        </p>
-                      </div>
-                    </li>
-                  ))}
-                </ul>
+                            </td>
+                            <td className="py-2.5 px-4 whitespace-nowrap text-gray-700">
+                              {formatDate(order.orderedAt)}
+                            </td>
+                            <td className="py-2.5 pl-4 whitespace-nowrap text-right text-gray-900 font-semibold">
+                              {formatCurrency(earnings)}
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
 
                 {referredOrders.length > ORDERS_PER_PAGE && (
                   <div className="flex items-center justify-between gap-3 pt-2 border-t border-gray-100 mt-2">
@@ -580,9 +582,16 @@ export default function AffiliateDetailPage() {
                         </div>
                         {/* Payment details + dates stacked */}
                         <div className="border-t border-gray-100 pt-4 space-y-3">
-                          <p className="text-sm font-medium text-gray-700">
-                            {w.method}
-                          </p>
+                          <div>
+                            <p className="text-sm font-medium text-gray-700">
+                              {w.method}
+                            </p>
+                            {w.upiId && (
+                              <p className="text-xs text-gray-500 mt-0.5">
+                                UPI ID: {w.upiId}
+                              </p>
+                            )}
+                          </div>
                           <dl className="space-y-2 text-sm">
                             <div className="flex flex-wrap items-baseline gap-x-2">
                               <dt className="text-gray-500 font-normal">
@@ -690,7 +699,14 @@ export default function AffiliateDetailPage() {
                             {formatCurrency(w.amount)}
                           </td>
                           <td className="py-2.5 px-4 text-gray-700">
-                            {w.method}
+                            <div className="flex flex-col">
+                              <span>{w.method}</span>
+                              {w.upiId && (
+                                <span className="text-xs text-gray-500">
+                                  UPI ID: {w.upiId}
+                                </span>
+                              )}
+                            </div>
                           </td>
                           <td className="py-2.5 px-4 whitespace-nowrap text-gray-700">
                             {formatDate(w.requestedAt)}

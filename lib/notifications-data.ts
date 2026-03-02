@@ -7,7 +7,10 @@ export type NotificationCategory =
   | "new_orders"
   | "withdraw_request";
 
-export type TargetRole = "all" | "customers" | "affiliate_users";
+export type TargetRole =
+  | "all"
+  | "customers"
+  | "affiliate_users";
 
 /** Type-specific payload for drawer details */
 export interface NotificationPayload {
@@ -50,6 +53,8 @@ export interface Notification {
   read: boolean;
   category: NotificationCategory;
   redirectLink?: string;
+   /** Optional image name or URL associated with the notification */
+   imageName?: string;
   targetRole?: TargetRole;
   /** True when created by admin via "Create Notification" */
   sentByAdmin?: boolean;

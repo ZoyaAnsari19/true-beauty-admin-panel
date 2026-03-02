@@ -21,12 +21,15 @@ interface NotificationsContextValue {
   notifications: Notification[];
   markAsRead: (id: string) => void;
   markAllAsRead: () => void;
+  deleteNotification: (id: string) => void;
   createNotification: (payload: {
     title: string;
     description: string;
     targetRole: TargetRole;
     redirectLink?: string;
     category: NotificationCategory;
+    timestamp?: string;
+    imageName?: string;
   }) => void;
   filterNotifications: (filter: FilterValue) => Notification[];
 }
@@ -54,6 +57,10 @@ export function NotificationsProvider({
     setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
   }, []);
 
+  const deleteNotification = useCallback((id: string) => {
+    setNotifications((prev) => prev.filter((n) => n.id !== id));
+  }, []);
+
   const createNotification = useCallback(
     (payload: {
       title: string;
@@ -61,6 +68,8 @@ export function NotificationsProvider({
       targetRole: TargetRole;
       redirectLink?: string;
       category: NotificationCategory;
+      timestamp?: string;
+      imageName?: string;
     }) => {
       const iconMap: Record<NotificationCategory, NotificationCategory> = {
         system: "system",
@@ -77,10 +86,11 @@ export function NotificationsProvider({
         title: payload.title,
         description: payload.description,
         relatedUser: "Admin",
-        timestamp: new Date().toISOString(),
+        timestamp: payload.timestamp ?? new Date().toISOString(),
         read: false,
         category: payload.category,
         redirectLink: payload.redirectLink,
+        imageName: payload.imageName,
         targetRole: payload.targetRole,
         sentByAdmin: true,
       };
@@ -112,6 +122,7 @@ export function NotificationsProvider({
       notifications,
       markAsRead,
       markAllAsRead,
+      deleteNotification,
       createNotification,
       filterNotifications,
     }),
@@ -119,6 +130,7 @@ export function NotificationsProvider({
       notifications,
       markAsRead,
       markAllAsRead,
+      deleteNotification,
       createNotification,
       filterNotifications,
     ]

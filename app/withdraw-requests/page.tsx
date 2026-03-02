@@ -215,15 +215,15 @@ export default function WithdrawRequestsPage() {
 
   const columns = [
     {
-      header: "Request ID",
-      accessor: (row: WithdrawRequestRow) => (
-        <span className="font-mono font-medium text-gray-900">{row.requestId}</span>
-      ),
-    },
-    {
       header: "Affiliate Name",
       accessor: (row: WithdrawRequestRow) => (
         <span className="font-medium text-gray-900">{row.affiliateName}</span>
+      ),
+    },
+    {
+      header: "Request ID",
+      accessor: (row: WithdrawRequestRow) => (
+        <span className="font-mono font-medium text-gray-900">{row.requestId}</span>
       ),
     },
     {

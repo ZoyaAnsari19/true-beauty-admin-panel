@@ -429,7 +429,7 @@ const MOCK_CANCELLED_USER4: OrderItem[] = [
   {
     orderId: "ord-4d",
     productName: "Eye Cream",
-    productImage: "/products/eye-cream.png",
+    productImage: "/products/eyeCream.png",
     price: 699,
     quantity: 1,
     totalAmount: 699,
@@ -457,7 +457,7 @@ const MOCK_REFUNDED_USER4: OrderItem[] = [
   {
     orderId: "ord-4f",
     productName: "Sample Kit",
-    productImage: "/products/sample-kit.png",
+    productImage: "/products/sampleKit.png",
     price: 199,
     quantity: 1,
     totalAmount: 199,
