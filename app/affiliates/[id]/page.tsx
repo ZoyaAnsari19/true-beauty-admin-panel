@@ -582,9 +582,16 @@ export default function AffiliateDetailPage() {
                         </div>
                         {/* Payment details + dates stacked */}
                         <div className="border-t border-gray-100 pt-4 space-y-3">
-                          <p className="text-sm font-medium text-gray-700">
-                            {w.method}
-                          </p>
+                          <div>
+                            <p className="text-sm font-medium text-gray-700">
+                              {w.method}
+                            </p>
+                            {w.upiId && (
+                              <p className="text-xs text-gray-500 mt-0.5">
+                                UPI ID: {w.upiId}
+                              </p>
+                            )}
+                          </div>
                           <dl className="space-y-2 text-sm">
                             <div className="flex flex-wrap items-baseline gap-x-2">
                               <dt className="text-gray-500 font-normal">
@@ -692,7 +699,14 @@ export default function AffiliateDetailPage() {
                             {formatCurrency(w.amount)}
                           </td>
                           <td className="py-2.5 px-4 text-gray-700">
-                            {w.method}
+                            <div className="flex flex-col">
+                              <span>{w.method}</span>
+                              {w.upiId && (
+                                <span className="text-xs text-gray-500">
+                                  UPI ID: {w.upiId}
+                                </span>
+                              )}
+                            </div>
                           </td>
                           <td className="py-2.5 px-4 whitespace-nowrap text-gray-700">
                             {formatDate(w.requestedAt)}
