@@ -547,19 +547,119 @@ export default function AddCouponsPage() {
           </button>
         </div>
       ) : (
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-          <Table<Coupon>
-            data={filteredCoupons}
-            columns={columns}
-            searchable={false}
-            filterable={false}
-            itemsPerPage={10}
-            onRowClick={(coupon) => {
-              setViewingCoupon(coupon);
-              setViewDrawerOpen(true);
-            }}
-          />
-        </div>
+        <>
+          {/* Mobile: card layout */}
+          <div className="space-y-3 md:hidden">
+            {filteredCoupons.map((coupon, index) => (
+              <div
+                key={coupon.id}
+                onClick={() => {
+                  setViewingCoupon(coupon);
+                  setViewDrawerOpen(true);
+                }}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    setViewingCoupon(coupon);
+                    setViewDrawerOpen(true);
+                  }
+                }}
+                className="w-full text-left bg-white rounded-2xl border border-gray-100 shadow-sm px-4 py-4 flex flex-col gap-3 active:scale-[0.99] transition-transform"
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <p className="text-[11px] text-gray-500 mb-0.5">#{index + 1}</p>
+                    <p className="font-mono font-semibold text-gray-900 text-sm">
+                      {coupon.code}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span
+                      className={`inline-flex px-2.5 py-1 rounded-full text-[11px] font-medium ${
+                        STATUS_CLASSES[coupon.status] ?? "bg-gray-100 text-gray-700"
+                      }`}
+                    >
+                      {STATUS_LABELS[coupon.status] ?? coupon.status}
+                    </span>
+                    <CouponActionsMenu
+                      coupon={coupon}
+                      onView={handleView}
+                      onEdit={handleEdit}
+                      onDisable={handleDisable}
+                      onDelete={handleDelete}
+                    />
+                  </div>
+                </div>
+                <div className="mt-3 rounded-xl bg-gray-50/80 border border-gray-100 px-3 py-3">
+                  <dl className="space-y-0 text-xs text-gray-600">
+                    <DetailRow
+                      label="Type"
+                      value={
+                        <span className="capitalize text-gray-900">
+                          {coupon.discountType}
+                        </span>
+                      }
+                    />
+                    <DetailRow
+                      label="Discount"
+                      value={
+                        <span className="text-gray-900">
+                          {coupon.discountType === "percentage"
+                            ? `${coupon.discountValue}%`
+                            : formatCurrency(coupon.discountValue)}
+                        </span>
+                      }
+                      valueBold
+                    />
+                    <DetailRow
+                      label="Category"
+                      value={
+                        <span className="text-gray-900 break-words">
+                          {coupon.applicableCategoryIds && coupon.applicableCategoryIds.length > 0
+                            ? coupon.applicableCategoryIds.join(", ")
+                            : "All categories"}
+                        </span>
+                      }
+                    />
+                    <DetailRow
+                      label="Min order"
+                      value={
+                        <span className="text-gray-900">
+                          {formatCurrency(coupon.minOrderValue)}
+                        </span>
+                      }
+                    />
+                    <DetailRow
+                      label="Expiry"
+                      value={
+                        <span className="text-gray-900">
+                          {formatDate(coupon.expiryDate)}
+                        </span>
+                      }
+                    />
+                  </dl>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Desktop: table layout */}
+          <div className="hidden md:block bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+            <Table<Coupon>
+              data={filteredCoupons}
+              columns={columns}
+              searchable={false}
+              filterable={false}
+              itemsPerPage={10}
+              onRowClick={(coupon) => {
+                setViewingCoupon(coupon);
+                setViewDrawerOpen(true);
+              }}
+            />
+          </div>
+        </>
       )}
 
       <Drawer

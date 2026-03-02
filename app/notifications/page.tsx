@@ -17,12 +17,14 @@ import {
   XCircle,
   RotateCcw,
   Plus,
-   MoreVertical,
-   Pencil,
-   Trash2,
+  MoreVertical,
+  Pencil,
+  Trash2,
   type LucideIcon,
 } from "lucide-react";
 import { Drawer } from "@/components/ui/Drawer";
+import { Filters, type FilterOption } from "@/components/ui/filters";
+import DeletePopup from "@/components/ui/deletePopup";
 import { useNotifications } from "@/lib/notifications-context";
 import type {
   Notification,
@@ -100,6 +102,29 @@ const SEND_TO_TO_TARGET_ROLE: Record<SendToOption, TargetRole> = {
   all_affiliates: "affiliate_users",
   non_affiliates: "customers",
 };
+
+function mapTargetRoleToSendTo(role?: TargetRole): SendToOption {
+  if (role === "affiliate_users") return "all_affiliates";
+  if (role === "customers") return "all_users";
+  return "all_users";
+}
+
+function mapNotificationCategoryToCreateCategory(
+  category: NotificationCategory
+): CreateCategory | "" {
+  switch (category) {
+    case "new_orders":
+      return "orders";
+    case "withdraw_request":
+      return "withdrawals";
+    case "affiliate_users":
+      return "commission";
+    case "system":
+      return "system_updates";
+    default:
+      return "promotions";
+  }
+}
 
 function formatTimestamp(iso: string): string {
   const date = new Date(iso);
@@ -460,14 +485,25 @@ function NotificationCard({
 function NotificationsPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { markAsRead, deleteNotification, filterNotifications, createNotification } =
-    useNotifications();
+  const {
+    notifications,
+    markAsRead,
+    deleteNotification,
+    createNotification,
+    updateNotification,
+  } = useNotifications();
 
   const [selectedNotification, setSelectedNotification] = useState<Notification | null>(null);
   const [createOpen, setCreateOpen] = useState(false);
   const [createSubmitting, setCreateSubmitting] = useState(false);
   const [createError, setCreateError] = useState<string | null>(null);
   const [actionMenuFor, setActionMenuFor] = useState<string | null>(null);
+  const [editingNotification, setEditingNotification] = useState<Notification | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<Notification | null>(null);
+
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState<"" | "read" | "unread">("");
+  const [categoryFilter, setCategoryFilter] = useState<"" | CreateCategory>("");
 
   const [createForm, setCreateForm] = useState<{
     title: string;
@@ -491,10 +527,54 @@ function NotificationsPageContent() {
     scheduleTime: "",
   });
 
-  const filtered = useMemo(
-    () => filterNotifications("all"),
-    [filterNotifications]
+  const STATUS_FILTER_OPTIONS: FilterOption[] = [
+    { value: "", label: "All statuses" },
+    { value: "unread", label: "Unread" },
+    { value: "read", label: "Read" },
+  ];
+
+  const CATEGORY_FILTER_OPTIONS: FilterOption[] = useMemo(
+    () => [
+      { value: "", label: "All categories" },
+      ...CREATE_CATEGORIES.map((cat) => ({
+        value: cat.value,
+        label: cat.label,
+      })),
+    ],
+    []
   );
+
+  const filtered = useMemo(() => {
+    let list = [...notifications];
+
+    // Status filter
+    if (statusFilter === "unread") {
+      list = list.filter((n) => !n.read);
+    } else if (statusFilter === "read") {
+      list = list.filter((n) => n.read);
+    }
+
+    // Category filter
+    if (categoryFilter) {
+      const mappedCategory = CREATE_CATEGORY_TO_NOTIFICATION[categoryFilter];
+      list = list.filter((n) => n.category === mappedCategory);
+    }
+
+    // Search by title / description
+    const q = search.trim().toLowerCase();
+    if (q) {
+      list = list.filter(
+        (n) =>
+          n.title.toLowerCase().includes(q) ||
+          n.description.toLowerCase().includes(q)
+      );
+    }
+
+    return list.sort(
+      (a, b) =>
+        new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+    );
+  }, [notifications, search, statusFilter, categoryFilter]);
 
   const focusId = searchParams.get("focusId");
 
@@ -526,6 +606,29 @@ function NotificationsPageContent() {
     setCreateError(null);
   };
 
+  const openCreateDrawer = () => {
+    setEditingNotification(null);
+    resetCreateForm();
+    setCreateOpen(true);
+  };
+
+  const handleEditNotification = (notification: Notification) => {
+    setEditingNotification(notification);
+    setCreateForm({
+      title: notification.title,
+      description: notification.description,
+      image: notification.imageName ?? "",
+      link: notification.redirectLink ?? "",
+      category: mapNotificationCategoryToCreateCategory(notification.category),
+      sendTo: mapTargetRoleToSendTo(notification.targetRole),
+      scheduleType: "now",
+      scheduleDate: "",
+      scheduleTime: "",
+    });
+    setCreateError(null);
+    setCreateOpen(true);
+  };
+
   const handleCreateSubmit: React.FormEventHandler<HTMLFormElement> = (e) => {
     e.preventDefault();
     if (!createForm.title.trim() || !createForm.description.trim()) {
@@ -553,7 +656,7 @@ function NotificationsPageContent() {
 
     setCreateSubmitting(true);
     try {
-      createNotification({
+      const payload = {
         title: createForm.title.trim(),
         description: createForm.description.trim(),
         targetRole: SEND_TO_TO_TARGET_ROLE[createForm.sendTo],
@@ -561,169 +664,331 @@ function NotificationsPageContent() {
         category: CREATE_CATEGORY_TO_NOTIFICATION[createForm.category],
         timestamp: scheduledTimestamp,
         imageName: createForm.image || undefined,
-      });
+      };
+
+      if (editingNotification) {
+        updateNotification(editingNotification.id, payload);
+      } else {
+        createNotification(payload);
+      }
+
       setCreateOpen(false);
       resetCreateForm();
+      setEditingNotification(null);
     } finally {
       setCreateSubmitting(false);
     }
   };
 
   const handleDeleteNotification = (notification: Notification) => {
-    if (typeof window === "undefined") return;
-    const confirmed = window.confirm("Delete this notification?");
-    if (!confirmed) return;
-    deleteNotification(notification.id);
+    setDeleteTarget(notification);
     setActionMenuFor(null);
-    if (selectedNotification?.id === notification.id) {
-      setSelectedNotification(null);
-    }
   };
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <h1 className="text-xl font-semibold text-gray-900">Notification History</h1>
-        <div className="flex flex-wrap items-center gap-3">
+      <div className="space-y-3">
+        <div className="flex items-center justify-between gap-3">
+          <h1 className="text-xl font-semibold text-gray-900">Notification History</h1>
           <button
             type="button"
-            onClick={() => {
-              resetCreateForm();
-              setCreateOpen(true);
-            }}
-            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium text-white bg-[#D96A86] hover:bg-[#C85A76] transition-colors"
+            onClick={openCreateDrawer}
+            className="shrink-0 inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium text-white bg-[#D96A86] hover:bg-[#C85A76] transition-colors"
           >
             <Plus className="w-4 h-4" />
             Add Notification
           </button>
         </div>
+        <Filters
+          search={search}
+          onSearchChange={setSearch}
+          searchPlaceholder="Search by title or description..."
+          searchPlaceholderMobile="Search..."
+          filterOptions={STATUS_FILTER_OPTIONS}
+          filterValue={statusFilter}
+          onFilterChange={(value) =>
+            setStatusFilter(value as "" | "read" | "unread")
+          }
+          categoryOptions={CATEGORY_FILTER_OPTIONS}
+          categoryValue={categoryFilter}
+          onCategoryChange={(value) =>
+            setCategoryFilter(value as "" | CreateCategory)
+          }
+        />
       </div>
 
-      {/* List - table layout */}
+      {/* List - table / card layout */}
       {filtered.length === 0 ? (
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-12 text-center">
           <Bell className="w-12 h-12 text-gray-300 mx-auto mb-3" />
           <p className="text-gray-500">No notifications match this filter.</p>
         </div>
       ) : (
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="min-w-full text-sm">
-              <thead>
-                <tr className="bg-[#fef5f7] text-xs text-gray-500 uppercase tracking-wider border-b border-gray-100">
-                  <th className="py-3 px-4 text-left font-semibold">Sr No</th>
-                  <th className="py-3 px-4 text-left font-semibold">Title</th>
-                  <th className="py-3 px-4 text-left font-semibold">Description</th>
-                  <th className="py-3 px-4 text-left font-semibold">Image</th>
-                  <th className="py-3 px-4 text-left font-semibold">Link</th>
-                  <th className="py-3 px-4 text-left font-semibold">Date &amp; Time</th>
-                  <th className="py-3 px-4 text-right font-semibold">Action</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filtered.map((notification, index) => (
-                  <tr
-                    key={notification.id}
-                    className="border-b border-gray-50 last:border-0 hover:bg-gray-50/60 transition-colors"
-                  >
-                    <td className="py-3 px-4 whitespace-nowrap text-gray-700">
-                      {index + 1}
-                    </td>
-                    <td className="py-3 px-4 whitespace-nowrap text-gray-900 font-medium max-w-[160px] truncate">
+        <>
+          {/* Mobile: card layout */}
+          <div className="space-y-3 md:hidden">
+            {filtered.map((notification, index) => (
+              <div
+                key={notification.id}
+                role="button"
+                tabIndex={0}
+                onClick={() => handleNotificationClick(notification)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    handleNotificationClick(notification);
+                  }
+                }}
+                className="w-full text-left bg-white rounded-2xl border border-gray-100 shadow-sm px-4 py-4 flex flex-col gap-3 active:scale-[0.99] transition-transform"
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[11px] text-gray-500 mb-0.5">
+                      #{index + 1}
+                    </p>
+                    <h3
+                      className={`text-sm font-semibold leading-snug line-clamp-2 ${
+                        notification.read ? "text-gray-700" : "text-gray-900"
+                      }`}
+                    >
                       {notification.title}
-                    </td>
-                    <td className="py-3 px-4 text-gray-700 max-w-[260px]">
-                      <span
-                        className="block truncate"
-                        title={notification.description}
+                    </h3>
+                  </div>
+                  <div className="flex flex-col items-end gap-2">
+                    <span
+                      className={`shrink-0 inline-flex px-2.5 py-1 rounded-full text-[11px] font-medium ${
+                        notification.read
+                          ? "bg-gray-100 text-gray-600"
+                          : "bg-[#D96A86]/10 text-[#D96A86]"
+                      }`}
+                    >
+                      {notification.read ? "Read" : "Unread"}
+                    </span>
+                    <div className="relative">
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setActionMenuFor((prev) =>
+                            prev === notification.id ? null : notification.id
+                          );
+                        }}
+                        className="inline-flex items-center justify-center w-8 h-8 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50"
                       >
-                        {notification.description}
-                      </span>
-                    </td>
-                    <td className="py-3 px-4 whitespace-nowrap text-gray-700">
-                      {notification.imageName ? (
-                        <span
-                          className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-[#fef5f7] text-[#D96A86]"
-                          title={notification.imageName}
-                        >
-                          <span className="w-1.5 h-1.5 rounded-full bg-[#D96A86]" />
-                          Image attached
+                        <MoreVertical className="w-4 h-4" />
+                      </button>
+                      {actionMenuFor === notification.id && (
+                        <div className="absolute right-0 mt-2 w-40 bg-white rounded-xl shadow-lg border border-gray-200 py-1 z-20">
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setActionMenuFor(null);
+                              handleNotificationClick(notification);
+                            }}
+                            className="flex w-full items-center gap-2 px-3 py-2 text-xs text-gray-700 hover:bg-gray-50"
+                          >
+                            <Eye className="w-3.5 h-3.5" />
+                            <span>View</span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setActionMenuFor(null);
+                              handleEditNotification(notification);
+                            }}
+                            className="flex w-full items-center gap-2 px-3 py-2 text-xs text-gray-700 hover:bg-gray-50"
+                          >
+                            <Pencil className="w-3.5 h-3.5" />
+                            <span>Edit</span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDeleteNotification(notification);
+                            }}
+                            className="flex w-full items-center gap-2 px-3 py-2 text-xs text-red-600 hover:bg-red-50"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                            <span>Delete</span>
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+                <p className="text-xs text-gray-600 leading-relaxed">
+                  {notification.description}
+                </p>
+                <div className="mt-1 rounded-xl bg-gray-50/80 border border-gray-100 px-3 py-3">
+                  <dl className="space-y-0">
+                    <DetailRow
+                      label="Image"
+                      value={
+                        notification.imageName ? (
+                          <span className="inline-flex items-center gap-1 text-xs font-medium text-[#D96A86]">
+                            <span className="w-1.5 h-1.5 rounded-full bg-[#D96A86]" />
+                            Image attached
+                          </span>
+                        ) : (
+                          <span className="text-xs text-gray-400">No image</span>
+                        )
+                      }
+                    />
+                    <DetailRow
+                      label="Link"
+                      value={
+                        notification.redirectLink ? (
+                          <a
+                            href={notification.redirectLink}
+                            className="text-xs text-[#D96A86] underline-offset-2 hover:underline break-all"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            {notification.redirectLink}
+                          </a>
+                        ) : (
+                          <span className="text-xs text-gray-400">—</span>
+                        )
+                      }
+                    />
+                    <DetailRow
+                      label="Date &amp; time"
+                      value={
+                        <span className="text-xs text-gray-900">
+                          {formatDateTime(notification.timestamp)}
                         </span>
-                      ) : (
-                        <span className="text-gray-400">No image</span>
-                      )}
-                    </td>
-                    <td className="py-3 px-4 whitespace-nowrap text-gray-700">
-                      {notification.redirectLink ? (
-                        <a
-                          href={notification.redirectLink}
-                          className="text-[#D96A86] hover:underline"
-                          onClick={(e) => e.preventDefault()}
-                        >
-                          {notification.redirectLink}
-                        </a>
-                      ) : (
-                        "—"
-                      )}
-                    </td>
-                    <td className="py-3 px-4 whitespace-nowrap text-gray-700">
-                      {formatDateTime(notification.timestamp)}
-                    </td>
-                    <td className="py-3 px-4 whitespace-nowrap text-right">
-                      <div className="relative inline-flex justify-end w-full">
-                        <button
-                          type="button"
-                          onClick={() =>
-                            setActionMenuFor((prev) =>
-                              prev === notification.id ? null : notification.id
-                            )
-                          }
-                          className="inline-flex items-center justify-center w-9 h-9 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50"
-                        >
-                          <MoreVertical className="w-4 h-4" />
-                        </button>
-                        {actionMenuFor === notification.id && (
-                          <div className="absolute right-0 mt-2 w-40 bg-white rounded-xl shadow-lg border border-gray-200 py-1 z-20">
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setActionMenuFor(null);
-                                handleNotificationClick(notification);
-                              }}
-                              className="flex w-full items-center gap-2 px-3 py-2 text-xs text-gray-700 hover:bg-gray-50"
-                            >
-                              <Eye className="w-3.5 h-3.5" />
-                              <span>View</span>
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setActionMenuFor(null);
-                                handleNotificationClick(notification);
-                              }}
-                              className="flex w-full items-center gap-2 px-3 py-2 text-xs text-gray-700 hover:bg-gray-50"
-                            >
-                              <Pencil className="w-3.5 h-3.5" />
-                              <span>Edit</span>
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => handleDeleteNotification(notification)}
-                              className="flex w-full items-center gap-2 px-3 py-2 text-xs text-red-600 hover:bg-red-50"
-                            >
-                              <Trash2 className="w-3.5 h-3.5" />
-                              <span>Delete</span>
-                            </button>
-                          </div>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                      }
+                    />
+                  </dl>
+                </div>
+              </div>
+            ))}
           </div>
-        </div>
+
+          {/* Desktop: table layout */}
+          <div className="hidden md:block bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="min-w-full text-sm">
+                <thead>
+                  <tr className="bg-[#fef5f7] text-xs text-gray-500 uppercase tracking-wider border-b border-gray-100">
+                    <th className="py-3 px-4 text-left font-semibold">Sr No</th>
+                    <th className="py-3 px-4 text-left font-semibold">Title</th>
+                    <th className="py-3 px-4 text-left font-semibold">Description</th>
+                    <th className="py-3 px-4 text-left font-semibold">Image</th>
+                    <th className="py-3 px-4 text-left font-semibold">Link</th>
+                    <th className="py-3 px-4 text-left font-semibold">Date &amp; Time</th>
+                    <th className="py-3 px-4 text-right font-semibold">Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filtered.map((notification, index) => (
+                    <tr
+                      key={notification.id}
+                      onClick={() => handleNotificationClick(notification)}
+                      className="border-b border-gray-50 last:border-0 hover:bg-gray-50/60 transition-colors cursor-pointer"
+                    >
+                      <td className="py-3 px-4 whitespace-nowrap text-gray-700">
+                        {index + 1}
+                      </td>
+                      <td className="py-3 px-4 whitespace-nowrap text-gray-900 font-medium max-w-[160px] truncate">
+                        {notification.title}
+                      </td>
+                      <td className="py-3 px-4 text-gray-700 max-w-[260px]">
+                        <span
+                          className="block truncate"
+                          title={notification.description}
+                        >
+                          {notification.description}
+                        </span>
+                      </td>
+                      <td className="py-3 px-4 whitespace-nowrap text-gray-700">
+                        {notification.imageName ? (
+                          <span
+                            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-[#fef5f7] text-[#D96A86]"
+                            title={notification.imageName}
+                          >
+                            <span className="w-1.5 h-1.5 rounded-full bg-[#D96A86]" />
+                            Image attached
+                          </span>
+                        ) : (
+                          <span className="text-gray-400">No image</span>
+                        )}
+                      </td>
+                      <td className="py-3 px-4 whitespace-nowrap text-gray-700">
+                        {notification.redirectLink ? (
+                          <a
+                            href={notification.redirectLink}
+                            className="text-[#D96A86] hover:underline"
+                            onClick={(e) => e.preventDefault()}
+                          >
+                            {notification.redirectLink}
+                          </a>
+                        ) : (
+                          "—"
+                        )}
+                      </td>
+                      <td className="py-3 px-4 whitespace-nowrap text-gray-700">
+                        {formatDateTime(notification.timestamp)}
+                      </td>
+                      <td className="py-3 px-4 whitespace-nowrap text-right">
+                        <div className="relative inline-flex justify-end w-full">
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setActionMenuFor((prev) =>
+                                prev === notification.id ? null : notification.id
+                              );
+                            }}
+                            className="inline-flex items-center justify-center w-9 h-9 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50"
+                          >
+                            <MoreVertical className="w-4 h-4" />
+                          </button>
+                          {actionMenuFor === notification.id && (
+                            <div className="absolute right-0 mt-2 w-40 bg-white rounded-xl shadow-lg border border-gray-200 py-1 z-20">
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setActionMenuFor(null);
+                                  handleNotificationClick(notification);
+                                }}
+                                className="flex w-full items-center gap-2 px-3 py-2 text-xs text-gray-700 hover:bg-gray-50"
+                              >
+                                <Eye className="w-3.5 h-3.5" />
+                                <span>View</span>
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setActionMenuFor(null);
+                                  handleEditNotification(notification);
+                                }}
+                                className="flex w-full items-center gap-2 px-3 py-2 text-xs text-gray-700 hover:bg-gray-50"
+                              >
+                                <Pencil className="w-3.5 h-3.5" />
+                                <span>Edit</span>
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleDeleteNotification(notification)}
+                                className="flex w-full items-center gap-2 px-3 py-2 text-xs text-red-600 hover:bg-red-50"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                                <span>Delete</span>
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </>
       )}
 
       {/* Notification detail drawer */}
@@ -741,6 +1006,28 @@ function NotificationsPageContent() {
           />
         )}
       </Drawer>
+
+      <DeletePopup
+        open={deleteTarget != null}
+        title="Delete notification"
+        description={
+          deleteTarget
+            ? `Permanently delete notification "${deleteTarget.title}"? This cannot be undone.`
+            : ""
+        }
+        confirmLabel="Delete"
+        cancelLabel="Cancel"
+        onCancel={() => setDeleteTarget(null)}
+        onConfirm={() => {
+          if (deleteTarget) {
+            deleteNotification(deleteTarget.id);
+            if (selectedNotification?.id === deleteTarget.id) {
+              setSelectedNotification(null);
+            }
+          }
+          setDeleteTarget(null);
+        }}
+      />
 
       {/* Create notification drawer */}
       <Drawer
