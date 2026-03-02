@@ -886,7 +886,8 @@ function NotificationsPageContent() {
                   {filtered.map((notification, index) => (
                     <tr
                       key={notification.id}
-                      className="border-b border-gray-50 last:border-0 hover:bg-gray-50/60 transition-colors"
+                      onClick={() => handleNotificationClick(notification)}
+                      className="border-b border-gray-50 last:border-0 hover:bg-gray-50/60 transition-colors cursor-pointer"
                     >
                       <td className="py-3 px-4 whitespace-nowrap text-gray-700">
                         {index + 1}
@@ -935,11 +936,12 @@ function NotificationsPageContent() {
                         <div className="relative inline-flex justify-end w-full">
                           <button
                             type="button"
-                            onClick={() =>
+                            onClick={(e) => {
+                              e.stopPropagation();
                               setActionMenuFor((prev) =>
                                 prev === notification.id ? null : notification.id
-                              )
-                            }
+                              );
+                            }}
                             className="inline-flex items-center justify-center w-9 h-9 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50"
                           >
                             <MoreVertical className="w-4 h-4" />
