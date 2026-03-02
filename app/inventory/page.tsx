@@ -215,7 +215,7 @@ export default function InventoryPage() {
         ),
       },
       {
-        header: "SKU",
+        header: "Stock Keeping Unit",
         accessor: (row: Product) => (
           <span className="text-sm text-gray-600 font-mono">
             {row.sku ?? "—"}
@@ -235,22 +235,10 @@ export default function InventoryPage() {
         ),
       },
       {
-        header: "Threshold",
+        header: "Minimum Stock Limit",
         accessor: (row: Product) => (
           <span className="text-sm text-gray-600">
             {row.stockThreshold ?? DEFAULT_STOCK_THRESHOLD}
-          </span>
-        ),
-      },
-      {
-        header: "Status",
-        accessor: (row: Product) => (
-          <span
-            className={`inline-flex px-2.5 py-1 rounded-full text-xs font-medium ${
-              STOCK_CLASSES[row.stockStatus]
-            }`}
-          >
-            {STOCK_LABELS[row.stockStatus]}
           </span>
         ),
       },
