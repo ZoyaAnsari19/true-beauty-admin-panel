@@ -279,10 +279,6 @@ export default function InventoryPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-xl sm:text-2xl font-semibold text-gray-900">
-        Inventory Management
-      </h1>
-
       {/* KPI Cards */}
       <div className="flex gap-4 overflow-x-auto pb-2 -mx-4 px-4 md:mx-0 md:px-0 md:grid md:grid-cols-2 lg:grid-cols-4 md:gap-6">
         <KpiCard
@@ -316,20 +312,18 @@ export default function InventoryPage() {
       </div>
 
       {/* Search & Filters */}
-      <div className="bg-[#fef5f7] rounded-2xl p-4 border border-gray-100">
-        <Filters
-          search={search}
-          onSearchChange={setSearch}
-          searchPlaceholder="Search by product name, SKU, or category..."
-          searchPlaceholderMobile="Search..."
-          categoryOptions={CATEGORY_OPTIONS}
-          categoryValue={categoryFilter}
-          onCategoryChange={setCategoryFilter}
-          filterOptions={STOCK_FILTER_OPTIONS}
-          filterValue={statusFilter}
-          onFilterChange={(v) => setStatusFilter(v as "" | ProductStockStatus)}
-        />
-      </div>
+      <Filters
+        search={search}
+        onSearchChange={setSearch}
+        searchPlaceholder="Search by product name, SKU, or category..."
+        searchPlaceholderMobile="Search..."
+        categoryOptions={CATEGORY_OPTIONS}
+        categoryValue={categoryFilter}
+        onCategoryChange={setCategoryFilter}
+        filterOptions={STOCK_FILTER_OPTIONS}
+        filterValue={statusFilter}
+        onFilterChange={(v) => setStatusFilter(v as "" | ProductStockStatus)}
+      />
 
       {/* Table */}
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">

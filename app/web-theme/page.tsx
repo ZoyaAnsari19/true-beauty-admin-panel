@@ -313,7 +313,7 @@ export default function WebThemePage() {
         </div>
       )}
       <div className="flex items-center justify-between">
-        <h1 className="text-xl font-semibold text-gray-900">Web Theme</h1>
+        <h1 className="text-xl font-semibold text-gray-900">Select Web Theme</h1>
         <div className="flex items-center gap-3">
           <button
             type="button"
