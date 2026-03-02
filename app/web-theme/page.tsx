@@ -313,7 +313,7 @@ export default function WebThemePage() {
         </div>
       )}
       <div className="flex items-center justify-between">
-        <h1 className="text-xl font-semibold text-gray-900">Web Theme</h1>
+        <h1 className="text-xl font-semibold text-gray-900">Select Web Theme</h1>
         <div className="flex items-center gap-3">
           <button
             type="button"
@@ -793,36 +793,6 @@ export default function WebThemePage() {
             </div>
           </section>
 
-          {/* Seller Theme Override */}
-          <section className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-            <div className="px-6 py-4 border-b border-gray-100 flex items-center gap-2">
-              <Store className="w-5 h-5 text-gray-500" />
-              <h2 className="text-base font-semibold text-gray-900">Seller Theme Override</h2>
-            </div>
-            <div className="p-6">
-              <div className="flex items-center justify-between py-2">
-                <div>
-                  <p className="text-sm font-medium text-gray-700">Allow seller custom themes</p>
-                  <p className="text-xs text-gray-500 mt-0.5">Let sellers apply their own theme on storefronts.</p>
-                </div>
-                <button
-                  type="button"
-                  role="switch"
-                  aria-checked={sellerThemeOverride}
-                  onClick={() => setSellerThemeOverride(!sellerThemeOverride)}
-                  className={`relative inline-flex h-6 w-11 shrink-0 rounded-full border transition-colors focus:outline-none focus:ring-2 focus:ring-[#D96A86]/30 ${
-                    sellerThemeOverride ? "bg-[#D96A86] border-[#D96A86]" : "bg-gray-200 border-gray-200"
-                  }`}
-                >
-                  <span
-                    className={`pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow ring-0 transition-transform ${
-                      sellerThemeOverride ? "translate-x-5" : "translate-x-0.5"
-                    }`}
-                  />
-                </button>
-              </div>
-            </div>
-          </section>
         </div>
 
         {/* Right column: Live preview */}

@@ -31,13 +31,13 @@ const menuItems: MenuItem[] = [
   { label: "User Management", icon: Users, href: "/users" },
   { label: "Add Product/Manage", icon: Package, href: "/products" },
   { label: "Add Service", icon: Scissors, href: "/services" },
-  // { label: "Order Management", icon: ShoppingCart, href: "/orders" },
+  { label: "Order Management", icon: ShoppingCart, href: "/orders" },
   { label: "Affiliate Users", icon: UserCheck, href: "/affiliates" },
   { label: "Withdraw Request", icon: Wallet, href: "/withdraw-requests" },
   { label: "Notification", icon: Bell, href: "/notifications" },
   { label: "Add Coupons", icon: Gift, href: "/addCoupons" },
   { label: "Web Theme", icon: Palette, href: "/web-theme" },
-  { label: "Inventory", icon: Boxes, href: "/inventory" },
+  { label: "Inventory Management", icon: Boxes, href: "/inventory" },
   { label: "Settings", icon: Settings, href: "/settings" },
 ];
 
@@ -105,7 +105,7 @@ export default function SideBar() {
                 (item.href === "/users" && pathname.startsWith("/users/")) ||
                 (item.href === "/products" && pathname.startsWith("/products")) ||
                 (item.href === "/services" && pathname.startsWith("/services")) ||
-                // (item.href === "/orders" && pathname.startsWith("/orders")) ||
+                (item.href === "/orders" && pathname.startsWith("/orders")) ||
                 (item.href === "/affiliates" && pathname.startsWith("/affiliates/")) ||
                 (item.href === "/withdraw-requests" && pathname.startsWith("/withdraw-requests")) ||
                 (item.href === "/notifications" && pathname.startsWith("/notifications")) ||

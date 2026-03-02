@@ -419,6 +419,16 @@ export default function AddCouponsPage() {
         ),
       },
       {
+        header: "Category",
+        accessor: (c: Coupon) => (
+          <span className="text-gray-700">
+            {c.applicableCategoryIds && c.applicableCategoryIds.length > 0
+              ? c.applicableCategoryIds.join(", ")
+              : "All categories"}
+          </span>
+        ),
+      },
+      {
         header: "Min Order Value",
         accessor: (c: Coupon) => (
           <span className="text-gray-700">{formatCurrency(c.minOrderValue)}</span>
@@ -465,7 +475,7 @@ export default function AddCouponsPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between gap-3">
         <h1 className="text-xl sm:text-2xl font-semibold text-gray-900">
-          Coupons
+          My Coupons
         </h1>
         <button
           type="button"

@@ -9,6 +9,7 @@ import React, {
 } from "react";
 import {
   MOCK_PRODUCTS,
+  DEFAULT_STOCK_THRESHOLD,
   generateProductId,
   type Product,
   type ProductStatus,
@@ -23,9 +24,12 @@ export type ProductFormValues = Omit<
   imageFile?: File | null;
 };
 
-function deriveStockStatus(stock: number): ProductStockStatus {
+export function deriveStockStatus(
+  stock: number,
+  threshold: number = DEFAULT_STOCK_THRESHOLD
+): ProductStockStatus {
   if (stock <= 0) return "out_of_stock";
-  if (stock < 15) return "low_stock";
+  if (stock < threshold) return "low_stock";
   return "in_stock";
 }
 
@@ -51,7 +55,8 @@ export function ProductsProvider({ children }: { children: React.ReactNode }) {
 
   const addProduct = useCallback((values: ProductFormValues): Product => {
     const now = new Date().toISOString();
-    const stockStatus = values.stockStatus ?? deriveStockStatus(values.stock);
+    const threshold = values.stockThreshold ?? DEFAULT_STOCK_THRESHOLD;
+    const stockStatus = values.stockStatus ?? deriveStockStatus(values.stock, threshold);
     const newProduct: Product = {
       id: generateProductId(),
       name: values.name,
@@ -66,6 +71,8 @@ export function ProductsProvider({ children }: { children: React.ReactNode }) {
       images: values.images ?? (values.image ? [values.image] : []),
       description: values.description ?? "",
       isAffiliateProduct: values.isAffiliateProduct ?? false,
+      sku: values.sku,
+      stockThreshold: values.stockThreshold ?? DEFAULT_STOCK_THRESHOLD,
       createdAt: now,
       updatedAt: now,
     };
@@ -79,8 +86,9 @@ export function ProductsProvider({ children }: { children: React.ReactNode }) {
         prev.map((p) => {
           if (p.id !== id) return p;
           const stock = values.stock ?? p.stock;
+          const threshold = values.stockThreshold ?? p.stockThreshold ?? DEFAULT_STOCK_THRESHOLD;
           const stockStatus =
-            values.stockStatus ?? deriveStockStatus(stock);
+            values.stockStatus ?? deriveStockStatus(stock, threshold);
           return {
             ...p,
             ...values,

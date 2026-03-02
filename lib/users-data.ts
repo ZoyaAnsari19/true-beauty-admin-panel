@@ -332,7 +332,7 @@ const MOCK_PURCHASES_USER4: OrderItem[] = [
   {
     orderId: "ord-4a",
     productName: "Body Lotion",
-    productImage: "/products/body-lotion.png",
+    productImage: "/products/bodyLotion.png",
     price: 549,
     quantity: 2,
     totalAmount: 1098,
@@ -342,7 +342,7 @@ const MOCK_PURCHASES_USER4: OrderItem[] = [
   {
     orderId: "ord-4b",
     productName: "Cleansing Balm",
-    productImage: "/products/cleansing-balm.png",
+    productImage: "/products/cleansing.png",
     price: 799,
     quantity: 1,
     totalAmount: 799,
@@ -397,7 +397,7 @@ const MOCK_EXCHANGES_USER4: OrderItem[] = [
   {
     orderId: "ord-4g",
     productName: "Body Lotion",
-    productImage: "/products/body-lotion.png",
+    productImage: "/products/bodyLotion.png",
     price: 549,
     quantity: 1,
     totalAmount: 549,
@@ -470,7 +470,7 @@ const MOCK_WISHLIST_USER4: WishlistItem[] = [
     id: "w-3",
     productId: "p3",
     productName: "Cleansing Balm",
-    productImage: "/products/cleansing-balm.png",
+    productImage: "/products/cleansing.png",
     category: "Cleansers",
     price: 799,
     stockStatus: "in_stock",

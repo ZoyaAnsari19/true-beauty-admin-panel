@@ -94,7 +94,7 @@ const MOCK_SERVICES: Service[] = [
     category: "Makeup",
     price: 2499,
     durationMinutes: 120,
-    image: null,
+    image: "/services/bridalMakeup.png",
     status: "inactive",
     createdAt: "2024-03-10T10:00:00Z",
     updatedAt: "2024-03-10T10:00:00Z",

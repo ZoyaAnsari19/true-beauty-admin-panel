@@ -13,6 +13,8 @@ export const PRODUCT_CATEGORIES = [
   "Offers",
 ] as const;
 
+export const DEFAULT_STOCK_THRESHOLD = 15;
+
 export interface Product {
   id: string;
   name: string;
@@ -30,6 +32,10 @@ export interface Product {
   createdAt: string;
   updatedAt: string;
   isAffiliateProduct?: boolean;
+  /** Product SKU for inventory */
+  sku?: string;
+  /** Below this count, status is low_stock */
+  stockThreshold?: number;
 }
 
 const MOCK_PRODUCTS: Product[] = [
@@ -48,6 +54,8 @@ const MOCK_PRODUCTS: Product[] = [
       "Luxurious night cream enriched with natural extracts. Deeply nourishes and restores skin overnight for a radiant morning glow.",
     createdAt: "2024-01-10T10:00:00Z",
     updatedAt: "2024-01-10T10:00:00Z",
+    sku: "TB-NC-001",
+    stockThreshold: 15,
   },
   {
     id: "prod-2",
@@ -64,6 +72,8 @@ const MOCK_PRODUCTS: Product[] = [
       "Gentle cleanser with Vitamin C to brighten and refresh. Suitable for all skin types.",
     createdAt: "2024-02-15T10:00:00Z",
     updatedAt: "2024-02-15T10:00:00Z",
+    sku: "TB-VC-002",
+    stockThreshold: 15,
   },
   {
     id: "prod-3",
@@ -80,6 +90,8 @@ const MOCK_PRODUCTS: Product[] = [
       "Promotes hair growth and reduces breakage. Formulated with biotin and natural oils.",
     createdAt: "2024-03-01T10:00:00Z",
     updatedAt: "2024-03-01T10:00:00Z",
+    sku: "TB-HS-003",
+    stockThreshold: 15,
   },
   {
     id: "prod-4",
@@ -96,6 +108,8 @@ const MOCK_PRODUCTS: Product[] = [
       "Broad-spectrum protection with a lightweight, non-greasy formula. Water-resistant.",
     createdAt: "2024-04-05T10:00:00Z",
     updatedAt: "2024-04-05T10:00:00Z",
+    sku: "TB-SP-004",
+    stockThreshold: 15,
   },
   {
     id: "prod-5",
@@ -111,6 +125,8 @@ const MOCK_PRODUCTS: Product[] = [
     description: "Set of 3 nourishing lip balms in different flavors.",
     createdAt: "2024-05-12T10:00:00Z",
     updatedAt: "2024-05-12T10:00:00Z",
+    sku: "TB-LB-005",
+    stockThreshold: 15,
   },
 ];
 
