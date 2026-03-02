@@ -31,6 +31,18 @@ interface NotificationsContextValue {
     timestamp?: string;
     imageName?: string;
   }) => void;
+  updateNotification: (
+    id: string,
+    payload: {
+      title: string;
+      description: string;
+      targetRole: TargetRole;
+      redirectLink?: string;
+      category: NotificationCategory;
+      timestamp?: string;
+      imageName?: string;
+    }
+  ) => void;
   filterNotifications: (filter: FilterValue) => Notification[];
 }
 
@@ -99,6 +111,51 @@ export function NotificationsProvider({
     []
   );
 
+  const updateNotification = useCallback(
+    (
+      id: string,
+      payload: {
+        title: string;
+        description: string;
+        targetRole: TargetRole;
+        redirectLink?: string;
+        category: NotificationCategory;
+        timestamp?: string;
+        imageName?: string;
+      }
+    ) => {
+      const iconMap: Record<NotificationCategory, NotificationCategory> = {
+        system: "system",
+        customers: "customers",
+        affiliate_users: "affiliate_users",
+        new_products: "new_products",
+        new_services: "new_services",
+        new_orders: "new_orders",
+        withdraw_request: "withdraw_request",
+      };
+
+      setNotifications((prev) =>
+        prev.map((n) =>
+          n.id === id
+            ? {
+                ...n,
+                icon: iconMap[payload.category],
+                title: payload.title,
+                description: payload.description,
+                targetRole: payload.targetRole,
+                redirectLink: payload.redirectLink,
+                category: payload.category,
+                timestamp: payload.timestamp ?? n.timestamp,
+                imageName: payload.imageName,
+                sentByAdmin: true,
+              }
+            : n
+        )
+      );
+    },
+    []
+  );
+
   const filterNotifications = useCallback(
     (filter: FilterValue): Notification[] => {
       let list = [...notifications];
@@ -124,6 +181,7 @@ export function NotificationsProvider({
       markAllAsRead,
       deleteNotification,
       createNotification,
+      updateNotification,
       filterNotifications,
     }),
     [
@@ -132,6 +190,7 @@ export function NotificationsProvider({
       markAllAsRead,
       deleteNotification,
       createNotification,
+      updateNotification,
       filterNotifications,
     ]
   );
