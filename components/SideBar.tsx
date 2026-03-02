@@ -37,7 +37,7 @@ const menuItems: MenuItem[] = [
   { label: "Notification", icon: Bell, href: "/notifications" },
   { label: "Add Coupons", icon: Gift, href: "/addCoupons" },
   { label: "Web Theme", icon: Palette, href: "/web-theme" },
-  { label: "Inventory", icon: Boxes, href: "/inventory" },
+  { label: "Inventory Management", icon: Boxes, href: "/inventory" },
   { label: "Settings", icon: Settings, href: "/settings" },
 ];
 
