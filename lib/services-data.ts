@@ -106,7 +106,7 @@ const MOCK_SERVICES: Service[] = [
     category: "Threading & Waxing",
     price: 349,
     durationMinutes: 30,
-    image: null,
+    image: "/services/Threading&Waxing.png",
     status: "active",
     createdAt: "2024-04-05T10:00:00Z",
     updatedAt: "2024-04-05T10:00:00Z",
