@@ -53,6 +53,8 @@ export interface Notification {
   read: boolean;
   category: NotificationCategory;
   redirectLink?: string;
+   /** Optional image name or URL associated with the notification */
+   imageName?: string;
   targetRole?: TargetRole;
   /** True when created by admin via "Create Notification" */
   sentByAdmin?: boolean;
