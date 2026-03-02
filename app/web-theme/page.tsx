@@ -302,7 +302,7 @@ export default function WebThemePage() {
   };
 
   return (
-    <div className="space-y-8 max-w-6xl">
+    <div className="space-y-6 sm:space-y-8 max-w-6xl mx-auto px-3 sm:px-0 pb-6">
       {successMessage && (
         <div
           role="alert"
@@ -312,13 +312,15 @@ export default function WebThemePage() {
           {successMessage}
         </div>
       )}
-      <div className="flex items-center justify-between">
-        <h1 className="text-xl font-semibold text-gray-900">Select Web Theme</h1>
-        <div className="flex items-center gap-3">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <h1 className="text-lg sm:text-xl font-semibold text-gray-900">
+          Select Web Theme
+        </h1>
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3 w-full sm:w-auto">
           <button
             type="button"
             onClick={resetToDefault}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-gray-200 bg-white text-gray-700 text-sm font-medium hover:bg-gray-50 transition-colors"
+            className="inline-flex justify-center items-center gap-2 px-3 sm:px-4 py-2 rounded-xl border border-gray-200 bg-white text-gray-700 text-sm font-medium hover:bg-gray-50 transition-colors flex-1 sm:flex-none whitespace-nowrap"
           >
             <RotateCcw className="w-4 h-4" />
             Reset to default
@@ -326,7 +328,7 @@ export default function WebThemePage() {
           <button
             type="button"
             onClick={openPreviewModal}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-gray-200 bg-white text-gray-700 text-sm font-medium hover:bg-gray-50 transition-colors"
+            className="inline-flex justify-center items-center gap-2 px-3 sm:px-4 py-2 rounded-xl border border-gray-200 bg-white text-gray-700 text-sm font-medium hover:bg-gray-50 transition-colors flex-1 sm:flex-none"
           >
             Preview
           </button>
@@ -334,7 +336,7 @@ export default function WebThemePage() {
             type="button"
             onClick={handleConfirmApply}
             disabled={confirmLoading}
-            className="inline-flex items-center gap-2 px-5 py-2 rounded-xl bg-[#D96A86] text-white text-sm font-medium hover:bg-[#C85A76] transition-colors disabled:opacity-60 disabled:pointer-events-none"
+            className="inline-flex justify-center items-center gap-2 px-4 sm:px-5 py-2 rounded-xl bg-[#D96A86] text-white text-sm font-medium hover:bg-[#C85A76] transition-colors disabled:opacity-60 disabled:pointer-events-none flex-1 sm:flex-none"
           >
             <Save className="w-4 h-4" />
             {confirmLoading ? "Saving…" : "Save"}
@@ -515,16 +517,16 @@ export default function WebThemePage() {
         </div>
       )}
 
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-5 sm:gap-6">
         {/* Left column: forms */}
         <div className="xl:col-span-2 space-y-6">
           {/* Banner Management */}
           <section className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-            <div className="px-6 py-4 border-b border-gray-100 flex items-center gap-2">
+            <div className="px-4 sm:px-6 py-4 border-b border-gray-100 flex items-center gap-2">
               <ImagePlus className="w-5 h-5 text-gray-500" />
               <h2 className="text-base font-semibold text-gray-900">Banner Management</h2>
             </div>
-            <div className="p-6 space-y-5">
+            <div className="p-4 sm:p-6 space-y-5">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Upload Banner</label>
                 <label className="block w-full aspect-[3/1] max-h-40 rounded-xl border-2 border-dashed border-gray-200 flex items-center justify-center cursor-pointer hover:border-[#D96A86] hover:bg-[#fef5f7] transition-colors overflow-hidden bg-gray-50">
@@ -571,11 +573,11 @@ export default function WebThemePage() {
 
           {/* Color Theme */}
           <section className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-            <div className="px-6 py-4 border-b border-gray-100 flex items-center gap-2">
+            <div className="px-4 sm:px-6 py-4 border-b border-gray-100 flex items-center gap-2">
               <Palette className="w-5 h-5 text-gray-500" />
               <h2 className="text-base font-semibold text-gray-900">Color Theme</h2>
             </div>
-            <div className="p-6 space-y-5">
+            <div className="p-4 sm:p-6 space-y-5">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-3">Preset themes</label>
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2">
@@ -688,11 +690,11 @@ export default function WebThemePage() {
 
           {/* Homepage Layout Toggles */}
           <section className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-            <div className="px-6 py-4 border-b border-gray-100 flex items-center gap-2">
+            <div className="px-4 sm:px-6 py-4 border-b border-gray-100 flex items-center gap-2">
               <Layout className="w-5 h-5 text-gray-500" />
               <h2 className="text-base font-semibold text-gray-900">Homepage Layout</h2>
             </div>
-            <div className="p-6">
+            <div className="p-4 sm:p-6">
               <div className="space-y-4">
                 {[
                   { state: heroBanner, set: setHeroBanner, label: "Hero Banner" },
@@ -727,13 +729,13 @@ export default function WebThemePage() {
         </div>
 
         {/* Right column: Live preview */}
-        <div className="xl:col-span-1">
-          <section className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden sticky top-6">
-            <div className="px-6 py-4 border-b border-gray-100">
+        <div className="xl:col-span-1 mt-2 xl:mt-0">
+          <section className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden lg:sticky lg:top-4">
+            <div className="px-4 sm:px-6 py-4 border-b border-gray-100">
               <h2 className="text-base font-semibold text-gray-900">Live Preview</h2>
             </div>
             <div
-              className="p-6 min-h-[320px] rounded-b-2xl transition-colors"
+              className="p-4 sm:p-6 min-h-[260px] sm:min-h-[320px] rounded-b-2xl transition-colors"
               style={{ backgroundColor }}
             >
               <div className="space-y-4">
