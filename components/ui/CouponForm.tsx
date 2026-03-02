@@ -3,7 +3,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import {
   generateCouponCode,
-  type ApplicableRole,
   type Coupon,
   type CouponDiscountType,
   type CouponStatus,
@@ -19,12 +18,6 @@ const STATUS_OPTIONS: { value: CouponStatus; label: string }[] = [
 const DISCOUNT_TYPE_OPTIONS: { value: CouponDiscountType; label: string }[] = [
   { value: "percentage", label: "Percentage" },
   { value: "fixed", label: "Fixed" },
-];
-
-const ROLE_OPTIONS: { value: ApplicableRole; label: string }[] = [
-  { value: "all", label: "All" },
-  { value: "customers", label: "Customers" },
-  { value: "affiliate", label: "Affiliate users" },
 ];
 
 const CATEGORY_OPTIONS = [
@@ -354,30 +347,6 @@ export function CouponForm({
             <p className="mt-1 text-sm text-red-600">{errors.usageLimitPerUser}</p>
           )}
         </div>
-      </div>
-
-      {/* Applicable Role */}
-      <div>
-        <label htmlFor="applicable-role" className={labelClass}>
-          Applicable Role
-        </label>
-        <select
-          id="applicable-role"
-          value={values.applicableRole}
-          onChange={(e) =>
-            setValues((v) => ({
-              ...v,
-              applicableRole: e.target.value as ApplicableRole,
-            }))
-          }
-          className={`${inputClass} bg-white`}
-        >
-          {ROLE_OPTIONS.map((opt) => (
-            <option key={opt.value} value={opt.value}>
-              {opt.label}
-            </option>
-          ))}
-        </select>
       </div>
 
       {/* Applicable Categories */}

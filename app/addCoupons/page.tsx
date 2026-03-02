@@ -419,6 +419,16 @@ export default function AddCouponsPage() {
         ),
       },
       {
+        header: "Category",
+        accessor: (c: Coupon) => (
+          <span className="text-gray-700">
+            {c.applicableCategoryIds && c.applicableCategoryIds.length > 0
+              ? c.applicableCategoryIds.join(", ")
+              : "All categories"}
+          </span>
+        ),
+      },
+      {
         header: "Min Order Value",
         accessor: (c: Coupon) => (
           <span className="text-gray-700">{formatCurrency(c.minOrderValue)}</span>
