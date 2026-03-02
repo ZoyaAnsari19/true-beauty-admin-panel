@@ -50,16 +50,6 @@ const CATEGORY_LABELS: Record<NotificationCategory, string> = {
   withdraw_request: "Withdraw Request",
 };
 
-type FilterValue = "all" | "unread" | "send" | NotificationCategory;
-
-const FILTER_OPTIONS: { value: FilterValue; label: string }[] = [
-  { value: "all", label: "All" },
-  { value: "unread", label: "Unread" },
-  { value: "affiliate_users", label: "Affiliate Users" },
-  { value: "new_orders", label: "New Orders" },
-  { value: "withdraw_request", label: "Withdraw Request" },
-];
-
 const CREATE_CATEGORIES = [
   { value: "orders", label: "Orders" },
   { value: "returns", label: "Returns" },
@@ -310,28 +300,8 @@ function NotificationDetailDrawer({
       {/* Action Section */}
       <div className={`${sectionPadding} pt-5 mt-auto border-t border-gray-100`}>
         <div className="flex flex-col gap-3">
-          {(isWithdraw || isOrder || isReturn || notification.redirectLink) && (
+          {(isOrder || isReturn || (!isWithdraw && notification.redirectLink)) && (
             <>
-              {isWithdraw && notification.title.toLowerCase().includes("request") && (
-                <div className="flex justify-between items-center gap-3">
-                  <button
-                    type="button"
-                    onClick={() => setConfirmAction("reject")}
-                    className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium text-red-700 border border-red-200 hover:bg-red-50 transition-colors"
-                  >
-                    <XCircle className="w-4 h-4" />
-                    Reject
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setConfirmAction("approve")}
-                    className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium text-white bg-emerald-600 hover:bg-emerald-700 transition-colors"
-                  >
-                    <CheckCircle2 className="w-4 h-4" />
-                    Approve
-                  </button>
-                </div>
-              )}
               {isOrder && (
                 <button
                   type="button"
@@ -368,7 +338,7 @@ function NotificationDetailDrawer({
               )}
             </>
           )}
-          {!isWithdraw && !isOrder && !isReturn && notification.redirectLink && (
+          {!isOrder && !isReturn && !isWithdraw && notification.redirectLink && (
             <button
               type="button"
               onClick={() => {
@@ -488,7 +458,6 @@ export default function NotificationsPage() {
   const { markAsRead, deleteNotification, filterNotifications, createNotification } =
     useNotifications();
 
-  const [filter, setFilter] = useState<FilterValue>("all");
   const [selectedNotification, setSelectedNotification] = useState<Notification | null>(null);
   const [createOpen, setCreateOpen] = useState(false);
   const [createSubmitting, setCreateSubmitting] = useState(false);
@@ -518,8 +487,8 @@ export default function NotificationsPage() {
   });
 
   const filtered = useMemo(
-    () => filterNotifications(filter),
-    [filter, filterNotifications]
+    () => filterNotifications("all"),
+    [filterNotifications]
   );
 
   const focusId = searchParams.get("focusId");
@@ -608,7 +577,7 @@ export default function NotificationsPage() {
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <h1 className="text-xl font-semibold text-gray-900">All Notifications</h1>
+        <h1 className="text-xl font-semibold text-gray-900">Notification History</h1>
         <div className="flex flex-wrap items-center gap-3">
           <button
             type="button"
@@ -622,24 +591,6 @@ export default function NotificationsPage() {
             Add Notification
           </button>
         </div>
-      </div>
-
-      {/* Filters */}
-      <div className="flex flex-wrap gap-2">
-        {FILTER_OPTIONS.map((opt) => (
-          <button
-            key={opt.value}
-            type="button"
-            onClick={() => setFilter(opt.value)}
-            className={`px-4 py-2 rounded-xl text-sm font-medium transition-colors ${
-              filter === opt.value
-                ? "bg-[#D96A86] text-white"
-                : "bg-white border border-gray-200 text-gray-700 hover:bg-[#fef5f7]"
-            }`}
-          >
-            {opt.label}
-          </button>
-        ))}
       </div>
 
       {/* List - table layout */}
@@ -659,7 +610,7 @@ export default function NotificationsPage() {
                   <th className="py-3 px-4 text-left font-semibold">Description</th>
                   <th className="py-3 px-4 text-left font-semibold">Image</th>
                   <th className="py-3 px-4 text-left font-semibold">Link</th>
-                  <th className="py-3 px-4 text-left font-semibold">Time</th>
+                  <th className="py-3 px-4 text-left font-semibold">Date &amp; Time</th>
                   <th className="py-3 px-4 text-right font-semibold">Action</th>
                 </tr>
               </thead>
@@ -676,12 +627,25 @@ export default function NotificationsPage() {
                       {notification.title}
                     </td>
                     <td className="py-3 px-4 text-gray-700 max-w-[260px]">
-                      <span className="line-clamp-2">
+                      <span
+                        className="block truncate"
+                        title={notification.description}
+                      >
                         {notification.description}
                       </span>
                     </td>
                     <td className="py-3 px-4 whitespace-nowrap text-gray-700">
-                      {notification.imageName ?? "—"}
+                      {notification.imageName ? (
+                        <span
+                          className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-[#fef5f7] text-[#D96A86]"
+                          title={notification.imageName}
+                        >
+                          <span className="w-1.5 h-1.5 rounded-full bg-[#D96A86]" />
+                          Image attached
+                        </span>
+                      ) : (
+                        <span className="text-gray-400">No image</span>
+                      )}
                     </td>
                     <td className="py-3 px-4 whitespace-nowrap text-gray-700">
                       {notification.redirectLink ? (
@@ -697,7 +661,7 @@ export default function NotificationsPage() {
                       )}
                     </td>
                     <td className="py-3 px-4 whitespace-nowrap text-gray-700">
-                      {formatTimestamp(notification.timestamp)}
+                      {formatDateTime(notification.timestamp)}
                     </td>
                     <td className="py-3 px-4 whitespace-nowrap text-right">
                       <div className="relative inline-flex justify-end w-full">

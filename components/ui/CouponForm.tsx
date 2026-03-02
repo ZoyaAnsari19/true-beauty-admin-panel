@@ -191,6 +191,55 @@ export function CouponForm({
         )}
       </div>
 
+      {/* Applicable Categories */}
+      <div>
+        <label htmlFor="applicable-categories" className={labelClass}>
+          Applicable Categories
+        </label>
+        <select
+          id="applicable-categories"
+          value={(values.applicableCategoryIds ?? [])[0] ?? ""}
+          onChange={(e) =>
+            setValues((v) => ({
+              ...v,
+              applicableCategoryIds: e.target.value ? [e.target.value] : [],
+            }))
+          }
+          className={`${inputClass} bg-white`}
+        >
+          {CATEGORY_OPTIONS.map((opt) => (
+            <option key={opt.value || "all"} value={opt.value}>
+              {opt.label}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      {/* Applicable Products */}
+      <div>
+        <label htmlFor="applicable-products" className={labelClass}>
+          Applicable Products
+        </label>
+        <select
+          id="applicable-products"
+          value={(values.applicableProductIds ?? [])[0] ?? ""}
+          onChange={(e) =>
+            setValues((v) => ({
+              ...v,
+              applicableProductIds: e.target.value ? [e.target.value] : [],
+            }))
+          }
+          className={`${inputClass} bg-white`}
+        >
+          <option value="">All products</option>
+          {productOptions.map((prod) => (
+            <option key={prod.id} value={prod.id}>
+              {prod.name}
+            </option>
+          ))}
+        </select>
+      </div>
+
       {/* Discount Type & Value */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
@@ -347,55 +396,6 @@ export function CouponForm({
             <p className="mt-1 text-sm text-red-600">{errors.usageLimitPerUser}</p>
           )}
         </div>
-      </div>
-
-      {/* Applicable Categories */}
-      <div>
-        <label htmlFor="applicable-categories" className={labelClass}>
-          Applicable Categories
-        </label>
-        <select
-          id="applicable-categories"
-          value={(values.applicableCategoryIds ?? [])[0] ?? ""}
-          onChange={(e) =>
-            setValues((v) => ({
-              ...v,
-              applicableCategoryIds: e.target.value ? [e.target.value] : [],
-            }))
-          }
-          className={`${inputClass} bg-white`}
-        >
-          {CATEGORY_OPTIONS.map((opt) => (
-            <option key={opt.value || "all"} value={opt.value}>
-              {opt.label}
-            </option>
-          ))}
-        </select>
-      </div>
-
-      {/* Applicable Products */}
-      <div>
-        <label htmlFor="applicable-products" className={labelClass}>
-          Applicable Products
-        </label>
-        <select
-          id="applicable-products"
-          value={(values.applicableProductIds ?? [])[0] ?? ""}
-          onChange={(e) =>
-            setValues((v) => ({
-              ...v,
-              applicableProductIds: e.target.value ? [e.target.value] : [],
-            }))
-          }
-          className={`${inputClass} bg-white`}
-        >
-          <option value="">All products</option>
-          {productOptions.map((prod) => (
-            <option key={prod.id} value={prod.id}>
-              {prod.name}
-            </option>
-          ))}
-        </select>
       </div>
 
       {/* Start & Expiry Date */}
