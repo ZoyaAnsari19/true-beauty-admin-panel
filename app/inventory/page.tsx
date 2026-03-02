@@ -43,15 +43,6 @@ const CATEGORY_OPTIONS: FilterOption[] = [
   ...PRODUCT_CATEGORIES.map((c) => ({ value: c, label: c })),
 ];
 
-const STOCK_ADJUST_REASONS = [
-  "Restock",
-  "Sale / Order",
-  "Return",
-  "Damage / Write-off",
-  "Correction",
-  "Other",
-] as const;
-
 export interface StockHistoryEntry {
   id: string;
   productId: string;
@@ -59,7 +50,6 @@ export interface StockHistoryEntry {
   at: string;
   type: "add" | "reduce";
   quantity: number;
-  reason: string;
   previousStock: number;
   newStock: number;
 }
@@ -333,7 +323,7 @@ export default function InventoryPage() {
           setSelectedProduct(null);
         }}
         product={selectedProduct}
-        onSave={(type, quantity, reason) => {
+        onSave={(type, quantity) => {
           if (!selectedProduct) return;
           const prev = selectedProduct.stock;
           const newStock = Math.max(
@@ -350,7 +340,6 @@ export default function InventoryPage() {
               at: new Date().toISOString(),
               type,
               quantity,
-              reason,
               previousStock: prev,
               newStock,
             },
@@ -407,8 +396,7 @@ export default function InventoryPage() {
                       </span>
                       <div className="min-w-0">
                         <p className="text-sm font-medium text-gray-900">
-                          {entry.type === "add" ? "Added" : "Reduced"}{" "}
-                          {entry.quantity} · {entry.reason}
+                          {entry.type === "add" ? "Added" : "Reduced"} {entry.quantity}
                         </p>
                         <p className="text-xs text-gray-500">
                           {formatDate(entry.at)}
@@ -438,18 +426,14 @@ function UpdateStockDrawer({
   open: boolean;
   onClose: () => void;
   product: Product | null;
-  onSave: (type: "add" | "reduce", quantity: number, reason: string) => void;
+  onSave: (type: "add" | "reduce", quantity: number) => void;
 }) {
   const [type, setType] = useState<"add" | "reduce">("add");
   const [quantity, setQuantity] = useState("");
-  const [reason, setReason] = useState<(typeof STOCK_ADJUST_REASONS)[number]>(
-    STOCK_ADJUST_REASONS[0]
-  );
 
   const reset = () => {
     setType("add");
     setQuantity("");
-    setReason(STOCK_ADJUST_REASONS[0]);
   };
 
   const handleClose = () => {
@@ -462,7 +446,7 @@ function UpdateStockDrawer({
     const q = Math.floor(Number(quantity)) || 0;
     if (q <= 0) return;
     if (product && type === "reduce" && q > product.stock) return;
-    onSave(type, q, reason);
+    onSave(type, q);
     reset();
   }
 
@@ -539,26 +523,6 @@ function UpdateStockDrawer({
                 Cannot reduce more than current stock ({currentStock}).
               </p>
             )}
-          </div>
-
-          <div>
-            <label htmlFor="inv-reason" className="block text-sm font-medium text-gray-700 mb-1">
-              Reason
-            </label>
-            <select
-              id="inv-reason"
-              value={reason}
-              onChange={(e) =>
-                setReason(e.target.value as (typeof STOCK_ADJUST_REASONS)[number])
-              }
-              className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-[#f8c6d0] focus:border-transparent bg-white"
-            >
-              {STOCK_ADJUST_REASONS.map((r) => (
-                <option key={r} value={r}>
-                  {r}
-                </option>
-              ))}
-            </select>
           </div>
 
           <div className="flex gap-3 pt-2">
