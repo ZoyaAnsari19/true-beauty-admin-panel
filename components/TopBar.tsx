@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Search, Bell, User, ChevronDown, Menu } from "lucide-react";
 import { useSidebar } from "@/lib/sidebar-context";
 
@@ -12,6 +13,12 @@ export default function TopBar({ pageTitle = "Dashboard" }: TopBarProps) {
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const { toggle: toggleSidebar } = useSidebar();
+  const router = useRouter();
+
+  const handleNotificationClick = (notificationId: string) => {
+    setShowNotifications(false);
+    router.push(`/notifications?focusId=${notificationId}`);
+  };
 
   return (
     <header className="sticky top-0 z-30 bg-[#fef5f7] border-b border-gray-200 shadow-sm">
@@ -64,11 +71,17 @@ export default function TopBar({ pageTitle = "Dashboard" }: TopBarProps) {
                     <h3 className="font-semibold text-gray-900">Notifications</h3>
                   </div>
                   <div className="max-h-96 overflow-y-auto">
-                    <div className="px-4 py-3 hover:bg-[#fef5f7] cursor-pointer">
+                  <div
+                    className="px-4 py-3 hover:bg-[#fef5f7] cursor-pointer"
+                    onClick={() => handleNotificationClick("notif-2")}
+                  >
                       <p className="text-sm text-gray-900">New order received</p>
                       <p className="text-xs text-gray-500 mt-1">2 minutes ago</p>
                     </div>
-                    <div className="px-4 py-3 hover:bg-[#fef5f7] cursor-pointer">
+                    <div
+                      className="px-4 py-3 hover:bg-[#fef5f7] cursor-pointer"
+                      onClick={() => handleNotificationClick("notif-1")}
+                    >
                       <p className="text-sm text-gray-900">Payment processed</p>
                       <p className="text-xs text-gray-500 mt-1">5 minutes ago</p>
                     </div>

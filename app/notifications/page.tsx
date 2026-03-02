@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
+import React, { useEffect, useMemo, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   Bell,
   CheckCheck,
@@ -453,6 +453,7 @@ function NotificationCard({
 
 export default function NotificationsPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const {
     markAsRead,
     markAllAsRead,
@@ -474,6 +475,16 @@ export default function NotificationsPage() {
     () => filterNotifications(filter),
     [filter, filterNotifications]
   );
+
+  const focusId = searchParams.get("focusId");
+
+  useEffect(() => {
+    if (!focusId) return;
+    const match = filtered.find((n) => n.id === focusId);
+    if (!match || match.read) return;
+    markAsRead(match.id);
+    setSelectedNotification({ ...match, read: true });
+  }, [focusId, filtered, markAsRead]);
 
   const handleNotificationClick = (n: Notification) => {
     markAsRead(n.id);
