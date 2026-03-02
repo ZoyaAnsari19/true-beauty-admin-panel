@@ -48,12 +48,7 @@ type FilterValue = "all" | "unread" | "send" | NotificationCategory;
 const FILTER_OPTIONS: { value: FilterValue; label: string }[] = [
   { value: "all", label: "All" },
   { value: "unread", label: "Unread" },
-  { value: "send", label: "Send" },
-  { value: "system", label: "System" },
-  { value: "customers", label: "Customers" },
   { value: "affiliate_users", label: "Affiliate Users" },
-  { value: "new_products", label: "New Products" },
-  { value: "new_services", label: "New Services" },
   { value: "new_orders", label: "New Orders" },
   { value: "withdraw_request", label: "Withdraw Request" },
 ];
