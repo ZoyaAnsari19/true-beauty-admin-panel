@@ -326,10 +326,18 @@ export default function WebThemePage() {
           <button
             type="button"
             onClick={openPreviewModal}
-            className="inline-flex items-center gap-2 px-5 py-2 rounded-xl bg-[#D96A86] text-white text-sm font-medium hover:bg-[#C85A76] transition-colors"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-gray-200 bg-white text-gray-700 text-sm font-medium hover:bg-gray-50 transition-colors"
+          >
+            Preview
+          </button>
+          <button
+            type="button"
+            onClick={handleConfirmApply}
+            disabled={confirmLoading}
+            className="inline-flex items-center gap-2 px-5 py-2 rounded-xl bg-[#D96A86] text-white text-sm font-medium hover:bg-[#C85A76] transition-colors disabled:opacity-60 disabled:pointer-events-none"
           >
             <Save className="w-4 h-4" />
-            Save
+            {confirmLoading ? "Saving…" : "Save"}
           </button>
         </div>
       </div>
@@ -510,79 +518,53 @@ export default function WebThemePage() {
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
         {/* Left column: forms */}
         <div className="xl:col-span-2 space-y-6">
-          {/* Branding */}
+          {/* Banner Management */}
           <section className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
             <div className="px-6 py-4 border-b border-gray-100 flex items-center gap-2">
-              <ImageIcon className="w-5 h-5 text-gray-500" />
-              <h2 className="text-base font-semibold text-gray-900">Branding</h2>
+              <ImagePlus className="w-5 h-5 text-gray-500" />
+              <h2 className="text-base font-semibold text-gray-900">Banner Management</h2>
             </div>
             <div className="p-6 space-y-5">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Upload Logo</label>
-                  <div className="flex items-center gap-4">
-                    <label className="flex-shrink-0 w-20 h-20 rounded-xl border-2 border-dashed border-gray-200 flex items-center justify-center cursor-pointer hover:border-[#D96A86] hover:bg-[#fef5f7] transition-colors overflow-hidden">
-                      <input type="file" accept="image/*" className="hidden" onChange={handleLogoChange} />
-                      {logoPreview ? (
-                        <img src={logoPreview} alt="Logo" className="w-full h-full object-contain" />
-                      ) : (
-                        <ImageIcon className="w-8 h-8 text-gray-400" />
-                      )}
-                    </label>
-                    <span className="text-xs text-gray-500">PNG, JPG. Click to upload.</span>
-                  </div>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Upload Favicon</label>
-                  <div className="flex items-center gap-4">
-                    <label className="flex-shrink-0 w-12 h-12 rounded-lg border-2 border-dashed border-gray-200 flex items-center justify-center cursor-pointer hover:border-[#D96A86] hover:bg-[#fef5f7] transition-colors overflow-hidden">
-                      <input type="file" accept="image/*,.ico" className="hidden" onChange={handleFaviconChange} />
-                      {faviconPreview ? (
-                        <img src={faviconPreview} alt="Favicon" className="w-full h-full object-contain" />
-                      ) : (
-                        <ImageIcon className="w-5 h-5 text-gray-400" />
-                      )}
-                    </label>
-                    <span className="text-xs text-gray-500">ICO, PNG. 32×32 recommended.</span>
-                  </div>
-                </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Upload Banner</label>
+                <label className="block w-full aspect-[3/1] max-h-40 rounded-xl border-2 border-dashed border-gray-200 flex items-center justify-center cursor-pointer hover:border-[#D96A86] hover:bg-[#fef5f7] transition-colors overflow-hidden bg-gray-50">
+                  <input type="file" accept="image/*" className="hidden" onChange={handleBannerChange} />
+                  {bannerPreview ? (
+                    <img src={bannerPreview} alt="Banner" className="w-full h-full object-cover" />
+                  ) : (
+                    <span className="text-sm text-gray-500">Click to upload banner image</span>
+                  )}
+                </label>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Brand Name</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Title</label>
                 <input
                   type="text"
-                  value={brandName}
-                  onChange={(e) => setBrandName(e.target.value)}
+                  value={bannerTitle}
+                  onChange={(e) => setBannerTitle(e.target.value)}
                   className="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#D96A86]/30 focus:border-[#D96A86]"
-                  placeholder="Your brand name"
+                  placeholder="Banner title"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Footer Text</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
                 <textarea
-                  value={footerText}
-                  onChange={(e) => setFooterText(e.target.value)}
+                  value={bannerDescription}
+                  onChange={(e) => setBannerDescription(e.target.value)}
                   rows={2}
                   className="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#D96A86]/30 focus:border-[#D96A86] resize-none"
-                  placeholder="Footer copyright or message"
+                  placeholder="Banner description"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-3">Social Links</label>
-                <div className="space-y-3">
-                  {SOCIAL_ICONS.map(({ key, label, icon: Icon }) => (
-                    <div key={key} className="flex items-center gap-3">
-                      <Icon className="w-4 h-4 text-gray-400 shrink-0" />
-                      <input
-                        type="url"
-                        value={socialLinks[key] ?? ""}
-                        onChange={(e) => setSocialLinks((s) => ({ ...s, [key]: e.target.value }))}
-                        className="flex-1 px-4 py-2 rounded-xl border border-gray-200 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#D96A86]/30 focus:border-[#D96A86]"
-                        placeholder={`${label} URL`}
-                      />
-                    </div>
-                  ))}
-                </div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">CTA Button Text</label>
+                <input
+                  type="text"
+                  value={bannerCta}
+                  onChange={(e) => setBannerCta(e.target.value)}
+                  className="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#D96A86]/30 focus:border-[#D96A86]"
+                  placeholder="e.g. Shop Now"
+                />
               </div>
             </div>
           </section>
@@ -738,57 +720,6 @@ export default function WebThemePage() {
                     </button>
                   </div>
                 ))}
-              </div>
-            </div>
-          </section>
-
-          {/* Banner Management */}
-          <section className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-            <div className="px-6 py-4 border-b border-gray-100 flex items-center gap-2">
-              <ImagePlus className="w-5 h-5 text-gray-500" />
-              <h2 className="text-base font-semibold text-gray-900">Banner Management</h2>
-            </div>
-            <div className="p-6 space-y-5">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Upload Banner</label>
-                <label className="block w-full aspect-[3/1] max-h-40 rounded-xl border-2 border-dashed border-gray-200 flex items-center justify-center cursor-pointer hover:border-[#D96A86] hover:bg-[#fef5f7] transition-colors overflow-hidden bg-gray-50">
-                  <input type="file" accept="image/*" className="hidden" onChange={handleBannerChange} />
-                  {bannerPreview ? (
-                    <img src={bannerPreview} alt="Banner" className="w-full h-full object-cover" />
-                  ) : (
-                    <span className="text-sm text-gray-500">Click to upload banner image</span>
-                  )}
-                </label>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Title</label>
-                <input
-                  type="text"
-                  value={bannerTitle}
-                  onChange={(e) => setBannerTitle(e.target.value)}
-                  className="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#D96A86]/30 focus:border-[#D96A86]"
-                  placeholder="Banner title"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
-                <textarea
-                  value={bannerDescription}
-                  onChange={(e) => setBannerDescription(e.target.value)}
-                  rows={2}
-                  className="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#D96A86]/30 focus:border-[#D96A86] resize-none"
-                  placeholder="Banner description"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">CTA Button Text</label>
-                <input
-                  type="text"
-                  value={bannerCta}
-                  onChange={(e) => setBannerCta(e.target.value)}
-                  className="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#D96A86]/30 focus:border-[#D96A86]"
-                  placeholder="e.g. Shop Now"
-                />
               </div>
             </div>
           </section>
