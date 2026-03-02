@@ -94,7 +94,7 @@ export default function WithdrawRequestDetailPage() {
     }
   };
 
-  const totalCommission = affiliate.totalCommission;
+  const requestedAmount = withdrawal.amount;
   const totalPayouts = affiliate.withdrawals
     .filter((w) => w.status === "approved" || w.status === "paid")
     .reduce((sum, w) => sum + w.amount, 0);
@@ -195,10 +195,10 @@ export default function WithdrawRequestDetailPage() {
             <div className="rounded-xl border border-gray-100 bg-gray-50/50 p-4 grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div>
                 <p className="text-xs text-gray-500 uppercase tracking-wider">
-                  Total Commission
+                  Requested Amount
                 </p>
                 <p className="text-lg font-semibold text-gray-900">
-                  {formatCurrency(totalCommission)}
+                  {formatCurrency(requestedAmount)}
                 </p>
               </div>
               <div>
