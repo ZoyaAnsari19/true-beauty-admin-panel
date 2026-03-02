@@ -5,7 +5,6 @@ import { useRouter, useSearchParams } from "next/navigation";
 import {
   Bell,
   CheckCheck,
-  Plus,
   ShoppingCart,
   Wallet,
   Settings,
@@ -22,7 +21,7 @@ import {
 } from "lucide-react";
 import { Drawer } from "@/components/ui/Drawer";
 import { useNotifications } from "@/lib/notifications-context";
-import type { Notification, NotificationCategory, TargetRole } from "@/lib/notifications-data";
+import type { Notification, NotificationCategory } from "@/lib/notifications-data";
 
 const CATEGORY_ICONS: Record<NotificationCategory, LucideIcon> = {
   system: Settings,
@@ -43,22 +42,6 @@ const CATEGORY_LABELS: Record<NotificationCategory, string> = {
   new_orders: "New Orders",
   withdraw_request: "Withdraw Request",
 };
-
-const TARGET_ROLE_OPTIONS: { value: TargetRole; label: string }[] = [
-  { value: "all", label: "All" },
-  { value: "customers", label: "Customers" },
-  { value: "affiliate_users", label: "Affiliate Users" },
-];
-
-const CATEGORY_OPTIONS: { value: NotificationCategory; label: string }[] = [
-  { value: "system", label: "System" },
-  { value: "customers", label: "Customers" },
-  { value: "affiliate_users", label: "Affiliate Users" },
-  { value: "new_products", label: "New Products" },
-  { value: "new_services", label: "New Services" },
-  { value: "new_orders", label: "New Orders" },
-  { value: "withdraw_request", label: "Withdraw Request" },
-];
 
 type FilterValue = "all" | "unread" | "send" | NotificationCategory;
 
@@ -457,19 +440,11 @@ export default function NotificationsPage() {
   const {
     markAsRead,
     markAllAsRead,
-    createNotification,
     filterNotifications,
   } = useNotifications();
 
   const [filter, setFilter] = useState<FilterValue>("all");
   const [selectedNotification, setSelectedNotification] = useState<Notification | null>(null);
-  const [createOpen, setCreateOpen] = useState(false);
-  const [createTitle, setCreateTitle] = useState("");
-  const [createDescription, setCreateDescription] = useState("");
-  const [createTargetRole, setCreateTargetRole] = useState<TargetRole>("all");
-  const [createCategory, setCreateCategory] =
-    useState<NotificationCategory>("system");
-  const [createRedirectLink, setCreateRedirectLink] = useState("");
 
   const filtered = useMemo(
     () => filterNotifications(filter),
@@ -491,28 +466,6 @@ export default function NotificationsPage() {
     setSelectedNotification({ ...n, read: true });
   };
 
-  const handleCreateSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    const title = createTitle.trim();
-    const description = createDescription.trim();
-    if (!title || !description) return;
-
-    createNotification({
-      title,
-      description,
-      targetRole: createTargetRole,
-      category: createCategory,
-      redirectLink: createRedirectLink.trim() || undefined,
-    });
-
-    setCreateTitle("");
-    setCreateDescription("");
-    setCreateTargetRole("all");
-    setCreateCategory("system");
-    setCreateRedirectLink("");
-    setCreateOpen(false);
-  };
-
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -525,14 +478,6 @@ export default function NotificationsPage() {
           >
             <CheckCheck className="w-4 h-4" />
             Mark All as Read
-          </button>
-          <button
-            type="button"
-            onClick={() => setCreateOpen(true)}
-            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium text-white bg-[#D96A86] hover:bg-[#C85A76] transition-colors"
-          >
-            <Plus className="w-4 h-4" />
-            Create Notification
           </button>
         </div>
       </div>
@@ -589,123 +534,6 @@ export default function NotificationsPage() {
         )}
       </Drawer>
 
-      {/* Create Notification Drawer */}
-      <Drawer
-        open={createOpen}
-        onClose={() => setCreateOpen(false)}
-        title="Create Notification"
-        width="lg"
-      >
-        <form onSubmit={handleCreateSubmit} className="space-y-5">
-          <div>
-            <label
-              htmlFor="create-title"
-              className="block text-sm font-medium text-gray-700 mb-1.5"
-            >
-              Title
-            </label>
-            <input
-              id="create-title"
-              type="text"
-              value={createTitle}
-              onChange={(e) => setCreateTitle(e.target.value)}
-              placeholder="Notification title"
-              required
-              className="w-full px-4 py-2.5 rounded-xl border border-gray-200 bg-white text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#f8c6d0] focus:border-transparent"
-            />
-          </div>
-          <div>
-            <label
-              htmlFor="create-description"
-              className="block text-sm font-medium text-gray-700 mb-1.5"
-            >
-              Description
-            </label>
-            <textarea
-              id="create-description"
-              value={createDescription}
-              onChange={(e) => setCreateDescription(e.target.value)}
-              placeholder="Short description"
-              rows={3}
-              required
-              className="w-full px-4 py-2.5 rounded-xl border border-gray-200 bg-white text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#f8c6d0] focus:border-transparent resize-none"
-            />
-          </div>
-          <div>
-            <label
-              htmlFor="create-target-role"
-              className="block text-sm font-medium text-gray-700 mb-1.5"
-            >
-              Target Role
-            </label>
-            <select
-              id="create-target-role"
-              value={createTargetRole}
-              onChange={(e) => setCreateTargetRole(e.target.value as TargetRole)}
-              className="w-full px-4 py-2.5 rounded-xl border border-gray-200 bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#f8c6d0] focus:border-transparent"
-            >
-              {TARGET_ROLE_OPTIONS.map((opt) => (
-                <option key={opt.value} value={opt.value}>
-                  {opt.label}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label
-              htmlFor="create-category"
-              className="block text-sm font-medium text-gray-700 mb-1.5"
-            >
-              Category
-            </label>
-            <select
-              id="create-category"
-              value={createCategory}
-              onChange={(e) =>
-                setCreateCategory(e.target.value as NotificationCategory)
-              }
-              className="w-full px-4 py-2.5 rounded-xl border border-gray-200 bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#f8c6d0] focus:border-transparent"
-            >
-              {CATEGORY_OPTIONS.map((opt) => (
-                <option key={opt.value} value={opt.value}>
-                  {opt.label}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label
-              htmlFor="create-redirect"
-              className="block text-sm font-medium text-gray-700 mb-1.5"
-            >
-              Redirect link (optional)
-            </label>
-            <input
-              id="create-redirect"
-              type="text"
-              value={createRedirectLink}
-              onChange={(e) => setCreateRedirectLink(e.target.value)}
-              placeholder="/orders, /withdraw-requests, etc."
-              className="w-full px-4 py-2.5 rounded-xl border border-gray-200 bg-white text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#f8c6d0] focus:border-transparent"
-            />
-          </div>
-          <div className="flex gap-3 pt-2">
-            <button
-              type="button"
-              onClick={() => setCreateOpen(false)}
-              className="flex-1 px-4 py-2.5 rounded-xl text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 transition-colors"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              className="flex-1 px-4 py-2.5 rounded-xl text-sm font-medium text-white bg-[#D96A86] hover:bg-[#C85A76] transition-colors"
-            >
-              Create
-            </button>
-          </div>
-        </form>
-      </Drawer>
     </div>
   );
 }
