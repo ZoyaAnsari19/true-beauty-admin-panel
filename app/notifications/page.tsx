@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { Suspense, useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
   Bell,
@@ -452,7 +452,7 @@ function NotificationCard({
   );
 }
 
-export default function NotificationsPage() {
+function NotificationsPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { markAsRead, deleteNotification, filterNotifications, createNotification } =
@@ -948,5 +948,23 @@ export default function NotificationsPage() {
       </Drawer>
 
     </div>
+  );
+}
+
+export default function NotificationsPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="space-y-6">
+          <div className="h-7 w-48 bg-gray-100 rounded-lg animate-pulse" />
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-12 text-center">
+            <Bell className="w-12 h-12 text-gray-300 mx-auto mb-3 animate-pulse" />
+            <p className="text-gray-400 text-sm">Loading notifications...</p>
+          </div>
+        </div>
+      }
+    >
+      <NotificationsPageContent />
+    </Suspense>
   );
 }
