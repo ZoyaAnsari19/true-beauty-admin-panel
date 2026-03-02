@@ -30,6 +30,11 @@ import type {
   TargetRole,
 } from "@/lib/notifications-data";
 
+// Force this route to be dynamically rendered on the server.
+// This avoids static prerendering on Vercel and prevents build-time
+// failures due to client-only hooks or browser APIs used in this tree.
+export const dynamic = "force-dynamic";
+
 const CATEGORY_ICONS: Record<NotificationCategory, LucideIcon> = {
   system: Settings,
   customers: Users,
@@ -565,6 +570,7 @@ function NotificationsPageContent() {
   };
 
   const handleDeleteNotification = (notification: Notification) => {
+    if (typeof window === "undefined") return;
     const confirmed = window.confirm("Delete this notification?");
     if (!confirmed) return;
     deleteNotification(notification.id);
