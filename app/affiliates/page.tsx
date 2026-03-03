@@ -143,6 +143,9 @@ export default function AffiliatesPage() {
     const activeAffiliates = affiliates.filter(
       (a) => a.status === "active"
     ).length;
+    const blockedAffiliates = affiliates.filter(
+      (a) => a.status === "blocked"
+    ).length;
     const totalCommission = affiliates.reduce(
       (sum, a) => sum + a.totalCommission,
       0
@@ -155,6 +158,7 @@ export default function AffiliatesPage() {
     return {
       totalAffiliates,
       activeAffiliates,
+      blockedAffiliates,
       totalCommission,
       totalWalletBalance,
     };
@@ -243,7 +247,7 @@ export default function AffiliatesPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex gap-4 overflow-x-auto pb-2 -mx-4 px-4 md:mx-0 md:px-0 md:grid md:grid-cols-2 md:gap-6">
+      <div className="flex gap-4 overflow-x-auto pb-2 -mx-4 px-4 md:mx-0 md:px-0 md:grid md:grid-cols-3 md:gap-6">
         <KpiCard
           title="Total Affiliates"
           value={kpis.totalAffiliates.toLocaleString()}
@@ -256,6 +260,13 @@ export default function AffiliatesPage() {
           value={kpis.activeAffiliates.toLocaleString()}
           icon="user-check"
           iconClassName="bg-emerald-50 text-emerald-700"
+          className="min-w-[260px] md:min-w-0 shrink-0 md:shrink"
+        />
+        <KpiCard
+          title="Blocked Affiliates"
+          value={kpis.blockedAffiliates.toLocaleString()}
+          icon="user-x"
+          iconClassName="bg-red-50 text-red-600"
           className="min-w-[260px] md:min-w-0 shrink-0 md:shrink"
         />
       </div>
