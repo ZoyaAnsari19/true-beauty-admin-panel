@@ -25,6 +25,7 @@ import {
 import { Drawer } from "@/components/ui/Drawer";
 import { Filters, type FilterOption } from "@/components/ui/filters";
 import DeletePopup from "@/components/ui/deletePopup";
+import { KpiCard } from "@/components/ui/kpiCard";
 import { useNotifications } from "@/lib/notifications-context";
 import type {
   Notification,
@@ -223,6 +224,66 @@ function NotificationDetailDrawer({
   const sectionPadding = "px-5 py-5 sm:px-6 sm:py-6";
   const cardBg = "rounded-xl bg-gray-50/80 border border-gray-100";
 
+  const renderPrimaryActionButton = () => {
+    if (isOrder) {
+      return (
+        <button
+          type="button"
+          onClick={() => {
+            onClose();
+            const path =
+              payload?.order?.userId
+                ? `/users/${payload.order.userId}`
+                : (notification.redirectLink || "/orders");
+            onNavigate(path);
+          }}
+          className="w-full sm:w-auto sm:ml-auto inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium text-white bg-[#D96A86] hover:bg-[#C85A76] transition-colors"
+        >
+          <Eye className="w-4 h-4" />
+          View Order
+        </button>
+      );
+    }
+
+    if (isReturn) {
+      return (
+        <button
+          type="button"
+          onClick={() => {
+            onClose();
+            const path =
+              payload?.return?.userId
+                ? `/users/${payload.return.userId}`
+                : (notification.redirectLink || "/users");
+            onNavigate(path);
+          }}
+          className="w-full sm:w-auto sm:ml-auto inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium text-white bg-[#D96A86] hover:bg-[#C85A76] transition-colors"
+        >
+          <RotateCcw className="w-4 h-4" />
+          View Return
+        </button>
+      );
+    }
+
+    if (!isWithdraw && !isOrder && !isReturn && notification.redirectLink) {
+      return (
+        <button
+          type="button"
+          onClick={() => {
+            onClose();
+            onNavigate(notification.redirectLink!);
+          }}
+          className="w-full sm:w-auto sm:ml-auto inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium text-white bg-[#D96A86] hover:bg-[#C85A76] transition-colors"
+        >
+          <Eye className="w-4 h-4" />
+          View details
+        </button>
+      );
+    }
+
+    return null;
+  };
+
   return (
     <div className="min-h-0 flex flex-col">
       {/* Header Section */}
@@ -329,58 +390,15 @@ function NotificationDetailDrawer({
 
       {/* Action Section */}
       <div className={`${sectionPadding} pt-5 mt-auto border-t border-gray-100`}>
-        <div className="flex flex-col gap-3">
-          {(isOrder || isReturn || (!isWithdraw && notification.redirectLink)) && (
-            <>
-              {isOrder && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    onClose();
-                    const path =
-                      payload?.order?.userId
-                        ? `/users/${payload.order.userId}`
-                        : (notification.redirectLink || "/orders");
-                    onNavigate(path);
-                  }}
-                  className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium text-white bg-[#D96A86] hover:bg-[#C85A76] transition-colors"
-                >
-                  <Eye className="w-4 h-4" />
-                  View Order
-                </button>
-              )}
-              {isReturn && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    onClose();
-                    const path =
-                      payload?.return?.userId
-                        ? `/users/${payload.return.userId}`
-                        : (notification.redirectLink || "/users");
-                    onNavigate(path);
-                  }}
-                  className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium text-white bg-[#D96A86] hover:bg-[#C85A76] transition-colors"
-                >
-                  <RotateCcw className="w-4 h-4" />
-                  View Return
-                </button>
-              )}
-            </>
-          )}
-          {!isOrder && !isReturn && !isWithdraw && notification.redirectLink && (
-            <button
-              type="button"
-              onClick={() => {
-                onClose();
-                onNavigate(notification.redirectLink!);
-              }}
-              className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium text-white bg-[#D96A86] hover:bg-[#C85A76] transition-colors"
-            >
-              <Eye className="w-4 h-4" />
-              View details
-            </button>
-          )}
+        <div className="flex flex-col-reverse sm:flex-row sm:items-center sm:justify-between gap-3">
+          <button
+            type="button"
+            onClick={onClose}
+            className="w-full sm:w-auto inline-flex items-center justify-center px-4 py-2.5 rounded-xl text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 transition-colors"
+          >
+            Cancel
+          </button>
+          {renderPrimaryActionButton()}
         </div>
       </div>
 
@@ -544,6 +562,22 @@ function NotificationsPageContent() {
     []
   );
 
+  const kpis = useMemo(() => {
+    const totalNotifications = notifications.length;
+    const unreadNotifications = notifications.filter((n) => !n.read).length;
+    const readNotifications = notifications.filter((n) => n.read).length;
+    const orderNotifications = notifications.filter(
+      (n) => n.category === "new_orders"
+    ).length;
+
+    return {
+      totalNotifications,
+      unreadNotifications,
+      readNotifications,
+      orderNotifications,
+    };
+  }, [notifications]);
+
   const filtered = useMemo(() => {
     let list = [...notifications];
 
@@ -699,22 +733,54 @@ function NotificationsPageContent() {
             Add Notification
           </button>
         </div>
-        <Filters
-          search={search}
-          onSearchChange={setSearch}
-          searchPlaceholder="Search by title or description..."
-          searchPlaceholderMobile="Search..."
-          filterOptions={STATUS_FILTER_OPTIONS}
-          filterValue={statusFilter}
-          onFilterChange={(value) =>
-            setStatusFilter(value as "" | "read" | "unread")
-          }
-          categoryOptions={CATEGORY_FILTER_OPTIONS}
-          categoryValue={categoryFilter}
-          onCategoryChange={(value) =>
-            setCategoryFilter(value as "" | CreateCategory)
-          }
-        />
+        <div className="mt-5 flex gap-4 overflow-x-auto pb-2 -mx-4 px-4 md:mx-0 md:px-0 md:grid md:grid-cols-2 lg:grid-cols-4 md:gap-6">
+          <KpiCard
+            title="Total Notifications"
+            value={kpis.totalNotifications.toLocaleString()}
+            icon="users"
+            iconClassName="bg-blue-50 text-blue-600"
+            className="min-w-[260px] md:min-w-0 shrink-0 md:shrink"
+          />
+          <KpiCard
+            title="Unread Notifications"
+            value={kpis.unreadNotifications.toLocaleString()}
+            icon="user-x"
+            iconClassName="bg-red-50 text-red-600"
+            className="min-w-[260px] md:min-w-0 shrink-0 md:shrink"
+          />
+          <KpiCard
+            title="Read Notifications"
+            value={kpis.readNotifications.toLocaleString()}
+            icon="user-check"
+            iconClassName="bg-emerald-50 text-emerald-700"
+            className="min-w-[260px] md:min-w-0 shrink-0 md:shrink"
+          />
+          <KpiCard
+            title="Order Alerts"
+            value={kpis.orderNotifications.toLocaleString()}
+            icon="shopping-cart"
+            iconClassName="bg-amber-50 text-amber-600"
+            className="min-w-[260px] md:min-w-0 shrink-0 md:shrink"
+          />
+        </div>
+        <div className="mt-4">
+          <Filters
+            search={search}
+            onSearchChange={setSearch}
+            searchPlaceholder="Search by title or description..."
+            searchPlaceholderMobile="Search..."
+            filterOptions={STATUS_FILTER_OPTIONS}
+            filterValue={statusFilter}
+            onFilterChange={(value) =>
+              setStatusFilter(value as "" | "read" | "unread")
+            }
+            categoryOptions={CATEGORY_FILTER_OPTIONS}
+            categoryValue={categoryFilter}
+            onCategoryChange={(value) =>
+              setCategoryFilter(value as "" | CreateCategory)
+            }
+          />
+        </div>
       </div>
 
       {/* List - table / card layout */}
@@ -887,7 +953,7 @@ function NotificationsPageContent() {
                     <tr
                       key={notification.id}
                       onClick={() => handleNotificationClick(notification)}
-                      className="border-b border-gray-50 last:border-0 hover:bg-gray-50/60 transition-colors cursor-pointer"
+                      className="border-b border-gray-50 last:border-0 hover:bg-[#fef5f7]/50 transition-colors cursor-pointer"
                     >
                       <td className="py-3 px-4 whitespace-nowrap text-gray-700">
                         {index + 1}
