@@ -174,8 +174,9 @@ export default function WithdrawRequestsPage() {
     const totalPendingRequests = allRows.filter((r) => r.status === "pending").length;
     const totalApproved = allRows.filter((r) => r.status === "approved").length;
     const totalPaid = allRows.filter((r) => r.status === "paid").length;
+    const totalRejected = allRows.filter((r) => r.status === "rejected").length;
 
-    return { totalRequests, totalPendingRequests, totalApproved, totalPaid };
+    return { totalRequests, totalPendingRequests, totalApproved, totalPaid, totalRejected };
   }, [allRows]);
 
   const handleApprove = (row: WithdrawRequestRow) => {
@@ -294,15 +295,15 @@ export default function WithdrawRequestsPage() {
           className="min-w-[260px] md:min-w-0 shrink-0 md:shrink"
         />
         <KpiCard
-          title="Total Approved"
+          title="Total Approved Requests"
           value={kpis.totalApproved.toLocaleString()}
           icon="user-check"
           iconClassName="bg-emerald-50 text-emerald-700"
           className="min-w-[260px] md:min-w-0 shrink-0 md:shrink"
         />
         <KpiCard
-          title="Total Pending"
-          value={kpis.totalPendingRequests.toLocaleString()}
+          title="Total Rejected Requests"
+          value={kpis.totalRejected.toLocaleString()}
           icon="shopping-cart"
           iconClassName="bg-blue-50 text-blue-600"
           className="min-w-[260px] md:min-w-0 shrink-0 md:shrink"
