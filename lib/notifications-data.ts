@@ -62,10 +62,6 @@ export interface Notification {
   payload?: NotificationPayload;
 }
 
-const now = new Date();
-const oneHour = 60 * 60 * 1000;
-const oneDay = 24 * oneHour;
-
 export const MOCK_NOTIFICATIONS: Notification[] = [
   {
     id: "notif-1",
@@ -73,7 +69,8 @@ export const MOCK_NOTIFICATIONS: Notification[] = [
     title: "New withdrawal request",
     description: "Sarah Johnson requested a withdrawal of ₹3,000.",
     relatedUser: "Sarah Johnson",
-    timestamp: new Date(now.getTime() - 2 * oneHour).toISOString(),
+    // Fixed timestamps to avoid SSR/CSR hydration mismatches
+    timestamp: "2026-03-03T08:00:00.000Z",
     read: false,
     category: "withdraw_request",
     redirectLink: "/withdraw-requests",
@@ -95,7 +92,7 @@ export const MOCK_NOTIFICATIONS: Notification[] = [
     title: "Order placed",
     description: "Order #ORD-1042 has been placed by a customer.",
     relatedUser: "Riya Sharma",
-    timestamp: new Date(now.getTime() - 5 * oneHour).toISOString(),
+    timestamp: "2026-03-02T15:00:00.000Z",
     read: false,
     category: "new_orders",
     redirectLink: "/orders",
@@ -115,7 +112,7 @@ export const MOCK_NOTIFICATIONS: Notification[] = [
     title: "Return requested",
     description: "Return request for order #ORD-1038 has been submitted.",
     relatedUser: "Priya Mehta",
-    timestamp: new Date(now.getTime() - 1 * oneDay).toISOString(),
+    timestamp: "2026-03-01T10:00:00.000Z",
     read: true,
     category: "system",
     redirectLink: "/users/user-2",
@@ -135,7 +132,7 @@ export const MOCK_NOTIFICATIONS: Notification[] = [
     title: "System maintenance",
     description: "Scheduled maintenance will occur tonight between 2–4 AM IST.",
     relatedUser: "System",
-    timestamp: new Date(now.getTime() - 2 * oneDay).toISOString(),
+    timestamp: "2026-02-28T18:00:00.000Z",
     read: true,
     category: "system",
   },
@@ -145,7 +142,7 @@ export const MOCK_NOTIFICATIONS: Notification[] = [
     title: "Withdrawal approved",
     description: "Withdrawal wd-1 for Emma Williams has been processed.",
     relatedUser: "Emma Williams",
-    timestamp: new Date(now.getTime() - 3 * oneDay).toISOString(),
+    timestamp: "2026-02-27T09:30:00.000Z",
     read: true,
     category: "withdraw_request",
     redirectLink: "/withdraw-requests",
