@@ -56,6 +56,10 @@ export interface Notification {
    /** Optional image name or URL associated with the notification */
    imageName?: string;
   targetRole?: TargetRole;
+  /** Optional location targeting information for admin‑sent notifications */
+  locationState?: string;
+  locationCity?: string;
+  locationPincode?: string;
   /** True when created by admin via "Create Notification" */
   sentByAdmin?: boolean;
   /** Type-specific details for drawer (withdraw / order / return) */

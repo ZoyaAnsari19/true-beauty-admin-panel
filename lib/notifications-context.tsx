@@ -30,6 +30,9 @@ interface NotificationsContextValue {
     category: NotificationCategory;
     timestamp?: string;
     imageName?: string;
+    locationState?: string;
+    locationCity?: string;
+    locationPincode?: string;
   }) => void;
   updateNotification: (
     id: string,
@@ -41,6 +44,9 @@ interface NotificationsContextValue {
       category: NotificationCategory;
       timestamp?: string;
       imageName?: string;
+      locationState?: string;
+      locationCity?: string;
+      locationPincode?: string;
     }
   ) => void;
   filterNotifications: (filter: FilterValue) => Notification[];
@@ -82,6 +88,9 @@ export function NotificationsProvider({
       category: NotificationCategory;
       timestamp?: string;
       imageName?: string;
+      locationState?: string;
+      locationCity?: string;
+      locationPincode?: string;
     }) => {
       const iconMap: Record<NotificationCategory, NotificationCategory> = {
         system: "system",
@@ -104,6 +113,9 @@ export function NotificationsProvider({
         redirectLink: payload.redirectLink,
         imageName: payload.imageName,
         targetRole: payload.targetRole,
+        locationState: payload.locationState,
+        locationCity: payload.locationCity,
+        locationPincode: payload.locationPincode,
         sentByAdmin: true,
       };
       setNotifications((prev) => [newNotif, ...prev]);
@@ -122,6 +134,9 @@ export function NotificationsProvider({
         category: NotificationCategory;
         timestamp?: string;
         imageName?: string;
+        locationState?: string;
+        locationCity?: string;
+        locationPincode?: string;
       }
     ) => {
       const iconMap: Record<NotificationCategory, NotificationCategory> = {
@@ -147,6 +162,9 @@ export function NotificationsProvider({
                 category: payload.category,
                 timestamp: payload.timestamp ?? n.timestamp,
                 imageName: payload.imageName,
+                locationState: payload.locationState,
+                locationCity: payload.locationCity,
+                locationPincode: payload.locationPincode,
                 sentByAdmin: true,
               }
             : n

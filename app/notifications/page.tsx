@@ -25,7 +25,6 @@ import {
 import { Drawer } from "@/components/ui/Drawer";
 import { Filters, type FilterOption } from "@/components/ui/filters";
 import DeletePopup from "@/components/ui/deletePopup";
-import { KpiCard } from "@/components/ui/kpiCard";
 import { useNotifications } from "@/lib/notifications-context";
 import type {
   Notification,
@@ -528,6 +527,9 @@ function NotificationsPageContent() {
     description: string;
     image: string;
     link: string;
+    state: string;
+    city: string;
+    pincode: string;
     category: CreateCategory | "";
     sendTo: SendToOption;
     scheduleType: "now" | "later";
@@ -538,6 +540,9 @@ function NotificationsPageContent() {
     description: "",
     image: "",
     link: "",
+    state: "",
+    city: "",
+    pincode: "",
     category: "",
     sendTo: "all_users",
     scheduleType: "now",
@@ -561,22 +566,6 @@ function NotificationsPageContent() {
     ],
     []
   );
-
-  const kpis = useMemo(() => {
-    const totalNotifications = notifications.length;
-    const unreadNotifications = notifications.filter((n) => !n.read).length;
-    const readNotifications = notifications.filter((n) => n.read).length;
-    const orderNotifications = notifications.filter(
-      (n) => n.category === "new_orders"
-    ).length;
-
-    return {
-      totalNotifications,
-      unreadNotifications,
-      readNotifications,
-      orderNotifications,
-    };
-  }, [notifications]);
 
   const filtered = useMemo(() => {
     let list = [...notifications];
@@ -631,6 +620,9 @@ function NotificationsPageContent() {
       description: "",
       image: "",
       link: "",
+      state: "",
+      city: "",
+      pincode: "",
       category: "",
       sendTo: "all_users",
       scheduleType: "now",
@@ -653,6 +645,9 @@ function NotificationsPageContent() {
       description: notification.description,
       image: notification.imageName ?? "",
       link: notification.redirectLink ?? "",
+      state: notification.locationState ?? "",
+      city: notification.locationCity ?? "",
+      pincode: notification.locationPincode ?? "",
       category: mapNotificationCategoryToCreateCategory(notification.category),
       sendTo: mapTargetRoleToSendTo(notification.targetRole),
       scheduleType: "now",
@@ -698,6 +693,9 @@ function NotificationsPageContent() {
         category: CREATE_CATEGORY_TO_NOTIFICATION[createForm.category],
         timestamp: scheduledTimestamp,
         imageName: createForm.image || undefined,
+        locationState: createForm.state.trim() || undefined,
+        locationCity: createForm.city.trim() || undefined,
+        locationPincode: createForm.pincode.trim() || undefined,
       };
 
       if (editingNotification) {
@@ -733,36 +731,6 @@ function NotificationsPageContent() {
             <span>Add</span>
             <span className="hidden sm:inline">Notification</span>
           </button>
-        </div>
-        <div className="mt-5 hidden md:grid md:grid-cols-2 lg:grid-cols-4 md:gap-6">
-          <KpiCard
-            title="Total Notifications"
-            value={kpis.totalNotifications.toLocaleString()}
-            icon="users"
-            iconClassName="bg-blue-50 text-blue-600"
-            className="min-w-[260px] md:min-w-0 shrink-0 md:shrink"
-          />
-          <KpiCard
-            title="Unread Notifications"
-            value={kpis.unreadNotifications.toLocaleString()}
-            icon="user-x"
-            iconClassName="bg-red-50 text-red-600"
-            className="min-w-[260px] md:min-w-0 shrink-0 md:shrink"
-          />
-          <KpiCard
-            title="Read Notifications"
-            value={kpis.readNotifications.toLocaleString()}
-            icon="user-check"
-            iconClassName="bg-emerald-50 text-emerald-700"
-            className="min-w-[260px] md:min-w-0 shrink-0 md:shrink"
-          />
-          <KpiCard
-            title="Order Alerts"
-            value={kpis.orderNotifications.toLocaleString()}
-            icon="shopping-cart"
-            iconClassName="bg-amber-50 text-amber-600"
-            className="min-w-[260px] md:min-w-0 shrink-0 md:shrink"
-          />
         </div>
         <div className="mt-4">
           <Filters
@@ -1153,6 +1121,58 @@ function NotificationsPageContent() {
                   }
                   className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-[#f8c6d0] focus:border-transparent outline-none transition-all bg-white file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-[#fef5f7] file:text-[#D96A86] hover:file:bg-[#f8e0e6]"
                 />
+              </div>
+              <div className="space-y-3">
+                <p className="text-sm font-medium text-gray-700">
+                  Location <span className="text-xs text-gray-400">(optional)</span>
+                </p>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div>
+                    <label className="block text-xs font-medium text-gray-600 mb-1.5">
+                      State
+                    </label>
+                    <input
+                      type="text"
+                      value={createForm.state}
+                      onChange={(e) =>
+                        setCreateForm((prev) => ({ ...prev, state: e.target.value }))
+                      }
+                      placeholder="e.g. Maharashtra"
+                      className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#D96A86] focus:border-transparent"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-gray-600 mb-1.5">
+                      City
+                    </label>
+                    <input
+                      type="text"
+                      value={createForm.city}
+                      onChange={(e) =>
+                        setCreateForm((prev) => ({ ...prev, city: e.target.value }))
+                      }
+                      placeholder="e.g. Mumbai"
+                      className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#D96A86] focus:border-transparent"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-gray-600 mb-1.5">
+                      Pincode
+                    </label>
+                    <input
+                      type="text"
+                      value={createForm.pincode}
+                      onChange={(e) =>
+                        setCreateForm((prev) => ({ ...prev, pincode: e.target.value }))
+                      }
+                      placeholder="e.g. 400001"
+                      className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#D96A86] focus:border-transparent"
+                    />
+                  </div>
+                </div>
+                <p className="text-[11px] text-gray-500">
+                  Use these fields to target notifications to users in a specific state, city or pincode.
+                </p>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1.5">
