@@ -497,21 +497,21 @@ export default function AddCouponsPage() {
           className="min-w-[260px] md:min-w-0 shrink-0 md:shrink"
         />
         <KpiCard
-          title="Total Active"
+          title="Total Active Coupons"
           value={kpis.active.toLocaleString()}
           icon="user-check"
           iconClassName="bg-emerald-50 text-emerald-600"
           className="min-w-[260px] md:min-w-0 shrink-0 md:shrink"
         />
         <KpiCard
-          title="Total Disabled"
+          title="Total Disabled Coupons"
           value={kpis.disabled.toLocaleString()}
           icon="user-x"
           iconClassName="bg-gray-100 text-gray-600"
           className="min-w-[260px] md:min-w-0 shrink-0 md:shrink"
         />
         <KpiCard
-          title="Total Expired"
+          title="Total Expired Coupons"
           value={kpis.expired.toLocaleString()}
           icon="trending-up"
           iconClassName="bg-red-50 text-red-600"
