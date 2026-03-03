@@ -2,6 +2,7 @@
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Eye, MoreVertical, RotateCcw, XCircle } from "lucide-react";
 import { useOrders } from "@/lib/orders-context";
 import type { Order, OrderStatus, PaymentStatus } from "@/lib/orders-data";
@@ -42,7 +43,11 @@ function OrderActionsMenu({
   const canApproveRefund = order.refundStatus === "requested";
 
   return (
-    <div className="relative inline-block text-left" ref={menuRef}>
+    <div
+      className="relative inline-block text-left"
+      ref={menuRef}
+      onClick={(e) => e.stopPropagation()}
+    >
       <button
         type="button"
         onClick={() => setOpen((prev) => !prev)}
@@ -135,6 +140,7 @@ const PAYMENT_STATUS_FILTER_OPTIONS: FilterOption[] = [
 ];
 
 export default function OrdersPage() {
+  const router = useRouter();
   const { orders, updateOrderStatus, approveRefund } = useOrders();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<"" | OrderStatus>("");
@@ -195,15 +201,15 @@ export default function OrdersPage() {
 
   const columns = [
     {
-      header: "Order ID",
-      accessor: (order: (typeof orders)[number]) => (
-        <span className="font-medium text-gray-900">{order.id}</span>
-      ),
-    },
-    {
       header: "Customer Name",
       accessor: (order: (typeof orders)[number]) => (
         <span className="text-sm text-gray-800">{order.customerName}</span>
+      ),
+    },
+    {
+      header: "Order ID",
+      accessor: (order: (typeof orders)[number]) => (
+        <span className="font-medium text-gray-900">{order.id}</span>
       ),
     },
     {
@@ -397,6 +403,7 @@ export default function OrdersPage() {
               searchable={false}
               filterable={false}
               itemsPerPage={10}
+              onRowClick={(order) => router.push(`/orders/${order.id}`)}
             />
           </div>
         </>

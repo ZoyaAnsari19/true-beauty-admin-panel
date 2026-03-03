@@ -390,7 +390,7 @@ export default function AffiliateDetailPage() {
                     <thead>
                       <tr className="text-xs text-gray-500 uppercase tracking-wider border-b border-gray-100">
                         <th className="py-2.5 pr-4 text-left font-semibold">
-                          User Name
+                          Name
                         </th>
                         <th className="py-2.5 px-4 text-left font-semibold">
                           Product Name
@@ -398,8 +398,11 @@ export default function AffiliateDetailPage() {
                         <th className="py-2.5 px-4 text-left font-semibold">
                           Category
                         </th>
-                        <th className="py-2.5 px-4 text-left font-semibold">
+                        <th className="py-2.5 px-3 text-left font-semibold">
                           Date
+                        </th>
+                        <th className="py-2.5 px-3 text-left font-semibold">
+                          Price
                         </th>
                         <th className="py-2.5 pl-4 text-right font-semibold">
                           Earnings
@@ -413,6 +416,10 @@ export default function AffiliateDetailPage() {
                           referredUsers[globalIndex]?.name ?? "—";
                         const earnings =
                           (order.amount * affiliate.commissionRate) / 100;
+                        const unitPrice =
+                          order.quantity && order.quantity > 0
+                            ? order.amount / order.quantity
+                            : order.amount;
                         return (
                           <tr
                             key={order.id}
@@ -427,8 +434,11 @@ export default function AffiliateDetailPage() {
                             <td className="py-2.5 px-4 whitespace-nowrap text-gray-700">
                               {order.category ?? "—"}
                             </td>
-                            <td className="py-2.5 px-4 whitespace-nowrap text-gray-700">
+                            <td className="py-2.5 px-3 whitespace-nowrap text-gray-700">
                               {formatDate(order.orderedAt)}
+                            </td>
+                            <td className="py-2.5 px-3 whitespace-nowrap text-gray-900">
+                              {formatCurrency(unitPrice)}
                             </td>
                             <td className="py-2.5 pl-4 whitespace-nowrap text-right text-gray-900 font-semibold">
                               {formatCurrency(earnings)}

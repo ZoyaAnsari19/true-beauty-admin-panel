@@ -342,14 +342,20 @@ export function CouponForm({
           type="number"
           min={1}
           step={1}
-          value={values.minOrderValue ?? ""}
-          onChange={(e) =>
+          value={values.minOrderValue === 0 ? "" : values.minOrderValue}
+          onChange={(e) => {
+            const raw = e.target.value;
+            let normalized = raw.replace(/^0+(?=\d)/, "");
+            // Treat a single leading zero as empty so the field doesn't show just "0"
+            if (normalized === "0") {
+              normalized = "";
+            }
             setValues((v) => ({
               ...v,
               minOrderValue:
-                e.target.value === "" ? 0 : Number(e.target.value),
-            }))
-          }
+                normalized === "" ? 0 : Number(normalized),
+            }));
+          }}
           className={inputClass}
           placeholder="0"
         />
