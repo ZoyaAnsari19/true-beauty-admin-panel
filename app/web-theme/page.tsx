@@ -11,12 +11,6 @@ import {
   RotateCcw,
   X,
   CheckCircle,
-  Facebook,
-  Instagram,
-  Twitter,
-  Linkedin,
-  Youtube,
-  type LucideIcon,
 } from "lucide-react";
 import { useTheme, type WebThemeState } from "@/lib/theme-context";
 
@@ -103,14 +97,6 @@ const THEME_PRESETS = [
     accent: "#7C3AED",
   },
 ] as const;
-
-const SOCIAL_ICONS: { key: string; label: string; icon: LucideIcon }[] = [
-  { key: "facebook", label: "Facebook", icon: Facebook },
-  { key: "instagram", label: "Instagram", icon: Instagram },
-  { key: "twitter", label: "Twitter", icon: Twitter },
-  { key: "linkedin", label: "LinkedIn", icon: Linkedin },
-  { key: "youtube", label: "YouTube", icon: Youtube },
-];
 
 const DEFAULT_THEME = {
   primary: "#2563EB",
@@ -390,34 +376,6 @@ export default function WebThemePage() {
                 </div>
               </section>
 
-              {/* Social links preview */}
-              <section>
-                <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-2">
-                  Social links
-                </h3>
-                <div className="flex flex-wrap gap-2">
-                  {SOCIAL_ICONS.map(({ key, label, icon: Icon }) => {
-                    const url = socialLinks[key];
-                    if (!url) return null;
-                    return (
-                      <a
-                        key={key}
-                        href={url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-100 text-gray-700 text-sm hover:bg-gray-200"
-                      >
-                        <Icon className="w-4 h-4" />
-                        {label}
-                      </a>
-                    );
-                  })}
-                  {Object.values(socialLinks).every((v) => !v) && (
-                    <span className="text-sm text-gray-400">No social links added</span>
-                  )}
-                </div>
-              </section>
-
               {/* Live theme preview */}
               <section>
                 <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">
@@ -427,6 +385,15 @@ export default function WebThemePage() {
                   className="rounded-xl border border-gray-200 p-5 min-h-[200px] transition-colors"
                   style={{ backgroundColor }}
                 >
+                  {bannerPreview && (
+                    <div className="mb-4 overflow-hidden rounded-lg border border-gray-200 bg-gray-100">
+                      <img
+                        src={bannerPreview}
+                        alt="Banner preview"
+                        className="w-full h-32 sm:h-40 object-cover"
+                      />
+                    </div>
+                  )}
                   <div className="flex items-center gap-2 mb-4 pb-3 border-b border-gray-200/80">
                     {logoPreview ? (
                       <img src={logoPreview} alt="" className="h-8 w-auto object-contain" />
@@ -739,6 +706,15 @@ export default function WebThemePage() {
               style={{ backgroundColor }}
             >
               <div className="space-y-4">
+                {bannerPreview && (
+                  <div className="overflow-hidden rounded-lg border border-gray-200 bg-gray-100">
+                    <img
+                      src={bannerPreview}
+                      alt="Banner preview"
+                      className="w-full h-24 sm:h-32 object-cover"
+                    />
+                  </div>
+                )}
                 <div className="flex items-center gap-2">
                   {logoPreview ? (
                     <img src={logoPreview} alt="" className="h-8 w-auto object-contain" />
