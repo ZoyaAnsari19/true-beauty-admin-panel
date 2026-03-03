@@ -167,18 +167,24 @@ export default function OrderDetailPage() {
                   {order.id}
                 </h1>
               </div>
-              <div className="flex flex-wrap items-center gap-2">
-                <span
-                  className={`inline-flex px-2.5 py-1 rounded-full text-xs font-medium ${statusBadgeClass}`}
-                >
-                  {ORDER_STATUS_LABELS[order.orderStatus] ?? order.orderStatus}
-                </span>
-                <span
-                  className={`inline-flex px-2.5 py-1 rounded-full text-xs font-medium ${paymentBadgeClass}`}
-                >
-                  {PAYMENT_STATUS_LABELS[order.paymentStatus] ??
-                    order.paymentStatus}
-                </span>
+              <div className="flex flex-wrap items-center gap-4 text-sm text-gray-900">
+                <div className="flex items-center gap-2">
+                  <span className="font-semibold">ORDER:</span>
+                  <span
+                    className={`inline-flex px-2.5 py-1 rounded-full text-xs font-medium ${statusBadgeClass}`}
+                  >
+                    {ORDER_STATUS_LABELS[order.orderStatus] ?? order.orderStatus}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="font-semibold">PAYMENT:</span>
+                  <span
+                    className={`inline-flex px-2.5 py-1 rounded-full text-xs font-medium ${paymentBadgeClass}`}
+                  >
+                    {PAYMENT_STATUS_LABELS[order.paymentStatus] ??
+                      order.paymentStatus}
+                  </span>
+                </div>
               </div>
             </div>
             <div className="p-6 space-y-4">
@@ -228,7 +234,9 @@ export default function OrderDetailPage() {
                   </div>
                   <div>
                     <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Last Updated
+                      {order.orderStatus === "delivered"
+                        ? "Delivered Date"
+                        : "Arrival Date"}
                     </p>
                     <p className="text-sm font-medium text-gray-900 mt-0.5">
                       {formatDate(order.updatedAt)}
@@ -236,16 +244,6 @@ export default function OrderDetailPage() {
                   </div>
                 </div>
               </div>
-              {order.notes && (
-                <div className="pt-3 border-t border-gray-100">
-                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">
-                    Notes
-                  </p>
-                  <p className="text-sm text-gray-700 whitespace-pre-wrap">
-                    {order.notes}
-                  </p>
-                </div>
-              )}
             </div>
           </div>
 
