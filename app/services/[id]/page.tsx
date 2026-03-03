@@ -126,24 +126,30 @@ export default function ServiceDetailPage() {
 
           {service.howToUseVideoUrl && (
             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-              <div className="px-4 py-3 border-b border-gray-100 bg-[#fef5f7] flex items-center gap-2">
-                <FileText className="w-5 h-5 text-gray-600" />
-                <h2 className="text-lg font-semibold text-gray-900">How to use video</h2>
-              </div>
-              <div className="p-4">
-                <div className="relative aspect-square rounded-xl bg-[#fef5f7] overflow-hidden">
+              <div className="relative aspect-square w-full overflow-hidden rounded-2xl">
+                {/\.(mp4|webm|ogg)(\?|$)/i.test(service.howToUseVideoUrl) ? (
+                  <video
+                    src={service.howToUseVideoUrl}
+                    className="absolute inset-0 h-full w-full object-cover"
+                    autoPlay
+                    muted
+                    loop
+                    playsInline
+                    title={`${service.name} how to use video`}
+                  />
+                ) : (
                   <iframe
                     src={
                       service.howToUseVideoUrl.includes("?")
-                        ? `${service.howToUseVideoUrl}&autoplay=1`
-                        : `${service.howToUseVideoUrl}?autoplay=1`
+                        ? `${service.howToUseVideoUrl}&autoplay=1&mute=1`
+                        : `${service.howToUseVideoUrl}?autoplay=1&mute=1`
                     }
                     title={`${service.name} how to use video`}
-                    className="w-full h-full border-0"
+                    className="absolute inset-0 h-full w-full border-0 object-cover"
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                     allowFullScreen
                   />
-                </div>
+                )}
               </div>
             </div>
           )}

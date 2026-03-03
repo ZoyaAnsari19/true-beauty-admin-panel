@@ -50,7 +50,7 @@ const MOCK_SERVICES: Service[] = [
     workingHours: "10:00 AM - 8:00 PM",
     workingDays: "Mon - Sat",
     howToUseType: "video",
-    howToUseVideoUrl: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+    howToUseVideoUrl: "/servicesVideos/classicFacial.mp4",
     createdAt: "2024-01-15T10:00:00Z",
     updatedAt: "2024-01-15T10:00:00Z",
   },
