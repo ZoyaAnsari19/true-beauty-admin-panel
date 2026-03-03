@@ -348,13 +348,15 @@ export default function WithdrawRequestsPage() {
                     <p className="text-xs font-mono font-semibold text-gray-500">
                       {row.requestId}
                     </p>
-                    <p className="text-sm font-semibold text-gray-900 truncate">
-                      {row.affiliateName}
-                    </p>
-                    <p className="text-base font-bold text-gray-900">
-                      {formatCurrency(row.amount)}
-                    </p>
-                    <div className="flex items-center gap-2 pt-1">
+                    <div className="flex items-center justify-between gap-2">
+                      <p className="text-sm font-semibold text-gray-900 truncate">
+                        {row.affiliateName}
+                      </p>
+                      <p className="text-base font-bold text-gray-900 shrink-0">
+                        {formatCurrency(row.amount)}
+                      </p>
+                    </div>
+                    <div className="flex items-center justify-between gap-2 pt-1">
                       <span
                         className={`inline-flex px-2.5 py-1 rounded-full text-xs font-medium ${
                           WITHDRAWAL_STATUS_CLASSES[row.status] ??
@@ -363,7 +365,7 @@ export default function WithdrawRequestsPage() {
                       >
                         {WITHDRAWAL_STATUS_LABELS[row.status] ?? row.status}
                       </span>
-                      <span className="text-xs text-gray-500">
+                      <span className="text-xs text-gray-500 shrink-0">
                         {formatDate(row.requestDate)}
                       </span>
                     </div>
