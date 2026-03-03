@@ -63,27 +63,29 @@ export default function TopBar({ pageTitle = "Dashboard" }: TopBarProps) {
             {showNotifications && (
               <>
                 <div
-                  className="fixed inset-0 z-10"
+                  className="fixed inset-0 z-40"
                   onClick={() => setShowNotifications(false)}
                 />
-                <div className="absolute right-0 mt-2 w-80 max-w-[calc(100vw-2rem)] bg-white rounded-xl shadow-lg border border-gray-200 py-2 z-20">
-                  <div className="px-4 py-3 border-b border-gray-200">
-                    <h3 className="font-semibold text-gray-900">Notifications</h3>
-                  </div>
-                  <div className="max-h-96 overflow-y-auto">
-                  <div
-                    className="px-4 py-3 hover:bg-[#fef5f7] cursor-pointer"
-                    onClick={() => handleNotificationClick("notif-2")}
-                  >
-                      <p className="text-sm text-gray-900">New order received</p>
-                      <p className="text-xs text-gray-500 mt-1">2 minutes ago</p>
+                <div className="fixed inset-x-4 top-20 z-50 md:absolute md:inset-x-auto md:right-0 md:top-auto md:mt-2 md:z-20 w-auto md:w-80 max-w-[calc(100vw-2rem)] md:max-w-none">
+                  <div className="bg-white rounded-2xl shadow-xl border border-gray-200 py-2">
+                    <div className="px-4 py-3 border-b border-gray-200">
+                      <h3 className="font-semibold text-gray-900">Notifications</h3>
                     </div>
-                    <div
-                      className="px-4 py-3 hover:bg-[#fef5f7] cursor-pointer"
-                      onClick={() => handleNotificationClick("notif-1")}
-                    >
-                      <p className="text-sm text-gray-900">Payment processed</p>
-                      <p className="text-xs text-gray-500 mt-1">5 minutes ago</p>
+                    <div className="max-h-96 overflow-y-auto">
+                      <div
+                        className="px-4 py-3 hover:bg-[#fef5f7] cursor-pointer"
+                        onClick={() => handleNotificationClick("notif-2")}
+                      >
+                        <p className="text-sm text-gray-900">New order received</p>
+                        <p className="text-xs text-gray-500 mt-1">2 minutes ago</p>
+                      </div>
+                      <div
+                        className="px-4 py-3 hover:bg-[#fef5f7] cursor-pointer"
+                        onClick={() => handleNotificationClick("notif-1")}
+                      >
+                        <p className="text-sm text-gray-900">Payment processed</p>
+                        <p className="text-xs text-gray-500 mt-1">5 minutes ago</p>
+                      </div>
                     </div>
                   </div>
                 </div>

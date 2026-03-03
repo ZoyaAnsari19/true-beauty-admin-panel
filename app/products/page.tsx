@@ -383,12 +383,14 @@ export default function ProductsPage() {
                     <p className="text-sm font-semibold text-gray-900 truncate">
                       {product.name}
                     </p>
-                    <p className="text-sm text-gray-600 mt-0.5">
-                      {product.category}
-                    </p>
-                    <p className="text-sm font-medium text-gray-900 mt-0.5 text-right">
-                      {formatPrice(product.price)}
-                    </p>
+                    <div className="mt-0.5 flex items-center justify-between gap-2">
+                      <p className="text-sm text-gray-600">
+                        {product.category}
+                      </p>
+                      <p className="text-sm font-medium text-gray-900">
+                        {formatPrice(product.price)}
+                      </p>
+                    </div>
                     <div className="flex items-center justify-between gap-2 mt-2 flex-wrap">
                       <div className="flex items-center gap-2 flex-wrap">
                         <span

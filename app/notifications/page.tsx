@@ -390,7 +390,7 @@ function NotificationDetailDrawer({
 
       {/* Action Section */}
       <div className={`${sectionPadding} pt-5 mt-auto border-t border-gray-100`}>
-        <div className="flex flex-col-reverse sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div className="flex flex-row items-center justify-between gap-3">
           <button
             type="button"
             onClick={onClose}
@@ -727,13 +727,14 @@ function NotificationsPageContent() {
           <button
             type="button"
             onClick={openCreateDrawer}
-            className="shrink-0 inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium text-white bg-[#D96A86] hover:bg-[#C85A76] transition-colors"
+            className="shrink-0 inline-flex items-center gap-2 px-3 sm:px-4 py-2.5 rounded-xl text-sm font-medium text-white bg-[#D96A86] hover:bg-[#C85A76] transition-colors"
           >
             <Plus className="w-4 h-4" />
-            Add Notification
+            <span>Add</span>
+            <span className="hidden sm:inline">Notification</span>
           </button>
         </div>
-        <div className="mt-5 flex gap-4 overflow-x-auto pb-2 -mx-4 px-4 md:mx-0 md:px-0 md:grid md:grid-cols-2 lg:grid-cols-4 md:gap-6">
+        <div className="mt-5 hidden md:grid md:grid-cols-2 lg:grid-cols-4 md:gap-6">
           <KpiCard
             title="Total Notifications"
             value={kpis.totalNotifications.toLocaleString()}
@@ -819,10 +820,8 @@ function NotificationsPageContent() {
                     >
                       {notification.title}
                     </h3>
-                  </div>
-                  <div className="flex flex-col items-end gap-2">
                     <span
-                      className={`shrink-0 inline-flex px-2.5 py-1 rounded-full text-[11px] font-medium ${
+                      className={`mt-1 inline-flex px-2.5 py-1 rounded-full text-[11px] font-medium ${
                         notification.read
                           ? "bg-gray-100 text-gray-600"
                           : "bg-[#D96A86]/10 text-[#D96A86]"
@@ -830,6 +829,8 @@ function NotificationsPageContent() {
                     >
                       {notification.read ? "Read" : "Unread"}
                     </span>
+                  </div>
+                  <div className="flex flex-col items-end gap-2">
                     <div className="relative">
                       <button
                         type="button"
@@ -1284,7 +1285,7 @@ function NotificationsPageContent() {
             </p>
           )}
 
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-start gap-3 pt-2 border-t border-gray-100">
+          <div className="flex flex-row items-stretch sm:items-center justify-start gap-3 pt-2 border-t border-gray-100">
             <button
               type="button"
               onClick={() => {
@@ -1297,7 +1298,7 @@ function NotificationsPageContent() {
             <button
               type="submit"
               disabled={createSubmitting}
-              className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium text-white bg-[#D96A86] hover:bg-[#C85A76] disabled:opacity-60 disabled:cursor-not-allowed"
+              className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium text-white bg-[#D96A86] hover:bg-[#C85A76] disabled:opacity-60 disabled:cursor-not-allowed whitespace-nowrap"
             >
               <Bell className="w-4 h-4" />
               {createSubmitting ? "Sending..." : "Send notification"}
