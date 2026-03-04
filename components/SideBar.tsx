@@ -13,7 +13,6 @@ import {
   Bell,
   Palette,
   Boxes,
-  Settings,
   X,
 } from "lucide-react";
 import Link from "next/link";
@@ -38,7 +37,6 @@ const menuItems: MenuItem[] = [
   { label: "Add Coupons", icon: Gift, href: "/addCoupons" },
   { label: "Web Theme", icon: Palette, href: "/web-theme" },
   { label: "Inventory Management", icon: Boxes, href: "/inventory" },
-  { label: "Settings", icon: Settings, href: "/settings" },
 ];
 
 export default function SideBar() {

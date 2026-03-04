@@ -15,6 +15,7 @@ import { AffiliatesProvider } from "@/lib/affiliates-context";
 import { NotificationsProvider } from "@/lib/notifications-context";
 import { CouponsProvider } from "@/lib/coupons-context";
 import { ThemeProvider } from "@/lib/theme-context";
+import { StockHistoryProvider } from "@/lib/stock-history-context";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -92,6 +93,7 @@ export default function RootLayout({
       >
         <UsersProvider>
         <ProductsProvider>
+        <StockHistoryProvider>
         <ServicesProvider>
         <OrdersProvider>
         <AffiliatesProvider>
@@ -115,6 +117,7 @@ export default function RootLayout({
         </AffiliatesProvider>
         </OrdersProvider>
         </ServicesProvider>
+        </StockHistoryProvider>
         </ProductsProvider>
         </UsersProvider>
       </body>

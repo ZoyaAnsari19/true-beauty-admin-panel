@@ -13,8 +13,18 @@ import {
   Trash2,
 } from "lucide-react";
 import { useProducts } from "@/lib/products-context";
-import { PRODUCT_CATEGORIES, DEFAULT_STOCK_THRESHOLD } from "@/lib/products-data";
-import type { Product } from "@/lib/products-data";
+import {
+  PRODUCT_CATEGORIES,
+  DEFAULT_STOCK_THRESHOLD,
+  type Product,
+} from "@/lib/products-data";
+import {
+  STOCK_ADJUST_REASONS,
+  type StockHistoryEntry,
+  type StockAdjustType,
+  type StockAdjustReason,
+  useStockHistory,
+} from "@/lib/stock-history-context";
 import { Drawer } from "@/components/ui/Drawer";
 import { Filters, type FilterOption } from "@/components/ui/filters";
 import { KpiCard } from "@/components/ui/kpiCard";
@@ -25,28 +35,6 @@ const CATEGORY_OPTIONS: FilterOption[] = [
   ...PRODUCT_CATEGORIES.map((c) => ({ value: c, label: c })),
 ];
 
-const STOCK_ADJUST_REASONS = [
-  "Restock",
-  "Sale / Order",
-  "Inventory correction",
-  "Damage / Write-off",
-  "Return",
-  "Other",
-] as const;
-
-export interface StockHistoryEntry {
-  id: string;
-  productId: string;
-  productName: string;
-  at: string;
-  type: "add" | "reduce";
-  quantity: number;
-  previousStock: number;
-  newStock: number;
-  reason: (typeof STOCK_ADJUST_REASONS)[number];
-  note?: string | null;
-}
-
 function formatDate(iso: string) {
   return new Date(iso).toLocaleString("en-IN", {
     dateStyle: "short",
@@ -56,11 +44,13 @@ function formatDate(iso: string) {
 
 function InventoryActionMenu({
   product,
+  onViewDetails,
   onUpdateStock,
   onViewHistory,
   onDelete,
 }: {
   product: Product;
+  onViewDetails: (p: Product) => void;
   onUpdateStock: (p: Product) => void;
   onViewHistory: (p: Product) => void;
   onDelete: (p: Product) => void;
@@ -93,14 +83,17 @@ function InventoryActionMenu({
       </button>
       {open && (
         <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-200 py-1 z-20">
-          <Link
-            href={`/products/${product.id}`}
-            onClick={() => setOpen(false)}
-            className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-[#fef5f7] transition-colors text-left w-full"
+          <button
+            type="button"
+            onClick={() => {
+              setOpen(false);
+              onViewDetails(product);
+            }}
+            className="flex w-full items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-[#fef5f7] transition-colors text-left"
           >
             <Eye className="w-4 h-4 shrink-0" />
             View Details
-          </Link>
+          </button>
           <button
             type="button"
             onClick={() => {
@@ -142,12 +135,13 @@ function InventoryActionMenu({
 
 export default function InventoryPage() {
   const { products, updateProduct, softDeleteProduct } = useProducts();
+  const { entries: stockHistory, recordChange } = useStockHistory();
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("");
+  const [detailsDrawerOpen, setDetailsDrawerOpen] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [historyDrawerOpen, setHistoryDrawerOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
-  const [stockHistory, setStockHistory] = useState<StockHistoryEntry[]>([]);
 
   const kpis = useMemo(() => {
     const total = products.length;
@@ -171,6 +165,11 @@ export default function InventoryPage() {
     if (categoryFilter) list = list.filter((p) => p.category === categoryFilter);
     return list;
   }, [products, search, categoryFilter]);
+
+  const openDetailsDrawer = (product: Product) => {
+    setSelectedProduct(product);
+    setDetailsDrawerOpen(true);
+  };
 
   const openUpdateDrawer = (product: Product) => {
     setSelectedProduct(product);
@@ -228,6 +227,30 @@ export default function InventoryPage() {
         ),
       },
       {
+        header: "Stock Status",
+        accessor: (row: Product) => {
+          const label =
+            row.stockStatus === "in_stock"
+              ? "In stock"
+              : row.stockStatus === "low_stock"
+                ? "Low stock"
+                : "Out of stock";
+          const badgeClass =
+            row.stockStatus === "in_stock"
+              ? "bg-emerald-50 text-emerald-700"
+              : row.stockStatus === "low_stock"
+                ? "bg-amber-50 text-amber-700"
+                : "bg-red-50 text-red-700";
+          return (
+            <span
+              className={`inline-flex px-2.5 py-1 rounded-full text-xs font-medium ${badgeClass}`}
+            >
+              {label}
+            </span>
+          );
+        },
+      },
+      {
         header: "Minimum Stock Limit",
         accessor: (row: Product) => (
           <span className="text-sm text-gray-600">
@@ -248,6 +271,7 @@ export default function InventoryPage() {
           <div className="inline-flex justify-center w-full">
             <InventoryActionMenu
               product={row}
+              onViewDetails={openDetailsDrawer}
               onUpdateStock={openUpdateDrawer}
               onViewHistory={openHistoryDrawer}
               onDelete={handleDeleteProduct}
@@ -293,6 +317,138 @@ export default function InventoryPage() {
         />
       </div>
 
+      {/* Product Details Drawer */}
+      <Drawer
+        open={detailsDrawerOpen}
+        onClose={() => {
+          setDetailsDrawerOpen(false);
+          setSelectedProduct(null);
+        }}
+        title={
+          selectedProduct ? `Product Details — ${selectedProduct.name}` : "Product Details"
+        }
+        width="lg"
+      >
+        {selectedProduct && (
+          <div className="space-y-6">
+            <div className="rounded-2xl border border-gray-100 bg-gradient-to-r from-[#fef5f7] via-white to-white px-5 py-4">
+              <p className="text-xs font-semibold text-gray-500 uppercase tracking-[0.14em]">
+                Overview
+              </p>
+              <p className="mt-1.5 text-base font-semibold text-gray-900">
+                {selectedProduct.name}
+              </p>
+              <p className="mt-1 text-xs text-gray-500">
+                SKU&nbsp;
+                <span className="font-mono text-[11px] bg-white/60 border border-gray-200 rounded-full px-2 py-0.5">
+                  {selectedProduct.sku ?? "—"}
+                </span>
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="rounded-xl border border-gray-100 bg-white px-4 py-3">
+                <p className="text-[11px] font-semibold text-gray-500 uppercase tracking-[0.16em]">
+                  Category
+                </p>
+                <p className="mt-1 text-sm font-medium text-gray-900">
+                  {selectedProduct.category}
+                </p>
+              </div>
+              <div className="rounded-xl border border-gray-100 bg-white px-4 py-3">
+                <p className="text-[11px] font-semibold text-gray-500 uppercase tracking-[0.16em]">
+                  Stock
+                </p>
+                <p className="mt-1 text-sm font-medium text-gray-900">
+                  {selectedProduct.stock} units
+                </p>
+                <p className="mt-0.5 text-[11px] text-gray-500">
+                  Minimum threshold:{" "}
+                  <span className="font-medium text-gray-800">
+                    {selectedProduct.stockThreshold ?? DEFAULT_STOCK_THRESHOLD}
+                  </span>
+                </p>
+              </div>
+              <div className="rounded-xl border border-gray-100 bg-white px-4 py-3">
+                <p className="text-[11px] font-semibold text-gray-500 uppercase tracking-[0.16em]">
+                  Stock status
+                </p>
+                <div className="mt-1 flex items-center gap-2">
+                  {selectedProduct.stockStatus === "in_stock" && (
+                    <span className="inline-flex px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700">
+                      In stock
+                    </span>
+                  )}
+                  {selectedProduct.stockStatus === "low_stock" && (
+                    <span className="inline-flex px-2.5 py-1 rounded-full text-xs font-medium bg-amber-50 text-amber-700">
+                      Low stock
+                    </span>
+                  )}
+                  {selectedProduct.stockStatus === "out_of_stock" && (
+                    <span className="inline-flex px-2.5 py-1 rounded-full text-xs font-medium bg-red-50 text-red-700">
+                      Out of stock
+                    </span>
+                  )}
+                  <span className="text-[11px] text-gray-500">
+                    Updated {formatDate(selectedProduct.updatedAt)}
+                  </span>
+                </div>
+              </div>
+              <div className="rounded-xl border border-gray-100 bg-white px-4 py-3">
+                <p className="text-[11px] font-semibold text-gray-500 uppercase tracking-[0.16em]">
+                  Lifecycle
+                </p>
+                <p className="mt-1 text-sm text-gray-800">
+                  Created on{" "}
+                  <span className="font-medium">
+                    {formatDate(selectedProduct.createdAt)}
+                  </span>
+                </p>
+              </div>
+            </div>
+
+            {selectedProduct.description && (
+              <div className="rounded-2xl border border-gray-100 bg-white px-5 py-4">
+                <p className="text-[11px] font-semibold text-gray-500 uppercase tracking-[0.16em] mb-1.5">
+                  Description
+                </p>
+                <p className="text-sm leading-relaxed text-gray-700 whitespace-pre-line">
+                  {selectedProduct.description}
+                </p>
+              </div>
+            )}
+
+            <div className="flex flex-col gap-3 pt-2 border-t border-gray-100">
+              <div className="flex flex-col items-start sm:flex-row sm:items-center sm:justify-between gap-2">
+                <p className="text-[11px] font-semibold text-gray-500 uppercase tracking-[0.16em]">
+                  Quick action
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  <Link
+                    href={`/products/${selectedProduct.id}`}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium text-[#D96A86] bg-[#fef5f7] hover:bg-[#f8c6d0]/70 border border-[#f8c6d0]/80"
+                  >
+                    Open full product page
+                  </Link>
+                </div>
+              </div>
+              <div className="mt-1 pt-3 border-t border-gray-100">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setDetailsDrawerOpen(false);
+                    setSelectedProduct(null);
+                  }}
+                  className="inline-flex items-center justify-center px-4 py-2.5 rounded-xl border border-gray-200 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+      </Drawer>
+
       {/* Search & Filters */}
       <Filters
         search={search}
@@ -313,6 +469,16 @@ export default function InventoryPage() {
           filterable={false}
           pagination={true}
           itemsPerPage={10}
+          getRowClassName={(row) => {
+            if (row.stockStatus === "low_stock") {
+              return "bg-amber-50/50";
+            }
+            if (row.stockStatus === "out_of_stock") {
+              return "bg-red-50/60";
+            }
+            return "";
+          }}
+          onRowClick={(product) => openDetailsDrawer(product)}
         />
       </div>
 
@@ -340,21 +506,22 @@ export default function InventoryPage() {
           const newStock = Math.max(0, target);
 
           updateProduct(selectedProduct.id, { stock: newStock });
-          setStockHistory((h) => [
-            ...h,
-            {
-              id: `hist-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-              productId: selectedProduct.id,
-              productName: selectedProduct.name,
-              at: new Date().toISOString(),
-              type: operation === "set" ? (newStock >= prev ? "add" : "reduce") : operation,
-              quantity,
-              previousStock: prev,
-              newStock,
-              reason,
-              note: note?.trim() || null,
-            },
-          ]);
+          const type: StockAdjustType =
+            operation === "set"
+              ? newStock >= prev
+                ? "add"
+                : "reduce"
+              : (operation as StockAdjustType);
+          recordChange({
+            productId: selectedProduct.id,
+            productName: selectedProduct.name,
+            previousStock: prev,
+            newStock,
+            quantity,
+            type,
+            reason,
+            note: note?.trim() || null,
+          });
           setDrawerOpen(false);
           setSelectedProduct(null);
         }}

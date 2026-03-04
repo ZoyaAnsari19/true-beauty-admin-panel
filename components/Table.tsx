@@ -19,6 +19,7 @@ interface TableProps<T> {
   pagination?: boolean;
   itemsPerPage?: number;
   onRowClick?: (row: T) => void;
+  getRowClassName?: (row: T) => string;
 }
 
 export default function Table<T extends Record<string, any>>({
@@ -142,7 +143,7 @@ export default function Table<T extends Record<string, any>>({
                   key={rowIndex}
                   className={`border-b border-gray-100 hover:bg-[#fef5f7]/50 transition-colors ${
                     onRowClick ? "cursor-pointer" : ""
-                  }`}
+                  } ${typeof getRowClassName === "function" ? getRowClassName(row) : ""}`}
                   onClick={() => onRowClick?.(row)}
                 >
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
