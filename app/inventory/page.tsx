@@ -13,8 +13,18 @@ import {
   Trash2,
 } from "lucide-react";
 import { useProducts } from "@/lib/products-context";
-import { PRODUCT_CATEGORIES, DEFAULT_STOCK_THRESHOLD } from "@/lib/products-data";
-import type { Product } from "@/lib/products-data";
+import {
+  PRODUCT_CATEGORIES,
+  DEFAULT_STOCK_THRESHOLD,
+  type Product,
+} from "@/lib/products-data";
+import {
+  STOCK_ADJUST_REASONS,
+  type StockHistoryEntry,
+  type StockAdjustType,
+  type StockAdjustReason,
+  useStockHistory,
+} from "@/lib/stock-history-context";
 import { Drawer } from "@/components/ui/Drawer";
 import { Filters, type FilterOption } from "@/components/ui/filters";
 import { KpiCard } from "@/components/ui/kpiCard";
@@ -24,28 +34,6 @@ const CATEGORY_OPTIONS: FilterOption[] = [
   { value: "", label: "All categories" },
   ...PRODUCT_CATEGORIES.map((c) => ({ value: c, label: c })),
 ];
-
-const STOCK_ADJUST_REASONS = [
-  "Restock",
-  "Sale / Order",
-  "Inventory correction",
-  "Damage / Write-off",
-  "Return",
-  "Other",
-] as const;
-
-export interface StockHistoryEntry {
-  id: string;
-  productId: string;
-  productName: string;
-  at: string;
-  type: "add" | "reduce";
-  quantity: number;
-  previousStock: number;
-  newStock: number;
-  reason: (typeof STOCK_ADJUST_REASONS)[number];
-  note?: string | null;
-}
 
 function formatDate(iso: string) {
   return new Date(iso).toLocaleString("en-IN", {
@@ -142,12 +130,12 @@ function InventoryActionMenu({
 
 export default function InventoryPage() {
   const { products, updateProduct, softDeleteProduct } = useProducts();
+  const { entries: stockHistory, recordChange } = useStockHistory();
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("");
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [historyDrawerOpen, setHistoryDrawerOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
-  const [stockHistory, setStockHistory] = useState<StockHistoryEntry[]>([]);
 
   const kpis = useMemo(() => {
     const total = products.length;
@@ -226,6 +214,30 @@ export default function InventoryPage() {
         accessor: (row: Product) => (
           <span className="font-medium text-gray-900">{row.stock}</span>
         ),
+      },
+      {
+        header: "Stock Status",
+        accessor: (row: Product) => {
+          const label =
+            row.stockStatus === "in_stock"
+              ? "In stock"
+              : row.stockStatus === "low_stock"
+                ? "Low stock"
+                : "Out of stock";
+          const badgeClass =
+            row.stockStatus === "in_stock"
+              ? "bg-emerald-50 text-emerald-700"
+              : row.stockStatus === "low_stock"
+                ? "bg-amber-50 text-amber-700"
+                : "bg-red-50 text-red-700";
+          return (
+            <span
+              className={`inline-flex px-2.5 py-1 rounded-full text-xs font-medium ${badgeClass}`}
+            >
+              {label}
+            </span>
+          );
+        },
       },
       {
         header: "Minimum Stock Limit",
@@ -313,6 +325,15 @@ export default function InventoryPage() {
           filterable={false}
           pagination={true}
           itemsPerPage={10}
+          getRowClassName={(row) => {
+            if (row.stockStatus === "low_stock") {
+              return "bg-amber-50/50";
+            }
+            if (row.stockStatus === "out_of_stock") {
+              return "bg-red-50/60";
+            }
+            return "";
+          }}
         />
       </div>
 
@@ -340,21 +361,22 @@ export default function InventoryPage() {
           const newStock = Math.max(0, target);
 
           updateProduct(selectedProduct.id, { stock: newStock });
-          setStockHistory((h) => [
-            ...h,
-            {
-              id: `hist-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-              productId: selectedProduct.id,
-              productName: selectedProduct.name,
-              at: new Date().toISOString(),
-              type: operation === "set" ? (newStock >= prev ? "add" : "reduce") : operation,
-              quantity,
-              previousStock: prev,
-              newStock,
-              reason,
-              note: note?.trim() || null,
-            },
-          ]);
+          const type: StockAdjustType =
+            operation === "set"
+              ? newStock >= prev
+                ? "add"
+                : "reduce"
+              : (operation as StockAdjustType);
+          recordChange({
+            productId: selectedProduct.id,
+            productName: selectedProduct.name,
+            previousStock: prev,
+            newStock,
+            quantity,
+            type,
+            reason,
+            note: note?.trim() || null,
+          });
           setDrawerOpen(false);
           setSelectedProduct(null);
         }}

@@ -14,6 +14,10 @@ import {
   type PaymentStatus,
   type RefundStatus,
 } from "./orders-data";
+import { useProducts } from "./products-context";
+import {
+  useStockHistory,
+} from "./stock-history-context";
 
 interface OrdersContextValue {
   orders: Order[];
@@ -35,6 +39,8 @@ export function OrdersProvider({ children }: { children: React.ReactNode }) {
   const [orders, setOrders] = useState<Order[]>(() =>
     MOCK_ORDERS.map((o) => ({ ...o }))
   );
+  const { products, updateProduct } = useProducts();
+  const { recordChange } = useStockHistory();
 
   const getOrderById = useCallback(
     (id: string) => orders.find((o) => o.id === id),
@@ -57,8 +63,34 @@ export function OrdersProvider({ children }: { children: React.ReactNode }) {
   const updateOrderStatus = useCallback(
     (id: string, status: OrderStatus) => {
       updateOrderField(id, "orderStatus", status);
+      const order = orders.find((o) => o.id === id);
+      if (!order) return;
+      if (
+        order.orderStatus === "pending" &&
+        (status === "shipped" || status === "delivered")
+      ) {
+        order.items.forEach((item) => {
+          const product = products.find((p) => p.name === item.productName);
+          if (!product) return;
+          const prev = product.stock;
+          if (item.quantity <= 0) return;
+          const newStock = Math.max(0, prev - item.quantity);
+          if (newStock === prev) return;
+          updateProduct(product.id, { stock: newStock });
+          recordChange({
+            productId: product.id,
+            productName: product.name,
+            previousStock: prev,
+            newStock,
+            quantity: item.quantity,
+            type: "reduce",
+            reason: "Sale / Order",
+            note: `Order ${order.id}`,
+          });
+        });
+      }
     },
-    [updateOrderField]
+    [orders, products, updateOrderField, updateProduct, recordChange]
   );
 
   const updatePaymentStatus = useCallback(
