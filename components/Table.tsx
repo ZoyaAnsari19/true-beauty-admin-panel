@@ -30,6 +30,7 @@ export default function Table<T extends Record<string, any>>({
   pagination = true,
   itemsPerPage = 10,
   onRowClick,
+  getRowClassName,
 }: TableProps<T>) {
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
