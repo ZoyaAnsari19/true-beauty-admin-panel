@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Users } from "lucide-react";
 import { KpiCard } from "@/components/ui/kpiCard";
+import { SalesAnalyticsChart } from "@/components/charts/SalesAnalyticsChart";
 
 const RANGE_OPTIONS = [
   { id: "today", label: "Today" },
@@ -65,28 +66,95 @@ export default function Home() {
     },
   ];
 
-  const salesData: Record<RangeId, { label: string; value: number }[]> = {
+  const salesData: Record<
+    RangeId,
+    { label: string; value: number; productName?: string }[]
+  > = {
     today: [
-      { label: "9 AM", value: 4200 },
-      { label: "12 PM", value: 6800 },
-      { label: "3 PM", value: 5400 },
-      { label: "6 PM", value: 9100 },
-      { label: "9 PM", value: 7300 },
+      {
+        label: "9 AM",
+        value: 4200,
+        productName: "Ultimate Glow Skincare Kit",
+      },
+      {
+        label: "12 PM",
+        value: 6800,
+        productName: "Daily Sunscreen SPF 50",
+      },
+      {
+        label: "3 PM",
+        value: 5400,
+        productName: "Hair Repair Oil",
+      },
+      {
+        label: "6 PM",
+        value: 9100,
+        productName: "Vitamin C Serum 30ml",
+      },
+      {
+        label: "9 PM",
+        value: 7300,
+        productName: "Hydrating Face Mist",
+      },
     ],
     week: [
-      { label: "Mon", value: 24500 },
-      { label: "Tue", value: 27800 },
-      { label: "Wed", value: 31200 },
-      { label: "Thu", value: 29800 },
-      { label: "Fri", value: 35600 },
-      { label: "Sat", value: 38200 },
-      { label: "Sun", value: 27100 },
+      {
+        label: "Mon",
+        value: 24500,
+        productName: "Ultimate Glow Skincare Kit",
+      },
+      {
+        label: "Tue",
+        value: 27800,
+        productName: "Daily Sunscreen SPF 50",
+      },
+      {
+        label: "Wed",
+        value: 31200,
+        productName: "Hair Repair Oil",
+      },
+      {
+        label: "Thu",
+        value: 29800,
+        productName: "Under Eye Cream",
+      },
+      {
+        label: "Fri",
+        value: 35600,
+        productName: "Matte Lipstick - Rose",
+      },
+      {
+        label: "Sat",
+        value: 38200,
+        productName: "Ultimate Glow Skincare Kit",
+      },
+      {
+        label: "Sun",
+        value: 27100,
+        productName: "Daily Sunscreen SPF 50",
+      },
     ],
     month: [
-      { label: "Week 1", value: 81200 },
-      { label: "Week 2", value: 95600 },
-      { label: "Week 3", value: 102300 },
-      { label: "Week 4", value: 89400 },
+      {
+        label: "Week 1",
+        value: 81200,
+        productName: "Ultimate Glow Skincare Kit",
+      },
+      {
+        label: "Week 2",
+        value: 95600,
+        productName: "Daily Sunscreen SPF 50",
+      },
+      {
+        label: "Week 3",
+        value: 102300,
+        productName: "Hair Repair Oil",
+      },
+      {
+        label: "Week 4",
+        value: 89400,
+        productName: "Vitamin C Serum 30ml",
+      },
     ],
   };
 
@@ -214,7 +282,7 @@ export default function Home() {
               </div>
             </div>
 
-            <div className="mt-5">
+            <div className="mt-5 space-y-6">
               <div className="flex flex-wrap items-baseline gap-4">
                 <p className="text-2xl font-semibold text-gray-900">
                   ₹
@@ -227,31 +295,43 @@ export default function Home() {
                 </p>
               </div>
 
-              <div className="mt-6 h-44 flex items-end gap-3">
-                {activeSalesData.map((point) => (
-                  <div
-                    key={point.label}
-                    className="flex-1 flex flex-col items-center gap-2"
-                  >
-                    <div className="w-full rounded-xl bg-indigo-50 h-32 flex items-end justify-center overflow-hidden">
-                      <div
-                        className="w-3/5 rounded-xl bg-indigo-500"
-                        style={{
-                          height: `${Math.max(
-                            12,
-                            (point.value / maxSalesValue) * 100,
-                          )}%`,
-                        }}
-                      />
+              <SalesAnalyticsChart
+                data={activeSalesData}
+                xAxisLabel={
+                  activeRange === "today"
+                    ? "Time of day"
+                    : activeRange === "week"
+                      ? "Day of week"
+                      : "Week of month"
+                }
+                yAxisLabel="Sales (₹)"
+                currency="INR"
+              />
+
+              <div className="mt-2 border-t border-gray-100 pt-3">
+                <p className="text-xs font-medium text-gray-500 mb-2">
+                  Product-wise break-up
+                </p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  {activeSalesData.map((point) => (
+                    <div
+                      key={point.label}
+                      className="flex items-center justify-between text-xs text-gray-600"
+                    >
+                      <div className="min-w-0">
+                        <p className="truncate font-medium text-gray-800">
+                          {point.productName ?? "Product"}
+                        </p>
+                        <p className="text-[11px] text-gray-500">
+                          {point.label}
+                        </p>
+                      </div>
+                      <p className="ml-3 shrink-0 font-semibold text-gray-900">
+                        ₹{point.value.toLocaleString("en-IN")}
+                      </p>
                     </div>
-                    <p className="text-xs font-medium text-gray-700">
-                      {point.label}
-                    </p>
-                    <p className="text-[11px] text-gray-500">
-                      ₹{point.value.toLocaleString("en-IN")}
-                    </p>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
             </div>
           </div>
