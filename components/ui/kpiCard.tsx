@@ -8,6 +8,8 @@ import {
   TrendingUp,
   UserCheck,
   UserX,
+  Package2,
+  Wallet,
   type LucideIcon,
 } from "lucide-react";
 
@@ -18,7 +20,9 @@ export type KpiIconName =
   | "indian-rupee"
   | "trending-up"
   | "user-check"
-  | "user-x";
+  | "user-x"
+  | "package-2"
+  | "wallet";
 
 const KPI_ICONS: Record<KpiIconName, LucideIcon> = {
   users: Users,
@@ -27,6 +31,8 @@ const KPI_ICONS: Record<KpiIconName, LucideIcon> = {
   "trending-up": TrendingUp,
   "user-check": UserCheck,
   "user-x": UserX,
+  "package-2": Package2,
+  wallet: Wallet,
 };
 
 export interface KpiCardProps {
