@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import { Users } from "lucide-react";
 import { KpiCard } from "@/components/ui/kpiCard";
 
@@ -13,6 +14,7 @@ const RANGE_OPTIONS = [
 type RangeId = (typeof RANGE_OPTIONS)[number]["id"];
 
 export default function Home() {
+  const router = useRouter();
   const [activeRange, setActiveRange] = useState<RangeId>("today");
 
   const stats = [
@@ -115,10 +117,30 @@ export default function Home() {
   ];
 
   const recentActivities = [
-    { id: 1, title: "New user registered", time: "2 minutes ago" },
-    { id: 2, title: "Order #TB-2043 placed", time: "8 minutes ago" },
-    { id: 3, title: "Withdrawal request from Priya", time: "16 minutes ago" },
-    { id: 4, title: "Stock updated for Sunscreen SPF 50", time: "23 minutes ago" },
+    {
+      id: 1,
+      title: "New user registered",
+      time: "2 minutes ago",
+      href: "/users",
+    },
+    {
+      id: 2,
+      title: "Order #TB-2043 placed",
+      time: "8 minutes ago",
+      href: "/orders",
+    },
+    {
+      id: 3,
+      title: "Withdrawal request from Priya",
+      time: "16 minutes ago",
+      href: "/withdraw-requests",
+    },
+    {
+      id: 4,
+      title: "Stock updated for Sunscreen SPF 50",
+      time: "23 minutes ago",
+      href: "/inventory",
+    },
   ];
 
   const activeSalesData = salesData[activeRange];
@@ -280,6 +302,42 @@ export default function Home() {
               </div>
             </div>
           </div>
+
+          {/* Recent Activity Card (left column) */}
+          <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">
+              Recent Activity
+            </h2>
+            <div className="space-y-3">
+              {recentActivities.map((activity) => (
+                <button
+                  key={activity.id}
+                  type="button"
+                  onClick={() => router.push(activity.href)}
+                  className="w-full text-left"
+                >
+                  <div className="flex items-center justify-between gap-3 rounded-xl bg-[#fef5f7] px-4 py-3 hover:bg-[#f8c6d0] transition-colors">
+                    <div className="flex items-center gap-4 min-w-0">
+                      <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#f8c6d0] shrink-0">
+                        <Users className="w-5 h-5 text-gray-900" />
+                      </div>
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-medium text-gray-900">
+                          {activity.title}
+                        </p>
+                        <p className="text-xs text-gray-500">
+                          {activity.time}
+                        </p>
+                      </div>
+                    </div>
+                    <span className="text-xs font-medium text-gray-600 hover:text-gray-900">
+                      View
+                    </span>
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
 
         {/* Inventory, products, affiliates & activity */}
@@ -370,39 +428,6 @@ export default function Home() {
                   <p className="text-sm font-semibold text-gray-900">
                     {affiliate.revenue}
                   </p>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Recent Activity Card */}
-          <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">
-              Recent Activity
-            </h2>
-            <div className="space-y-3">
-              {recentActivities.map((activity) => (
-                <div
-                  key={activity.id}
-                  className="flex items-center justify-between gap-3 rounded-xl bg-[#fef5f7] px-4 py-3 hover:bg-[#f8c6d0] transition-colors"
-                >
-                  <div className="flex items-center gap-4 min-w-0">
-                    <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#f8c6d0] shrink-0">
-                      <Users className="w-5 h-5 text-gray-900" />
-                    </div>
-                    <div className="min-w-0">
-                      <p className="truncate text-sm font-medium text-gray-900">
-                        {activity.title}
-                      </p>
-                      <p className="text-xs text-gray-500">{activity.time}</p>
-                    </div>
-                  </div>
-                  <button
-                    type="button"
-                    className="text-xs font-medium text-gray-600 hover:text-gray-900"
-                  >
-                    View
-                  </button>
                 </div>
               ))}
             </div>
