@@ -247,6 +247,42 @@ export default function Home() {
         ))}
       </div>
 
+      {/* Recent Activity — full width below KPIs */}
+      <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+        <h2 className="text-lg font-semibold text-gray-900 mb-4">
+          Recent Activity
+        </h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+          {recentActivities.map((activity) => (
+            <button
+              key={activity.id}
+              type="button"
+              onClick={() => router.push(activity.href)}
+              className="w-full text-left"
+            >
+              <div className="flex items-center justify-between gap-3 rounded-xl bg-[#fef5f7] px-4 py-3 hover:bg-[#f8c6d0] transition-colors">
+                <div className="flex items-center gap-4 min-w-0">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#f8c6d0] shrink-0">
+                    <Users className="w-5 h-5 text-gray-900" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-medium text-gray-900">
+                      {activity.title}
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      {activity.time}
+                    </p>
+                  </div>
+                </div>
+                <span className="text-xs font-medium text-gray-600 hover:text-gray-900">
+                  View
+                </span>
+              </div>
+            </button>
+          ))}
+        </div>
+      </div>
+
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Analytics & order overview */}
         <div className="space-y-6 lg:col-span-2">
@@ -380,42 +416,6 @@ export default function Home() {
                   </div>
                 ))}
               </div>
-            </div>
-          </div>
-
-          {/* Recent Activity Card (left column) */}
-          <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">
-              Recent Activity
-            </h2>
-            <div className="space-y-3">
-              {recentActivities.map((activity) => (
-                <button
-                  key={activity.id}
-                  type="button"
-                  onClick={() => router.push(activity.href)}
-                  className="w-full text-left"
-                >
-                  <div className="flex items-center justify-between gap-3 rounded-xl bg-[#fef5f7] px-4 py-3 hover:bg-[#f8c6d0] transition-colors">
-                    <div className="flex items-center gap-4 min-w-0">
-                      <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#f8c6d0] shrink-0">
-                        <Users className="w-5 h-5 text-gray-900" />
-                      </div>
-                      <div className="min-w-0">
-                        <p className="truncate text-sm font-medium text-gray-900">
-                          {activity.title}
-                        </p>
-                        <p className="text-xs text-gray-500">
-                          {activity.time}
-                        </p>
-                      </div>
-                    </div>
-                    <span className="text-xs font-medium text-gray-600 hover:text-gray-900">
-                      View
-                    </span>
-                  </div>
-                </button>
-              ))}
             </div>
           </div>
         </div>
