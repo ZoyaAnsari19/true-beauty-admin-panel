@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import {
   Area,
   AreaChart,
@@ -62,12 +63,26 @@ export function SalesAnalyticsChart({
   yAxisLabel = "Sales",
   currency = "INR",
 }: SalesAnalyticsChartProps) {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+
   if (!data?.length) return null;
 
   const maxValue = Math.max(...data.map((d) => d.value));
 
+  if (!mounted) {
+    return (
+      <div
+        className="w-full h-56 sm:h-64 md:h-72 min-h-[14rem] flex items-center justify-center rounded-xl bg-gray-50 border border-gray-100"
+        aria-hidden
+      >
+        <span className="text-sm text-gray-400">Loading chart…</span>
+      </div>
+    );
+  }
+
   return (
-    <div className="w-full h-56 sm:h-64 md:h-72">
+    <div className="w-full h-56 sm:h-64 md:h-72 min-h-[14rem]" style={{ minWidth: 0 }}>
       <ResponsiveContainer width="100%" height="100%">
         <AreaChart
           data={data}

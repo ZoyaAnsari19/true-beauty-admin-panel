@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { useAffiliates } from "@/lib/affiliates-context";
 import { KpiCard } from "@/components/ui/kpiCard";
 import { SalesAnalyticsChart } from "@/components/charts/SalesAnalyticsChart";
+import { GeographyChart } from "@/components/charts/GeographyChart";
 
 const RANGE_OPTIONS = [
   { id: "today", label: "Today" },
@@ -367,6 +368,9 @@ export default function Home() {
               </div>
             </div>
           </div>
+
+          {/* Sales by Geography */}
+          <GeographyChart />
         </div>
 
         {/* Inventory, products, affiliates & activity */}
