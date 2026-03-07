@@ -233,8 +233,8 @@ export default function Home() {
         <h1 className="text-xl font-semibold text-gray-900">Dashboard</h1>
       </div>
 
-      {/* KPI Cards — responsive grid, 3 per row on desktop */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+      {/* KPI Cards — horizontal scroll on mobile, grid on desktop */}
+      <div className="flex gap-4 overflow-x-auto pb-2 -mx-4 px-4 md:mx-0 md:px-0 md:grid md:grid-cols-2 lg:grid-cols-3 md:gap-6">
         {stats.map((stat, index) => (
           <KpiCard
             key={index}
@@ -243,6 +243,7 @@ export default function Home() {
             icon={stat.icon}
             iconClassName={stat.iconClassName}
             helperText={stat.change}
+            className="min-w-[260px] md:min-w-0 shrink-0 md:shrink"
           />
         ))}
       </div>
