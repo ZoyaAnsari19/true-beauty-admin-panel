@@ -326,7 +326,15 @@ export default function AddCouponsPage() {
   const [typeFilter, setTypeFilter] = useState<"" | CouponDiscountType>("");
 
   const productOptions = useMemo(
-    () => products.filter((p) => !p.deletedAt).map((p) => ({ id: p.id, name: p.name })),
+    () =>
+      products
+        .filter((p) => !p.deletedAt)
+        .map((p) => ({
+          id: p.id,
+          name: p.name,
+          price: p.discountPrice ?? p.price,
+          category: p.category,
+        })),
     [products]
   );
 
@@ -403,20 +411,18 @@ export default function AddCouponsPage() {
         ),
       },
       {
-        header: "Type",
-        accessor: (c: Coupon) => (
-          <span className="capitalize text-gray-700">{c.discountType}</span>
-        ),
-      },
-      {
         header: "Discount",
-        accessor: (c: Coupon) => (
-          <span className="text-gray-900">
-            {c.discountType === "percentage"
-              ? `${c.discountValue}%`
-              : formatCurrency(c.discountValue)}
-          </span>
-        ),
+        accessor: (c: Coupon) => {
+          const pct =
+            c.discountType === "percentage"
+              ? c.discountValue
+              : c.minOrderValue > 0
+                ? Math.round((c.discountValue / c.minOrderValue) * 100)
+                : 0;
+          return (
+            <span className="text-gray-900">{pct}%</span>
+          );
+        },
       },
       {
         header: "Category",
@@ -429,7 +435,7 @@ export default function AddCouponsPage() {
         ),
       },
       {
-        header: "Min Order Value",
+        header: "Product Amount",
         accessor: (c: Coupon) => (
           <span className="text-gray-700">{formatCurrency(c.minOrderValue)}</span>
         ),

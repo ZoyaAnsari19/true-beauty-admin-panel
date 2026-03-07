@@ -4,7 +4,6 @@ import React, { useEffect, useMemo, useState } from "react";
 import {
   generateCouponCode,
   type Coupon,
-  type CouponDiscountType,
   type CouponStatus,
 } from "@/lib/coupons-data";
 import { PRODUCT_CATEGORIES } from "@/lib/products-data";
@@ -13,11 +12,6 @@ import type { CouponFormValues } from "@/lib/coupons-context";
 const STATUS_OPTIONS: { value: CouponStatus; label: string }[] = [
   { value: "active", label: "Active" },
   { value: "disabled", label: "Disabled" },
-];
-
-const DISCOUNT_TYPE_OPTIONS: { value: CouponDiscountType; label: string }[] = [
-  { value: "fixed", label: "Fixed (₹)" },
-  { value: "percentage", label: "Percentage (%)" },
 ];
 
 const CATEGORY_OPTIONS = [
@@ -56,7 +50,7 @@ function toLocalDateOnly(iso: string): string {
 
 interface CouponFormProps {
   initialValues?: Coupon | null;
-  productOptions?: { id: string; name: string }[];
+  productOptions?: { id: string; name: string; price: number; category: string }[];
   onSubmit: (values: CouponFormValues) => void;
   onCancel: () => void;
 }
@@ -72,10 +66,16 @@ export function CouponForm({
 
   useEffect(() => {
     if (initialValues) {
+      const percent =
+        initialValues.discountType === "percentage"
+          ? initialValues.discountValue
+          : initialValues.minOrderValue > 0
+            ? (initialValues.discountValue / initialValues.minOrderValue) * 100
+            : 0;
       setValues({
         code: initialValues.code,
-        discountType: initialValues.discountType,
-        discountValue: initialValues.discountValue,
+        discountType: "percentage",
+        discountValue: percent,
         minOrderValue: initialValues.minOrderValue,
         maxDiscountCap: initialValues.maxDiscountCap,
         usageLimitTotal: initialValues.usageLimitTotal,
@@ -100,24 +100,10 @@ export function CouponForm({
     ): Record<string, string> => {
       const err: Record<string, string> = {};
       if (!v.code.trim()) err.code = "Coupon code is required.";
-      const minOrder = Number(v.minOrderValue);
-      if (Number.isNaN(minOrder) || minOrder <= 0)
-        err.minOrderValue = "Min order must be greater than 0.";
-
       const discount = Number(v.discountValue);
-      if (v.discountType === "fixed") {
-        if (Number.isNaN(discount) || discount <= 0)
-          err.discountValue = "Discount amount must be greater than 0.";
-
-        if (!err.discountValue && !err.minOrderValue && discount >= minOrder) {
-          err.discountValue = "Discount must be less than Min Order.";
-        }
-      } else if (v.discountType === "percentage") {
-        if (Number.isNaN(discount) || discount <= 0 || discount > 100) {
-          err.discountValue = "Percentage must be between 1 and 100.";
-        }
+      if (Number.isNaN(discount) || discount <= 0 || discount > 100) {
+        err.discountValue = "Discount percentage must be between 1 and 100.";
       }
-
       if (!v.startDate?.trim()) err.startDate = "Start date is required.";
       if (!v.expiryDate?.trim()) err.expiryDate = "Expiry date is required.";
       const start = v.startDate ? new Date(v.startDate).getTime() : 0;
@@ -135,23 +121,28 @@ export function CouponForm({
     setErrors((prev) => ({ ...prev, code: "" }));
   };
 
-  const hasValidMinOrder = Number(values.minOrderValue) > 0;
+  const totalAmount = useMemo(() => {
+    const productIds = values.applicableProductIds ?? [];
+    const categoryIds = values.applicableCategoryIds ?? [];
 
-  const fixedDiscountPercentage =
-    values.discountType === "fixed" &&
-    hasValidMinOrder &&
-    Number(values.discountValue) > 0 &&
-    Number(values.discountValue) < Number(values.minOrderValue)
-      ? (Number(values.discountValue) / Number(values.minOrderValue)) * 100
-      : null;
+    if (productIds.length > 0) {
+      return productIds.reduce(
+        (sum, id) => sum + (productOptions.find((p) => p.id === id)?.price ?? 0),
+        0
+      );
+    }
 
-  const percentageDiscountAmount =
-    values.discountType === "percentage" &&
-    hasValidMinOrder &&
-    Number(values.discountValue) > 0 &&
-    Number(values.discountValue) <= 100
-      ? (Number(values.minOrderValue) * Number(values.discountValue)) / 100
-      : null;
+    if (categoryIds.length > 0) {
+      return productOptions
+        .filter((p) => categoryIds.includes(p.category))
+        .reduce((sum, p) => sum + p.price, 0);
+    }
+
+    return productOptions.reduce((sum, p) => sum + p.price, 0);
+  }, [values.applicableProductIds, values.applicableCategoryIds, productOptions]);
+
+  const discountPercent = Number(values.discountValue) || 0;
+  const derivedAmount = totalAmount > 0 ? (totalAmount * discountPercent) / 100 : 0;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -165,9 +156,9 @@ export function CouponForm({
     onSubmit({
       ...v,
       code: v.code.trim().toUpperCase(),
-      discountType: v.discountType,
+      discountType: "percentage",
       discountValue: Number(v.discountValue) || 0,
-      minOrderValue: Number(v.minOrderValue) || 0,
+      minOrderValue: totalAmount,
       maxDiscountCap: null,
       usageLimitTotal: null,
       usageLimitPerUser: null,
@@ -260,109 +251,90 @@ export function CouponForm({
         </select>
       </div>
 
-      {/* Discount Type & Value */}
-      <div className="space-y-4">
-        <div>
-          <label htmlFor="discount-type" className={labelClass}>
-            Discount Type
-          </label>
-          <select
-            id="discount-type"
-            value={values.discountType}
-            onChange={(e) =>
-              setValues((v) => ({
-                ...v,
-                discountType: e.target.value as CouponDiscountType,
-              }))
-            }
-            className={`${inputClass} bg-white`}
-          >
-            {DISCOUNT_TYPE_OPTIONS.map((opt) => (
-              <option key={opt.value} value={opt.value}>
-                {opt.label}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div>
-          <label htmlFor="discount-value" className={labelClass}>
-            {values.discountType === "fixed"
-              ? "Discount Amount (₹)"
-              : "Discount Percentage (%)"}{" "}
-            <span className="text-red-500">*</span>
-          </label>
-          <input
-            id="discount-value"
-            type="number"
-            min={values.discountType === "fixed" ? 1 : 1}
-            max={values.discountType === "percentage" ? 100 : undefined}
-            step={values.discountType === "fixed" ? 0.01 : 1}
-            value={values.discountValue || ""}
-            onChange={(e) =>
-              setValues((v) => ({
-                ...v,
-                discountValue:
-                  e.target.value === "" ? 0 : Number(e.target.value),
-              }))
-            }
-            className={inputClass}
-            placeholder={
-              values.discountType === "fixed" ? "e.g. 100" : "e.g. 20"
-            }
-          />
-          {errors.discountValue && (
-            <p className="mt-1 text-sm text-red-600">{errors.discountValue}</p>
-          )}
-          {values.discountType === "fixed" && (
-            <p className="mt-1 text-xs text-gray-500">
-              {fixedDiscountPercentage !== null
-                ? `= ${fixedDiscountPercentage.toFixed(0)}% discount`
-                : "Enter Min Order and Discount Amount to see the percentage discount."}
-            </p>
-          )}
-          {values.discountType === "percentage" && (
-            <p className="mt-1 text-xs text-gray-500">
-              {percentageDiscountAmount !== null
-                ? `= ₹${percentageDiscountAmount.toFixed(
-                    0
-                  )} off on minimum order`
-                : "Enter Min Order and Discount % to see the discount amount."}
-            </p>
-          )}
-        </div>
-      </div>
-
-      {/* Min Order */}
-      <div>
-        <label htmlFor="min-order" className={labelClass}>
-          Min Order (₹) <span className="text-red-500">*</span>
-        </label>
-        <input
-          id="min-order"
-          type="number"
-          min={1}
-          step={1}
-          value={values.minOrderValue === 0 ? "" : values.minOrderValue}
-          onChange={(e) => {
-            const raw = e.target.value;
-            let normalized = raw.replace(/^0+(?=\d)/, "");
-            // Treat a single leading zero as empty so the field doesn't show just "0"
-            if (normalized === "0") {
-              normalized = "";
-            }
-            setValues((v) => ({
-              ...v,
-              minOrderValue:
-                normalized === "" ? 0 : Number(normalized),
-            }));
-          }}
-          className={inputClass}
-          placeholder="0"
-        />
-        {errors.minOrderValue && (
-          <p className="mt-1 text-sm text-red-600">{errors.minOrderValue}</p>
+      {/* Total amount */}
+      <div className="rounded-xl border border-gray-200 bg-gray-50/80 px-4 py-3">
+        <p className="text-sm font-medium text-gray-700">
+          {values.applicableProductIds?.length
+            ? "Total amount (selected products)"
+            : values.applicableCategoryIds?.length
+              ? `Total amount (${values.applicableCategoryIds[0]})`
+              : "Total amount (all categories)"}
+        </p>
+        <p className="mt-1 text-xl font-semibold text-gray-900">
+          {totalAmount > 0
+            ? `₹${totalAmount.toLocaleString("en-IN")}`
+            : "—"}
+        </p>
+        {totalAmount === 0 && productOptions.length > 0 && (
+          <p className="mt-1 text-xs text-gray-500">
+            Select a category or product above to see total and set discount.
+          </p>
         )}
       </div>
+
+      {/* Discount: % and Amount (synced) */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <label htmlFor="discount-percent" className={labelClass}>
+            Discount (%) <span className="text-red-500">*</span>
+          </label>
+          <input
+            id="discount-percent"
+            type="number"
+            min={0}
+            max={100}
+            step={0.5}
+            value={discountPercent === 0 ? "" : discountPercent}
+            onChange={(e) => {
+              const raw = e.target.value;
+              const num = raw === "" ? 0 : Number(raw);
+              setValues((v) => ({ ...v, discountValue: num }));
+              setErrors((e) => ({ ...e, discountValue: "" }));
+            }}
+            className={inputClass}
+            placeholder="e.g. 20"
+          />
+          {totalAmount > 0 && discountPercent > 0 && (
+            <p className="mt-1 text-xs text-gray-500">
+              = ₹{Math.round(derivedAmount).toLocaleString("en-IN")} off
+            </p>
+          )}
+        </div>
+        <div>
+          <label htmlFor="discount-amount" className={labelClass}>
+            Discount (₹)
+          </label>
+          <input
+            id="discount-amount"
+            type="number"
+            min={0}
+            max={totalAmount}
+            step={1}
+            disabled={totalAmount === 0}
+            value={totalAmount > 0 && derivedAmount > 0 ? Math.round(derivedAmount) : ""}
+            onChange={(e) => {
+              const raw = e.target.value;
+              const amount = raw === "" ? 0 : Number(raw);
+              const pct =
+                totalAmount > 0 && amount >= 0
+                  ? Math.min(100, (amount / totalAmount) * 100)
+                  : 0;
+              setValues((v) => ({ ...v, discountValue: pct }));
+              setErrors((e) => ({ ...e, discountValue: "" }));
+            }}
+            className={inputClass}
+            placeholder="e.g. 100"
+          />
+          {totalAmount > 0 && derivedAmount > 0 && (
+            <p className="mt-1 text-xs text-gray-500">
+              = {discountPercent.toFixed(1)}%
+            </p>
+          )}
+        </div>
+      </div>
+      {errors.discountValue && (
+        <p className="text-sm text-red-600">{errors.discountValue}</p>
+      )}
 
       {/* Start & Expiry Date */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
