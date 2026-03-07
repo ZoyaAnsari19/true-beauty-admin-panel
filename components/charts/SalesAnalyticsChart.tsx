@@ -130,19 +130,21 @@ export function SalesAnalyticsChart({
               cx,
               cy,
               payload,
+              index,
             }: {
               cx?: number;
               cy?: number;
               payload?: SalesPoint;
+              index?: number;
             }) => {
               const isPeak = payload?.value === maxValue;
 
               if (!cx || !cy) {
-                return <g />;
+                return <g key={index} />;
               }
 
               return (
-                <g>
+                <g key={payload?.label ?? index ?? cx}>
                   {isPeak && (
                     <>
                       <circle
