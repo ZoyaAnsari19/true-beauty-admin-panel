@@ -36,6 +36,12 @@ export interface Product {
   sku?: string;
   /** Below this count, status is low_stock */
   stockThreshold?: number;
+  /** Optional warehouse/shelf location */
+  stockLocation?: string;
+  /** Optional supplier name */
+  supplier?: string;
+  /** Optional inventory notes */
+  inventoryNotes?: string;
 }
 
 const MOCK_PRODUCTS: Product[] = [

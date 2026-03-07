@@ -12,7 +12,7 @@ import {
   Boxes,
   Trash2,
 } from "lucide-react";
-import { useProducts } from "@/lib/products-context";
+import { useProducts, deriveStockStatus } from "@/lib/products-context";
 import {
   PRODUCT_CATEGORIES,
   DEFAULT_STOCK_THRESHOLD,
@@ -141,6 +141,7 @@ export default function InventoryPage() {
   const [detailsDrawerOpen, setDetailsDrawerOpen] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [historyDrawerOpen, setHistoryDrawerOpen] = useState(false);
+  const [addInventoryDrawerOpen, setAddInventoryDrawerOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
 
   const kpis = useMemo(() => {
@@ -285,6 +286,19 @@ export default function InventoryPage() {
 
   return (
     <div className="space-y-6">
+      {/* Header — Add Inventory button */}
+      <div className="flex items-center justify-between gap-3">
+        <div />
+        <button
+          type="button"
+          onClick={() => setAddInventoryDrawerOpen(true)}
+          className="shrink-0 inline-flex items-center gap-2 px-3 py-2 sm:px-4 sm:py-2.5 rounded-xl font-medium text-white bg-[#D96A86] hover:bg-[#C85A76] transition-colors shadow-sm text-sm sm:text-base"
+        >
+          <Plus className="w-4 h-4 sm:w-5 sm:h-5" />
+          Add Inventory
+        </button>
+      </div>
+
       {/* KPI Cards */}
       <div className="flex gap-4 overflow-x-auto pb-2 -mx-4 px-4 md:mx-0 md:px-0 md:grid md:grid-cols-2 lg:grid-cols-4 md:gap-6">
         <KpiCard
@@ -469,15 +483,6 @@ export default function InventoryPage() {
           filterable={false}
           pagination={true}
           itemsPerPage={10}
-          getRowClassName={(row) => {
-            if (row.stockStatus === "low_stock") {
-              return "bg-amber-50/50";
-            }
-            if (row.stockStatus === "out_of_stock") {
-              return "bg-red-50/60";
-            }
-            return "";
-          }}
           onRowClick={(product) => openDetailsDrawer(product)}
         />
       </div>
@@ -524,6 +529,39 @@ export default function InventoryPage() {
           });
           setDrawerOpen(false);
           setSelectedProduct(null);
+        }}
+      />
+
+      {/* Add Inventory Drawer */}
+      <AddInventoryDrawer
+        open={addInventoryDrawerOpen}
+        onClose={() => setAddInventoryDrawerOpen(false)}
+        products={products}
+        onSave={(productId, values) => {
+          const product = products.find((p) => p.id === productId);
+          if (!product) return;
+          const prevStock = product.stock;
+          updateProduct(productId, {
+            stock: values.stock,
+            stockThreshold: values.stockThreshold,
+            stockLocation: values.stockLocation,
+            supplier: values.supplier,
+            inventoryNotes: values.inventoryNotes,
+          });
+          if (values.stock !== prevStock) {
+            const type: StockAdjustType = values.stock >= prevStock ? "add" : "reduce";
+            recordChange({
+              productId: product.id,
+              productName: product.name,
+              previousStock: prevStock,
+              newStock: values.stock,
+              quantity: Math.abs(values.stock - prevStock),
+              type,
+              reason: "Restock",
+              note: values.inventoryNotes?.trim() || null,
+            });
+          }
+          setAddInventoryDrawerOpen(false);
         }}
       />
 
@@ -840,6 +878,246 @@ function UpdateStockDrawer({
           </div>
         </form>
       )}
+    </Drawer>
+  );
+}
+
+function AddInventoryDrawer({
+  open,
+  onClose,
+  products,
+  onSave,
+}: {
+  open: boolean;
+  onClose: () => void;
+  products: Product[];
+  onSave: (productId: string, values: {
+    stock: number;
+    stockThreshold: number;
+    stockLocation?: string;
+    supplier?: string;
+    inventoryNotes?: string;
+  }) => void;
+}) {
+  const [productId, setProductId] = useState("");
+  const [initialStock, setInitialStock] = useState("");
+  const [minLimit, setMinLimit] = useState(String(DEFAULT_STOCK_THRESHOLD));
+  const [stockLocation, setStockLocation] = useState("");
+  const [supplier, setSupplier] = useState("");
+  const [notes, setNotes] = useState("");
+
+  const selectedProduct = productId
+    ? products.find((p) => p.id === productId)
+    : null;
+
+  const reset = () => {
+    setProductId("");
+    setInitialStock("");
+    setMinLimit(String(DEFAULT_STOCK_THRESHOLD));
+    setStockLocation("");
+    setSupplier("");
+    setNotes("");
+  };
+
+  const handleClose = () => {
+    reset();
+    onClose();
+  };
+
+  const handleProductChange = (id: string) => {
+    setProductId(id);
+    const p = products.find((x) => x.id === id);
+    if (p) {
+      setInitialStock(String(p.stock));
+      setMinLimit(String(p.stockThreshold ?? DEFAULT_STOCK_THRESHOLD));
+      setStockLocation(p.stockLocation ?? "");
+      setSupplier(p.supplier ?? "");
+      setNotes(p.inventoryNotes ?? "");
+    }
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const stockNum = Math.max(0, Math.floor(Number(initialStock)) || 0);
+    const thresholdNum = Math.max(0, Math.floor(Number(minLimit)) || DEFAULT_STOCK_THRESHOLD);
+    if (!selectedProduct) return;
+    onSave(selectedProduct.id, {
+      stock: stockNum,
+      stockThreshold: thresholdNum,
+      stockLocation: stockLocation.trim() || undefined,
+      supplier: supplier.trim() || undefined,
+      inventoryNotes: notes.trim() || undefined,
+    });
+    reset();
+    onClose();
+  };
+
+  if (!open) return null;
+
+  const stockNum = Math.max(0, Math.floor(Number(initialStock)) || 0);
+  const thresholdNum = Math.max(0, Math.floor(Number(minLimit)) || DEFAULT_STOCK_THRESHOLD);
+  const computedStatus = deriveStockStatus(stockNum, thresholdNum);
+  const statusLabel =
+    computedStatus === "in_stock"
+      ? "In Stock"
+      : computedStatus === "low_stock"
+        ? "Low Stock"
+        : "Out of Stock";
+  const statusClass =
+    computedStatus === "in_stock"
+      ? "bg-emerald-50 text-emerald-700"
+      : computedStatus === "low_stock"
+        ? "bg-amber-50 text-amber-700"
+        : "bg-red-50 text-red-700";
+
+  const valid = !!selectedProduct && initialStock.trim() !== "" && !Number.isNaN(Number(initialStock));
+
+  return (
+    <Drawer open={open} onClose={handleClose} title="Add Inventory" width="lg">
+      <form onSubmit={handleSubmit} className="space-y-6">
+        <div>
+          <label htmlFor="add-inv-product" className="block text-sm font-medium text-gray-700 mb-1">
+            Product <span className="text-red-500">*</span>
+          </label>
+          <select
+            id="add-inv-product"
+            value={productId}
+            onChange={(e) => handleProductChange(e.target.value)}
+            className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-[#f8c6d0] focus:border-transparent bg-white"
+          >
+            <option value="">Select a product</option>
+            {products.map((p) => (
+              <option key={p.id} value={p.id}>
+                {p.name}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {selectedProduct && (
+          <>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-500 mb-1">SKU</label>
+                <p className="text-sm font-mono text-gray-900 bg-gray-50 rounded-xl px-4 py-2.5 border border-gray-100">
+                  {selectedProduct.sku ?? "—"}
+                </p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-500 mb-1">Category</label>
+                <p className="text-sm text-gray-900 bg-gray-50 rounded-xl px-4 py-2.5 border border-gray-100">
+                  {selectedProduct.category}
+                </p>
+              </div>
+            </div>
+
+            <div>
+              <label htmlFor="add-inv-stock" className="block text-sm font-medium text-gray-700 mb-1">
+                Initial Stock Quantity <span className="text-red-500">*</span>
+              </label>
+              <input
+                id="add-inv-stock"
+                type="number"
+                min={0}
+                value={initialStock}
+                onChange={(e) => setInitialStock(e.target.value)}
+                className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-[#f8c6d0] focus:border-transparent"
+                placeholder="0"
+              />
+            </div>
+
+            <div>
+              <label htmlFor="add-inv-min" className="block text-sm font-medium text-gray-700 mb-1">
+                Minimum Stock Limit (for low stock alerts)
+              </label>
+              <input
+                id="add-inv-min"
+                type="number"
+                min={0}
+                value={minLimit}
+                onChange={(e) => setMinLimit(e.target.value)}
+                className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-[#f8c6d0] focus:border-transparent"
+                placeholder={String(DEFAULT_STOCK_THRESHOLD)}
+              />
+            </div>
+
+            <div className="rounded-xl border border-gray-100 bg-gray-50/50 px-4 py-3">
+              <p className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider mb-1">
+                Stock status
+              </p>
+              <p className="text-sm text-gray-600">
+                Automatically calculated from current stock and minimum limit:{" "}
+                <span className={`inline-flex px-2.5 py-1 rounded-full text-xs font-medium ${statusClass}`}>
+                  {statusLabel}
+                </span>
+              </p>
+            </div>
+
+            <div>
+              <label htmlFor="add-inv-location" className="block text-sm font-medium text-gray-700 mb-1">
+                Stock Location <span className="text-gray-400 font-normal">(optional)</span>
+              </label>
+              <input
+                id="add-inv-location"
+                type="text"
+                value={stockLocation}
+                onChange={(e) => setStockLocation(e.target.value)}
+                className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-[#f8c6d0] focus:border-transparent"
+                placeholder="e.g. Warehouse A, Shelf 12"
+              />
+            </div>
+
+            <div>
+              <label htmlFor="add-inv-supplier" className="block text-sm font-medium text-gray-700 mb-1">
+                Supplier <span className="text-gray-400 font-normal">(optional)</span>
+              </label>
+              <input
+                id="add-inv-supplier"
+                type="text"
+                value={supplier}
+                onChange={(e) => setSupplier(e.target.value)}
+                className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-[#f8c6d0] focus:border-transparent"
+                placeholder="Supplier name"
+              />
+            </div>
+
+            <div>
+              <label htmlFor="add-inv-notes" className="block text-sm font-medium text-gray-700 mb-1">
+                Notes <span className="text-gray-400 font-normal">(optional)</span>
+              </label>
+              <textarea
+                id="add-inv-notes"
+                rows={3}
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-[#f8c6d0] focus:border-transparent resize-none"
+                placeholder="Internal notes…"
+              />
+            </div>
+
+            <div className="flex gap-3 pt-2">
+              <button
+                type="button"
+                onClick={handleClose}
+                className="flex-1 py-3 rounded-xl border border-gray-200 text-gray-700 font-medium hover:bg-gray-50 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={!valid}
+                className="flex-1 py-3 rounded-xl bg-[#D96A86] text-white font-medium hover:bg-[#C85A76] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                Save Inventory
+              </button>
+            </div>
+          </>
+        )}
+
+        {!selectedProduct && productId === "" && (
+          <p className="text-sm text-gray-500">Select a product to add or update inventory.</p>
+        )}
+      </form>
     </Drawer>
   );
 }

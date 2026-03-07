@@ -1,8 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
-import { Users } from "lucide-react";
+import { useAffiliates } from "@/lib/affiliates-context";
 import { KpiCard } from "@/components/ui/kpiCard";
 import { SalesAnalyticsChart } from "@/components/charts/SalesAnalyticsChart";
 
@@ -15,8 +14,15 @@ const RANGE_OPTIONS = [
 type RangeId = (typeof RANGE_OPTIONS)[number]["id"];
 
 export default function Home() {
-  const router = useRouter();
   const [activeRange, setActiveRange] = useState<RangeId>("today");
+  const { affiliates } = useAffiliates();
+
+  const totalWithdrawalAmount = useMemo(() => {
+    return affiliates.reduce((sum, aff) => {
+      const affSum = aff.withdrawals.reduce((s, w) => s + w.amount, 0);
+      return sum + affSum;
+    }, 0);
+  }, [affiliates]);
 
   const stats = [
     {
@@ -43,13 +49,7 @@ export default function Home() {
       icon: "indian-rupee" as const,
       iconClassName: "bg-purple-50 text-purple-600",
     },
-    {
-      title: "Growth",
-      value: "24.8%",
-      change: "+2.4%",
-      icon: "trending-up" as const,
-      iconClassName: "bg-orange-50 text-orange-600",
-    },
+   
     {
       title: "Total Affiliate Users",
       value: "1,245",
@@ -63,6 +63,17 @@ export default function Home() {
       change: "Pending + processed today",
       icon: "wallet" as const,
       iconClassName: "bg-rose-50 text-rose-600",
+    },
+    {
+      title: "All Affiliate Withdrawal Amount",
+      value: new Intl.NumberFormat("en-IN", {
+        style: "currency",
+        currency: "INR",
+        maximumFractionDigits: 0,
+      }).format(totalWithdrawalAmount),
+      change: "All affiliates",
+      icon: "wallet" as const,
+      iconClassName: "bg-orange-50 text-orange-600",
     },
   ];
 
@@ -184,33 +195,6 @@ export default function Home() {
     { name: "SkincareWithRahul", orders: 74, revenue: "₹51,980" },
   ];
 
-  const recentActivities = [
-    {
-      id: 1,
-      title: "New user registered",
-      time: "2 minutes ago",
-      href: "/users",
-    },
-    {
-      id: 2,
-      title: "Order #TB-2043 placed",
-      time: "8 minutes ago",
-      href: "/orders",
-    },
-    {
-      id: 3,
-      title: "Withdrawal request from Priya",
-      time: "16 minutes ago",
-      href: "/withdraw-requests",
-    },
-    {
-      id: 4,
-      title: "Stock updated for Sunscreen SPF 50",
-      time: "23 minutes ago",
-      href: "/inventory",
-    },
-  ];
-
   const activeSalesData = salesData[activeRange];
 
   const maxSalesValue = useMemo(
@@ -248,39 +232,50 @@ export default function Home() {
         ))}
       </div>
 
-      {/* Recent Activity — full width below KPIs */}
+      {/* Order Status — full width below KPIs */}
       <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">
-          Recent Activity
-        </h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-          {recentActivities.map((activity) => (
-            <button
-              key={activity.id}
-              type="button"
-              onClick={() => router.push(activity.href)}
-              className="w-full text-left"
-            >
-              <div className="flex items-center justify-between gap-3 rounded-xl bg-[#fef5f7] px-4 py-3 hover:bg-[#f8c6d0] transition-colors">
-                <div className="flex items-center gap-4 min-w-0">
-                  <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#f8c6d0] shrink-0">
-                    <Users className="w-5 h-5 text-gray-900" />
-                  </div>
-                  <div className="min-w-0">
-                    <p className="truncate text-sm font-medium text-gray-900">
-                      {activity.title}
-                    </p>
-                    <p className="text-xs text-gray-500">
-                      {activity.time}
-                    </p>
-                  </div>
-                </div>
-                <span className="text-xs font-medium text-gray-600 hover:text-gray-900">
-                  View
+        <div className="flex items-center justify-between gap-3">
+          <h2 className="text-lg font-semibold text-gray-900">
+            Order Status
+          </h2>
+          <p className="text-sm text-gray-500">
+            {totalOrderStatusCount.toLocaleString("en-IN")} total orders
+          </p>
+        </div>
+
+        <div className="mt-4 space-y-4">
+          <div className="h-2 w-full rounded-full bg-gray-100 overflow-hidden flex">
+            {orderStatus.map((status) => (
+              <div
+                key={status.label}
+                className={status.barClassName}
+                style={{
+                  width: `${
+                    (status.count / totalOrderStatusCount) * 100
+                  }%`,
+                }}
+              />
+            ))}
+          </div>
+
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            {orderStatus.map((status) => (
+              <div key={status.label} className="space-y-1">
+                <p className="text-xs text-gray-500">{status.label}</p>
+                <p className="text-sm font-semibold text-gray-900">
+                  {status.count.toLocaleString("en-IN")}
+                </p>
+                <span
+                  className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium ${status.chipClassName}`}
+                >
+                  {Math.round(
+                    (status.count / totalOrderStatusCount) * 100,
+                  )}
+                  %
                 </span>
               </div>
-            </button>
-          ))}
+            ))}
+          </div>
         </div>
       </div>
 
@@ -369,53 +364,6 @@ export default function Home() {
                     </div>
                   ))}
                 </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Order status summary */}
-          <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-            <div className="flex items-center justify-between gap-3">
-              <h2 className="text-lg font-semibold text-gray-900">
-                Order Status
-              </h2>
-              <p className="text-sm text-gray-500">
-                {totalOrderStatusCount.toLocaleString("en-IN")} total orders
-              </p>
-            </div>
-
-            <div className="mt-4 space-y-4">
-              <div className="h-2 w-full rounded-full bg-gray-100 overflow-hidden flex">
-                {orderStatus.map((status) => (
-                  <div
-                    key={status.label}
-                    className={status.barClassName}
-                    style={{
-                      width: `${
-                        (status.count / totalOrderStatusCount) * 100
-                      }%`,
-                    }}
-                  />
-                ))}
-              </div>
-
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                {orderStatus.map((status) => (
-                  <div key={status.label} className="space-y-1">
-                    <p className="text-xs text-gray-500">{status.label}</p>
-                    <p className="text-sm font-semibold text-gray-900">
-                      {status.count.toLocaleString("en-IN")}
-                    </p>
-                    <span
-                      className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium ${status.chipClassName}`}
-                    >
-                      {Math.round(
-                        (status.count / totalOrderStatusCount) * 100,
-                      )}
-                      %
-                    </span>
-                  </div>
-                ))}
               </div>
             </div>
           </div>
