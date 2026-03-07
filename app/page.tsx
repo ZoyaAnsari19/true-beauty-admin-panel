@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import Link from "next/link";
 import { useAffiliates } from "@/lib/affiliates-context";
 import { KpiCard } from "@/components/ui/kpiCard";
 import { SalesAnalyticsChart } from "@/components/charts/SalesAnalyticsChart";
@@ -479,42 +480,42 @@ export default function Home() {
           </p>
         </div>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          <button
-            type="button"
+          <Link
+            href="/products"
             className="inline-flex h-20 flex-col items-start justify-between rounded-xl border border-gray-200 bg-gray-50 px-3 py-3 text-left text-sm font-medium text-gray-800 hover:bg-gray-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pink-500 focus-visible:ring-offset-1"
           >
             <span className="text-xs font-semibold uppercase tracking-wide text-gray-500">
               Catalog
             </span>
             <span>Add Product</span>
-          </button>
-          <button
-            type="button"
+          </Link>
+          <Link
+            href="/services"
             className="inline-flex h-20 flex-col items-start justify-between rounded-xl border border-gray-200 bg-gray-50 px-3 py-3 text-left text-sm font-medium text-gray-800 hover:bg-gray-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pink-500 focus-visible:ring-offset-1"
           >
             <span className="text-xs font-semibold uppercase tracking-wide text-gray-500">
               Services
             </span>
             <span>Add Service</span>
-          </button>
-          <button
-            type="button"
+          </Link>
+          <Link
+            href="/addCoupons"
             className="inline-flex h-20 flex-col items-start justify-between rounded-xl border border-gray-200 bg-gray-50 px-3 py-3 text-left text-sm font-medium text-gray-800 hover:bg-gray-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pink-500 focus-visible:ring-offset-1"
           >
             <span className="text-xs font-semibold uppercase tracking-wide text-gray-500">
               Marketing
             </span>
             <span>Create Coupon</span>
-          </button>
-          <button
-            type="button"
+          </Link>
+          <Link
+            href="/notifications"
             className="inline-flex h-20 flex-col items-start justify-between rounded-xl border border-gray-200 bg-gray-50 px-3 py-3 text-left text-sm font-medium text-gray-800 hover:bg-gray-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pink-500 focus-visible:ring-offset-1"
           >
             <span className="text-xs font-semibold uppercase tracking-wide text-gray-500">
               Engagement
             </span>
             <span>Send Notification</span>
-          </button>
+          </Link>
         </div>
       </div>
     </div>
