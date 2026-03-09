@@ -365,7 +365,7 @@ export default function Home() {
           <GeographyChart />
         </div>
 
-        {/* Inventory, products, affiliates & activity */}
+        {/* Inventory, products, affiliates, quick actions & activity */}
         <div className="space-y-6">
           {/* Low stock alerts */}
           <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
@@ -457,56 +457,56 @@ export default function Home() {
               ))}
             </div>
           </div>
-        </div>
-      </div>
 
-      {/* Quick Actions */}
-      <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-        <div className="flex items-center justify-between gap-3 mb-4">
-          <h2 className="text-lg font-semibold text-gray-900">
-            Quick Actions
-          </h2>
-          <p className="text-sm text-gray-500">
-            Create new items and engage customers faster
-          </p>
-        </div>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          <Link
-            href="/products"
-            className="inline-flex h-20 flex-col items-start justify-between rounded-xl border border-gray-200 bg-gray-50 px-3 py-3 text-left text-sm font-medium text-gray-800 hover:bg-gray-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pink-500 focus-visible:ring-offset-1"
-          >
-            <span className="text-xs font-semibold uppercase tracking-wide text-gray-500">
-              Catalog
-            </span>
-            <span>Add Product</span>
-          </Link>
-          <Link
-            href="/services"
-            className="inline-flex h-20 flex-col items-start justify-between rounded-xl border border-gray-200 bg-gray-50 px-3 py-3 text-left text-sm font-medium text-gray-800 hover:bg-gray-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pink-500 focus-visible:ring-offset-1"
-          >
-            <span className="text-xs font-semibold uppercase tracking-wide text-gray-500">
-              Services
-            </span>
-            <span>Add Service</span>
-          </Link>
-          <Link
-            href="/addCoupons"
-            className="inline-flex h-20 flex-col items-start justify-between rounded-xl border border-gray-200 bg-gray-50 px-3 py-3 text-left text-sm font-medium text-gray-800 hover:bg-gray-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pink-500 focus-visible:ring-offset-1"
-          >
-            <span className="text-xs font-semibold uppercase tracking-wide text-gray-500">
-              Marketing
-            </span>
-            <span>Create Coupon</span>
-          </Link>
-          <Link
-            href="/notifications"
-            className="inline-flex h-20 flex-col items-start justify-between rounded-xl border border-gray-200 bg-gray-50 px-3 py-3 text-left text-sm font-medium text-gray-800 hover:bg-gray-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pink-500 focus-visible:ring-offset-1"
-          >
-            <span className="text-xs font-semibold uppercase tracking-wide text-gray-500">
-              Engagement
-            </span>
-            <span>Send Notification</span>
-          </Link>
+          {/* Quick Actions */}
+          <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+            <div className="mb-4">
+              <h2 className="text-lg font-semibold text-gray-900">
+                Quick Actions
+              </h2>
+              <p className="text-sm text-gray-500 mt-0.5">
+                Create new items and engage customers faster
+              </p>
+            </div>
+            <div className="grid grid-cols-2 md:grid-cols-2 gap-3">
+              <Link
+                href="/products"
+                className="inline-flex h-20 flex-col items-start justify-between rounded-xl border border-gray-200 bg-gray-50 px-3 py-3 text-left text-sm font-medium text-gray-800 hover:bg-gray-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pink-500 focus-visible:ring-offset-1"
+              >
+                <span className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+                  Catalog
+                </span>
+                <span>Add Product</span>
+              </Link>
+              <Link
+                href="/services"
+                className="inline-flex h-20 flex-col items-start justify-between rounded-xl border border-gray-200 bg-gray-50 px-3 py-3 text-left text-sm font-medium text-gray-800 hover:bg-gray-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pink-500 focus-visible:ring-offset-1"
+              >
+                <span className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+                  Services
+                </span>
+                <span>Add Service</span>
+              </Link>
+              <Link
+                href="/addCoupons"
+                className="inline-flex h-20 flex-col items-start justify-between rounded-xl border border-gray-200 bg-gray-50 px-3 py-3 text-left text-sm font-medium text-gray-800 hover:bg-gray-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pink-500 focus-visible:ring-offset-1"
+              >
+                <span className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+                  Marketing
+                </span>
+                <span>Create Coupon</span>
+              </Link>
+              <Link
+                href="/notifications"
+                className="inline-flex h-20 flex-col items-start justify-between rounded-xl border border-gray-200 bg-gray-50 px-3 py-3 text-left text-sm font-medium text-gray-800 hover:bg-gray-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pink-500 focus-visible:ring-offset-1"
+              >
+                <span className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+                  Engagement
+                </span>
+                <span>Send Notification</span>
+              </Link>
+            </div>
+          </div>
         </div>
       </div>
     </div>
