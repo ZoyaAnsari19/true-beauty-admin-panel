@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useMemo, useEffect, Fragment } from "react";
-import { ZoomIn, ZoomOut } from "lucide-react";
+import { useState, useMemo, useCallback, useEffect } from "react";
+import { ZoomIn, ZoomOut, MapPin } from "lucide-react";
+import { scaleLinear } from "d3-scale";
 import {
   ComposableMap,
   Geographies,
@@ -10,17 +11,27 @@ import {
   Marker,
 } from "react-simple-maps";
 
-const TABS = [
-  { id: "worldwide", label: "Worldwide" },
-  { id: "country", label: "Country" },
-  { id: "state-city", label: "State & City" },
-] as const;
-
-type TabId = (typeof TABS)[number]["id"];
-
 type RegionStats = { orders: number; revenue: number };
 
-// Worldwide: country name -> orders & revenue (sales = orders for coloring)
+type TabId = "worldwide" | "country" | "stateCity";
+
+const TABS: { id: TabId; label: string }[] = [
+  { id: "worldwide", label: "Worldwide" },
+  { id: "country", label: "Country" },
+  { id: "stateCity", label: "State & City" },
+];
+
+// Heat scale: light pink → dark pink (no labels, clean heatmap)
+const HEAT = {
+  none: "#f1f5f9",
+  strokeNone: "#cbd5e1",
+  strokeHover: "#9d174d",
+  light: "#fce7f3",
+  dark: "#be185d",
+  hoverFill: "#fbcfe8",
+};
+
+// World sales data: country name → orders & revenue (dummy data for all major countries)
 const worldwideData: Record<string, RegionStats> = {
   India: { orders: 12450, revenue: 2845000 },
   "United States of America": { orders: 8920, revenue: 2120000 },
@@ -45,9 +56,100 @@ const worldwideData: Record<string, RegionStats> = {
   Bangladesh: { orders: 290, revenue: 72000 },
   "Sri Lanka": { orders: 180, revenue: 45000 },
   Nepal: { orders: 150, revenue: 38000 },
+  China: { orders: 4100, revenue: 920000 },
+  Russia: { orders: 1250, revenue: 310000 },
+  Mexico: { orders: 1680, revenue: 398000 },
+  Argentina: { orders: 520, revenue: 118000 },
+  Turkey: { orders: 1890, revenue: 445000 },
+  Italy: { orders: 2100, revenue: 502000 },
+  Spain: { orders: 1650, revenue: 392000 },
+  Netherlands: { orders: 1320, revenue: 318000 },
+  Poland: { orders: 980, revenue: 228000 },
+  Ukraine: { orders: 420, revenue: 95000 },
+  Iran: { orders: 680, revenue: 158000 },
+  Egypt: { orders: 520, revenue: 122000 },
+  Algeria: { orders: 280, revenue: 62000 },
+  Morocco: { orders: 390, revenue: 88000 },
+  Kenya: { orders: 310, revenue: 72000 },
+  Tanzania: { orders: 185, revenue: 42000 },
+  Vietnam: { orders: 720, revenue: 168000 },
+  "Taiwan": { orders: 890, revenue: 212000 },
+  Myanmar: { orders: 340, revenue: 78000 },
+  Afghanistan: { orders: 120, revenue: 28000 },
+  Kazakhstan: { orders: 260, revenue: 58000 },
+  Iraq: { orders: 380, revenue: 88000 },
+  Israel: { orders: 620, revenue: 148000 },
+  Sweden: { orders: 780, revenue: 185000 },
+  Belgium: { orders: 650, revenue: 152000 },
+  Switzerland: { orders: 540, revenue: 132000 },
+  Austria: { orders: 480, revenue: 112000 },
+  "Hong Kong": { orders: 1120, revenue: 268000 },
+  Colombia: { orders: 420, revenue: 98000 },
+  Chile: { orders: 380, revenue: 88000 },
+  Peru: { orders: 290, revenue: 68000 },
+  Ecuador: { orders: 180, revenue: 42000 },
+  Venezuela: { orders: 95, revenue: 22000 },
+  "South Sudan": { orders: 45, revenue: 10500 },
+  Ethiopia: { orders: 220, revenue: 52000 },
+  Ghana: { orders: 195, revenue: 45000 },
+  "Ivory Coast": { orders: 165, revenue: 38000 },
+  Cameroon: { orders: 140, revenue: 32000 },
+  Angola: { orders: 120, revenue: 28000 },
+  "Democratic Republic of the Congo": { orders: 85, revenue: 19800 },
+  Zimbabwe: { orders: 95, revenue: 22000 },
+  Zambia: { orders: 72, revenue: 16800 },
+  Mozambique: { orders: 88, revenue: 20500 },
+  Madagascar: { orders: 65, revenue: 15200 },
+  Tunisia: { orders: 210, revenue: 48000 },
+  Libya: { orders: 125, revenue: 29000 },
+  Sudan: { orders: 98, revenue: 22800 },
+  Yemen: { orders: 85, revenue: 19800 },
+  Syria: { orders: 62, revenue: 14500 },
+  Jordan: { orders: 280, revenue: 65000 },
+  Lebanon: { orders: 195, revenue: 45000 },
+  Qatar: { orders: 420, revenue: 102000 },
+  Kuwait: { orders: 380, revenue: 88000 },
+  Bahrain: { orders: 185, revenue: 42000 },
+  Oman: { orders: 260, revenue: 58000 },
+  Azerbaijan: { orders: 220, revenue: 52000 },
+  Georgia: { orders: 145, revenue: 34000 },
+  Armenia: { orders: 98, revenue: 22800 },
+  Uzbekistan: { orders: 180, revenue: 42000 },
+  Cambodia: { orders: 165, revenue: 38000 },
+  Laos: { orders: 95, revenue: 22000 },
+  Mongolia: { orders: 72, revenue: 16800 },
+  "North Korea": { orders: 28, revenue: 6500 },
+  "New Zealand": { orders: 420, revenue: 98000 },
+  Ireland: { orders: 580, revenue: 138000 },
+  Portugal: { orders: 480, revenue: 112000 },
+  Greece: { orders: 420, revenue: 98000 },
+  Romania: { orders: 320, revenue: 75000 },
+  Hungary: { orders: 280, revenue: 65000 },
+  "Czech Republic": { orders: 350, revenue: 82000 },
+  Norway: { orders: 520, revenue: 122000 },
+  Finland: { orders: 380, revenue: 88000 },
+  Denmark: { orders: 450, revenue: 105000 },
+  Croatia: { orders: 195, revenue: 45000 },
+  Serbia: { orders: 165, revenue: 38000 },
+  Bulgaria: { orders: 145, revenue: 34000 },
+  Belarus: { orders: 125, revenue: 29000 },
+  Slovakia: { orders: 180, revenue: 42000 },
+  Cuba: { orders: 95, revenue: 22000 },
+  "Dominican Republic": { orders: 165, revenue: 38000 },
+  Guatemala: { orders: 145, revenue: 34000 },
+  Honduras: { orders: 88, revenue: 20500 },
+  "Costa Rica": { orders: 125, revenue: 29000 },
+  Panama: { orders: 165, revenue: 38000 },
+  Bolivia: { orders: 125, revenue: 29000 },
+  Paraguay: { orders: 95, revenue: 22000 },
+  Uruguay: { orders: 145, revenue: 34000 },
+  "Burkina Faso": { orders: 65, revenue: 15200 },
+  Mali: { orders: 55, revenue: 12800 },
+  Niger: { orders: 48, revenue: 11200 },
+  Senegal: { orders: 95, revenue: 22000 },
 };
 
-// India states: state name -> orders & revenue
+// India states: state name → orders & revenue
 const indiaStateData: Record<string, RegionStats> = {
   "Andhra Pradesh": { orders: 1420, revenue: 342000 },
   "Arunachal Pradesh": { orders: 85, revenue: 18500 },
@@ -87,7 +189,6 @@ const indiaStateData: Record<string, RegionStats> = {
   Puducherry: { orders: 85, revenue: 19800 },
 };
 
-// Cities with coordinates [lng, lat] and stats
 const cityData: {
   city: string;
   state: string;
@@ -107,40 +208,17 @@ const cityData: {
   { city: "Jaipur", state: "Rajasthan", coordinates: [75.7873, 26.9124], orders: 190, revenue: 52000 },
 ];
 
-const WORLD_MAP_URL =
-  "https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json";
+// World map: GeoJSON (Natural Earth 110m) · India: GeoJSON
+const WORLD_GEOJSON_URL =
+  "https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson";
 const INDIA_STATES_URL =
   "https://raw.githubusercontent.com/geohacker/india/master/state/india_state.geojson";
 
-// Centroid of a GeoJSON feature (simplified: first ring average)
-function getGeoCentroid(geo: { geometry?: unknown }): [number, number] | null {
-  const geom = geo.geometry as { type?: string; coordinates?: unknown[] } | undefined;
-  if (!geom || !geom.coordinates) return null;
-  let coords: [number, number][] = [];
-  if (geom.type === "Polygon") {
-    coords = (geom.coordinates[0] as [number, number][]) || [];
-  } else if (geom.type === "MultiPolygon") {
-    const first = (geom.coordinates[0] as [number, number][][])?.[0];
-    coords = first || [];
-  }
-  if (coords.length === 0) return null;
-  const sum = coords.reduce(
-    (a, c) => [a[0] + c[0], a[1] + c[1]],
-    [0, 0],
-  );
-  return [sum[0] / coords.length, sum[1] / coords.length];
-}
-
-function getFillForSales(orders: number, maxOrders: number): string {
-  if (!orders || orders <= 0) return "#e2e8f0";
-  const intensity = Math.min(1, orders / maxOrders);
-  return `hsl(330, 72%, ${88 - intensity * 50}%)`;
-}
-
-function getStrokeForSales(orders: number): string {
-  if (!orders || orders <= 0) return "#cbd5e1";
-  return "#ec4899";
-}
+// react-simple-maps types omit onMoveEnd; it works at runtime
+type ZoomableGroupProps = React.ComponentProps<typeof ZoomableGroup> & {
+  onMoveEnd?: (args: { coordinates?: [number, number]; zoom?: number }) => void;
+};
+const ZoomableGroupWithMove = ZoomableGroup as React.FC<ZoomableGroupProps>;
 
 function formatRevenue(n: number): string {
   return new Intl.NumberFormat("en-IN", {
@@ -152,10 +230,8 @@ function formatRevenue(n: number): string {
 
 const MIN_ZOOM = 1;
 const MAX_ZOOM = 6;
-const ZOOM_COUNTRY_LABELS = 3.2;
-const ZOOM_STATE_LABELS_MIN = 1.2;
-const ZOOM_STATE_LABELS_MAX = 4.5;
-const ZOOM_CITY_LABELS = 3.2;
+const WORLD_CENTER: [number, number] = [20, 20];
+const INDIA_CENTER: [number, number] = [78, 22];
 
 function MapZoomControls({
   mapZoom,
@@ -165,25 +241,44 @@ function MapZoomControls({
   setMapZoom: React.Dispatch<React.SetStateAction<number>>;
 }) {
   return (
-    <div className="absolute bottom-3 right-3 flex flex-col gap-1 rounded-lg border border-gray-200 bg-white/95 p-1 shadow-sm z-10">
+    <div className="absolute bottom-3 right-3 flex flex-col gap-0.5 rounded-lg border border-gray-200 bg-white/95 p-1 shadow-sm z-10">
       <button
         type="button"
         onClick={() => setMapZoom((z) => Math.min(z + 0.8, MAX_ZOOM))}
         disabled={mapZoom >= MAX_ZOOM}
-        className="rounded p-1.5 text-gray-700 hover:bg-gray-100 disabled:opacity-40 disabled:hover:bg-transparent"
+        className="rounded p-1.5 text-gray-500 hover:bg-gray-100 disabled:opacity-40 transition-colors"
         aria-label="Zoom in"
       >
-        <ZoomIn className="h-5 w-5" />
+        <ZoomIn className="h-4 w-4" />
       </button>
       <button
         type="button"
         onClick={() => setMapZoom((z) => Math.max(z - 0.8, MIN_ZOOM))}
         disabled={mapZoom <= MIN_ZOOM}
-        className="rounded p-1.5 text-gray-700 hover:bg-gray-100 disabled:opacity-40 disabled:hover:bg-transparent"
+        className="rounded p-1.5 text-gray-500 hover:bg-gray-100 disabled:opacity-40 transition-colors"
         aria-label="Zoom out"
       >
-        <ZoomOut className="h-5 w-5" />
+        <ZoomOut className="h-4 w-4" />
       </button>
+    </div>
+  );
+}
+
+function HeatLegend() {
+  return (
+    <div className="absolute bottom-3 left-3 flex flex-col gap-1.5 rounded-lg border border-gray-200 bg-white/95 px-3 py-2 shadow-sm z-10">
+      <span className="text-[10px] font-medium uppercase tracking-wider text-gray-500">
+        Sales volume
+      </span>
+      <div className="flex items-center gap-2">
+        <div
+          className="h-2 w-20 rounded-full shrink-0"
+          style={{
+            background: `linear-gradient(to right, ${HEAT.light}, ${HEAT.dark})`,
+          }}
+        />
+        <span className="text-[10px] text-gray-500">Low → High</span>
+      </div>
     </div>
   );
 }
@@ -192,45 +287,71 @@ export function GeographyChart() {
   const [activeTab, setActiveTab] = useState<TabId>("worldwide");
   const [tooltipContent, setTooltipContent] = useState<React.ReactNode>(null);
   const [mapZoom, setMapZoom] = useState(1);
+  const [mapCenter, setMapCenter] = useState<[number, number]>(WORLD_CENTER);
 
   const maxWorldOrders = useMemo(
     () => Math.max(...Object.values(worldwideData).map((d) => d.orders), 1),
     [],
   );
+
   const maxStateOrders = useMemo(
     () => Math.max(...Object.values(indiaStateData).map((d) => d.orders), 1),
     [],
   );
 
   useEffect(() => {
-    setMapZoom(1);
+    if (activeTab === "worldwide") {
+      setMapCenter(WORLD_CENTER);
+      setMapZoom(1);
+    } else {
+      setMapCenter(INDIA_CENTER);
+      setMapZoom(1.8);
+    }
   }, [activeTab]);
 
-  const showCountryLabels = activeTab === "worldwide" && mapZoom <= ZOOM_COUNTRY_LABELS;
-  const showStateLabels =
-    (activeTab === "country" || activeTab === "state-city") &&
-    mapZoom >= ZOOM_STATE_LABELS_MIN &&
-    mapZoom <= ZOOM_STATE_LABELS_MAX;
-  const showCityMarkers = activeTab === "state-city" && mapZoom >= ZOOM_CITY_LABELS;
+  const getFill = useCallback(
+    (orders: number, maxOrders: number): string => {
+      if (orders <= 0) return HEAT.none;
+      const scale = scaleLinear<string>()
+        .domain([0, maxOrders])
+        .range([HEAT.light, HEAT.dark])
+        .clamp(true);
+      return scale(orders);
+    },
+    [],
+  );
 
-  const renderTooltip = (content: React.ReactNode) => (
-    <div className="rounded-lg border border-pink-200 bg-white px-3 py-2.5 text-sm shadow-lg">
-      {content}
+  const getStroke = useCallback((orders: number): string => {
+    return orders <= 0 ? HEAT.strokeNone : HEAT.strokeHover;
+  }, []);
+
+  const handleMoveEnd = useCallback(
+    ({ coordinates, zoom }: { coordinates?: [number, number]; zoom?: number }) => {
+      if (coordinates) setMapCenter(coordinates);
+      if (typeof zoom === "number") setMapZoom(zoom);
+    },
+    [],
+  );
+
+  const renderTooltip = (name: string, orders: number, revenue: number) => (
+    <div className="rounded-lg border border-gray-200 bg-white px-3 py-2 shadow-lg text-sm">
+      <p className="font-semibold text-gray-900">{name}</p>
+      <p className="mt-1 text-xs text-gray-600">
+        Orders: {orders.toLocaleString("en-IN")} · Sales: {formatRevenue(revenue)}
+      </p>
     </div>
   );
 
   return (
-    <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+    <div className="bg-white rounded-xl border border-gray-200/80 shadow-sm overflow-hidden">
+      <div className="px-5 pt-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h2 className="text-lg font-semibold text-gray-900">
-            Sales by Geography
-          </h2>
-          <p className="text-sm text-gray-500">
-            Orders & revenue by region · Zoom for state & city labels
+          <h2 className="text-base font-semibold text-gray-900">Sales by Geography</h2>
+          <p className="text-sm text-gray-500 mt-0.5">
+            Global sales volume · Hover for details
           </p>
         </div>
-        <div className="inline-flex rounded-full bg-gray-100 p-1 text-xs sm:text-sm">
+        <div className="inline-flex rounded-lg border border-gray-200 bg-gray-50/80 p-0.5 shrink-0">
           {TABS.map((tab) => {
             const isActive = activeTab === tab.id;
             return (
@@ -238,7 +359,7 @@ export function GeographyChart() {
                 key={tab.id}
                 type="button"
                 onClick={() => setActiveTab(tab.id)}
-                className={`px-3 py-1.5 rounded-full font-medium transition-colors ${
+                className={`px-4 py-2 text-sm font-medium rounded-md transition-colors whitespace-nowrap ${
                   isActive
                     ? "bg-white text-gray-900 shadow-sm"
                     : "text-gray-600 hover:text-gray-900"
@@ -251,301 +372,248 @@ export function GeographyChart() {
         </div>
       </div>
 
-      <div className="mt-5 min-h-[320px] relative">
+      <div className="relative w-full min-h-[320px] sm:min-h-[360px] mt-4">
+        {/* ——— Worldwide map ——— */}
         {activeTab === "worldwide" && (
-          <div className="w-full overflow-hidden rounded-xl border border-gray-100 bg-slate-50/50 relative">
+          <div className="w-full overflow-hidden rounded-xl bg-slate-50/30 px-5 pb-2">
             <ComposableMap
               projection="geoMercator"
-              projectionConfig={{ scale: 140, center: [20, 20] }}
+              projectionConfig={{ scale: 140, center: WORLD_CENTER }}
               width={800}
               height={400}
               className="w-full h-auto max-w-full"
               style={{ width: "100%", height: "auto" }}
             >
-              <ZoomableGroup
-                center={[0, 20]}
+              <ZoomableGroupWithMove
+                center={mapCenter}
                 zoom={mapZoom}
                 minZoom={MIN_ZOOM}
                 maxZoom={MAX_ZOOM}
+                onMoveEnd={handleMoveEnd}
               >
-                <Geographies geography={WORLD_MAP_URL}>
-                  {({ geographies, projection }) =>
+                <Geographies geography={WORLD_GEOJSON_URL}>
+                  {({ geographies }) =>
                     geographies.map((geo) => {
                       const name = String(
-                        geo.properties?.name ?? geo.properties?.NAME ?? "",
+                        geo.properties?.name ??
+                          geo.properties?.NAME ??
+                          geo.properties?.name_long ??
+                          "",
                       );
                       const stats = worldwideData[name] ?? { orders: 0, revenue: 0 };
-                      const fill = getFillForSales(stats.orders, maxWorldOrders);
-                      const stroke = getStrokeForSales(stats.orders);
-                      const centroid = getGeoCentroid(geo);
-                      const [x, y] = centroid && projection ? projection(centroid) : [0, 0];
+                      const fill = getFill(stats.orders, maxWorldOrders);
+                      const stroke = getStroke(stats.orders);
                       return (
-                        <Fragment key={geo.rsmKey}>
-                          <Geography
-                            geography={geo}
-                            fill={fill}
-                            stroke={stroke}
-                            strokeWidth={stats.orders > 0 ? 0.8 : 0.5}
-                            onMouseEnter={() =>
-                              setTooltipContent(
-                                renderTooltip(
-                                  <>
-                                    <p className="font-semibold text-gray-900">{name}</p>
-                                    <p className="mt-1 text-xs text-gray-600">
-                                      Orders: {stats.orders.toLocaleString("en-IN")} · Revenue: {formatRevenue(stats.revenue)}
-                                    </p>
-                                  </>,
-                                ),
-                              )
-                            }
-                            onMouseLeave={() => setTooltipContent(null)}
-                            style={{
-                              default: { outline: "none" },
-                              hover: { outline: "none", fill: "#f9a8d4", cursor: "pointer" },
-                              pressed: { outline: "none" },
-                            }}
-                          />
-                          {showCountryLabels && centroid ? (
-                            <text
-                              x={x}
-                              y={y}
-                              textAnchor="middle"
-                              className="pointer-events-none fill-gray-700"
-                              style={{
-                                fontSize: Math.max(8, 11 - mapZoom * 1.2),
-                                fontWeight: 600,
-                              }}
-                            >
-                              {name.length > 12 ? name.slice(0, 11) + "…" : name}
-                            </text>
-                          ) : null}
-                        </Fragment>
+                        <Geography
+                          key={geo.rsmKey}
+                          geography={geo}
+                          fill={fill}
+                          stroke={stroke}
+                          strokeWidth={stats.orders > 0 ? 0.6 : 0.4}
+                          onMouseEnter={() =>
+                            setTooltipContent(
+                              renderTooltip(name, stats.orders, stats.revenue),
+                            )
+                          }
+                          onMouseLeave={() => setTooltipContent(null)}
+                          style={{
+                            default: { outline: "none" },
+                            hover: {
+                              outline: "none",
+                              fill: HEAT.hoverFill,
+                              stroke: HEAT.strokeHover,
+                              strokeWidth: 1,
+                              cursor: "pointer",
+                            },
+                            pressed: { outline: "none" },
+                          }}
+                        />
                       );
                     })
                   }
                 </Geographies>
-              </ZoomableGroup>
+              </ZoomableGroupWithMove>
             </ComposableMap>
             <MapZoomControls mapZoom={mapZoom} setMapZoom={setMapZoom} />
+            <HeatLegend />
             {tooltipContent && (
-              <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-10">
+              <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 pointer-events-none">
                 {tooltipContent}
               </div>
             )}
           </div>
         )}
 
+        {/* ——— Country (India) map ——— */}
         {activeTab === "country" && (
-          <div className="w-full overflow-hidden rounded-xl border border-gray-100 bg-slate-50/50 relative">
+          <div className="w-full overflow-hidden rounded-xl bg-slate-50/30 px-5 pb-2">
             <ComposableMap
               projection="geoMercator"
-              projectionConfig={{ scale: 1200, center: [78, 22] }}
+              projectionConfig={{ scale: 1200, center: INDIA_CENTER }}
               width={800}
               height={400}
               className="w-full h-auto max-w-full"
               style={{ width: "100%", height: "auto" }}
             >
-              <ZoomableGroup
-                center={[78, 22]}
+              <ZoomableGroupWithMove
+                center={mapCenter}
                 zoom={mapZoom}
                 minZoom={MIN_ZOOM}
                 maxZoom={MAX_ZOOM}
+                onMoveEnd={handleMoveEnd}
               >
                 <Geographies geography={INDIA_STATES_URL}>
-                  {({ geographies, projection }) =>
+                  {({ geographies }) =>
                     geographies.map((geo) => {
                       const name = String(
                         geo.properties?.st_nm ??
-                        geo.properties?.ST_NM ??
-                        geo.properties?.STATE ??
-                        geo.properties?.name ??
-                        "",
+                          geo.properties?.ST_NM ??
+                          geo.properties?.STATE ??
+                          geo.properties?.name ??
+                          "",
                       );
                       const stats = indiaStateData[name] ?? { orders: 0, revenue: 0 };
-                      const fill = getFillForSales(stats.orders, maxStateOrders);
-                      const stroke = getStrokeForSales(stats.orders);
-                      const centroid = getGeoCentroid(geo);
-                      const [x, y] = centroid && projection ? projection(centroid) : [0, 0];
+                      const fill = getFill(stats.orders, maxStateOrders);
+                      const stroke = getStroke(stats.orders);
                       return (
-                        <Fragment key={geo.rsmKey}>
-                          <Geography
-                            geography={geo}
-                            fill={fill}
-                            stroke={stroke}
-                            strokeWidth={stats.orders > 0 ? 0.8 : 0.5}
-                            onMouseEnter={() =>
-                              setTooltipContent(
-                                renderTooltip(
-                                  <>
-                                    <p className="font-semibold text-gray-900">{name}</p>
-                                    <p className="mt-1 text-xs text-gray-600">
-                                      Orders: {stats.orders.toLocaleString("en-IN")} · Revenue: {formatRevenue(stats.revenue)}
-                                    </p>
-                                  </>,
-                                ),
-                              )
-                            }
-                            onMouseLeave={() => setTooltipContent(null)}
-                            style={{
-                              default: { outline: "none" },
-                              hover: { outline: "none", fill: "#f9a8d4", cursor: "pointer" },
-                              pressed: { outline: "none" },
-                            }}
-                          />
-                          {showStateLabels && centroid ? (
-                            <text
-                              x={x}
-                              y={y}
-                              textAnchor="middle"
-                              className="pointer-events-none fill-gray-700"
-                              style={{
-                                fontSize: Math.max(7, 10 - mapZoom * 0.8),
-                                fontWeight: 600,
-                              }}
-                            >
-                              {name.length > 14 ? name.slice(0, 13) + "…" : name}
-                            </text>
-                          ) : null}
-                        </Fragment>
+                        <Geography
+                          key={geo.rsmKey}
+                          geography={geo}
+                          fill={fill}
+                          stroke={stroke}
+                          strokeWidth={stats.orders > 0 ? 0.6 : 0.4}
+                          onMouseEnter={() =>
+                            setTooltipContent(
+                              renderTooltip(name, stats.orders, stats.revenue),
+                            )
+                          }
+                          onMouseLeave={() => setTooltipContent(null)}
+                          style={{
+                            default: { outline: "none" },
+                            hover: {
+                              outline: "none",
+                              fill: HEAT.hoverFill,
+                              stroke: HEAT.strokeHover,
+                              strokeWidth: 1,
+                              cursor: "pointer",
+                            },
+                            pressed: { outline: "none" },
+                          }}
+                        />
                       );
                     })
                   }
                 </Geographies>
-              </ZoomableGroup>
+              </ZoomableGroupWithMove>
             </ComposableMap>
             <MapZoomControls mapZoom={mapZoom} setMapZoom={setMapZoom} />
+            <HeatLegend />
             {tooltipContent && (
-              <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-10">
+              <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 pointer-events-none">
                 {tooltipContent}
               </div>
             )}
           </div>
         )}
 
-        {activeTab === "state-city" && (
-          <div className="space-y-4">
-            <div className="w-full overflow-hidden rounded-xl border border-gray-100 bg-slate-50/50 relative">
+        {/* ——— State & City map ——— */}
+        {activeTab === "stateCity" && (
+          <div className="space-y-4 px-5 pb-4">
+            <div className="w-full overflow-hidden rounded-xl bg-slate-50/30 relative">
               <ComposableMap
                 projection="geoMercator"
-                projectionConfig={{ scale: 1200, center: [78, 22] }}
+                projectionConfig={{ scale: 1200, center: INDIA_CENTER }}
                 width={800}
-                height={360}
+                height={380}
                 className="w-full h-auto max-w-full"
                 style={{ width: "100%", height: "auto" }}
               >
-                <ZoomableGroup
-                  center={[78, 22]}
+                <ZoomableGroupWithMove
+                  center={mapCenter}
                   zoom={mapZoom}
                   minZoom={MIN_ZOOM}
                   maxZoom={MAX_ZOOM}
+                  onMoveEnd={handleMoveEnd}
                 >
                   <Geographies geography={INDIA_STATES_URL}>
-                    {({ geographies, projection }) => (
+                    {({ geographies }) => (
                       <>
                         {geographies.map((geo) => {
                           const name = String(
                             geo.properties?.st_nm ??
-                            geo.properties?.ST_NM ??
-                            geo.properties?.STATE ??
-                            geo.properties?.name ??
-                            "",
+                              geo.properties?.ST_NM ??
+                              geo.properties?.STATE ??
+                              geo.properties?.name ??
+                              "",
                           );
                           const stats = indiaStateData[name] ?? { orders: 0, revenue: 0 };
-                          const fill = getFillForSales(stats.orders, maxStateOrders);
-                          const stroke = getStrokeForSales(stats.orders);
-                          const centroid = getGeoCentroid(geo);
-                          const [x, y] = centroid && projection ? projection(centroid) : [0, 0];
+                          const fill = getFill(stats.orders, maxStateOrders);
+                          const stroke = getStroke(stats.orders);
                           return (
-                            <Fragment key={geo.rsmKey}>
-                              <Geography
-                                geography={geo}
-                                fill={fill}
-                                stroke={stroke}
-                                strokeWidth={stats.orders > 0 ? 0.8 : 0.5}
-                                onMouseEnter={() =>
-                                  setTooltipContent(
-                                    renderTooltip(
-                                      <>
-                                        <p className="font-semibold text-gray-900">{name}</p>
-                                        <p className="mt-1 text-xs text-gray-600">
-                                          Orders: {stats.orders.toLocaleString("en-IN")} · Revenue: {formatRevenue(stats.revenue)}
-                                        </p>
-                                      </>,
-                                    ),
-                                  )
-                                }
-                                onMouseLeave={() => setTooltipContent(null)}
-                                style={{
-                                  default: { outline: "none" },
-                                  hover: { outline: "none", fill: "#f9a8d4", cursor: "pointer" },
-                                  pressed: { outline: "none" },
-                                }}
-                              />
-                              {showStateLabels && centroid ? (
-                                <text
-                                  x={x}
-                                  y={y}
-                                  textAnchor="middle"
-                                  className="pointer-events-none fill-gray-700"
-                                  style={{
-                                    fontSize: Math.max(7, 10 - mapZoom * 0.8),
-                                    fontWeight: 600,
-                                  }}
-                                >
-                                  {name.length > 14 ? name.slice(0, 13) + "…" : name}
-                                </text>
-                              ) : null}
-                            </Fragment>
-                          );
-                        })}
-                        {showCityMarkers &&
-                          cityData.map((c) => (
-                            <Marker
-                              key={`${c.city}-${c.state}`}
-                              coordinates={c.coordinates}
+                            <Geography
+                              key={geo.rsmKey}
+                              geography={geo}
+                              fill={fill}
+                              stroke={stroke}
+                              strokeWidth={stats.orders > 0 ? 0.6 : 0.4}
                               onMouseEnter={() =>
                                 setTooltipContent(
-                                  renderTooltip(
-                                    <>
-                                      <p className="font-semibold text-gray-900">{c.city}</p>
-                                      <p className="text-xs text-gray-500">{c.state}</p>
-                                      <p className="mt-1 text-xs text-gray-600">
-                                        Orders: {c.orders.toLocaleString("en-IN")} · Revenue: {formatRevenue(c.revenue)}
-                                      </p>
-                                    </>,
-                                  ),
+                                  renderTooltip(name, stats.orders, stats.revenue),
                                 )
                               }
                               onMouseLeave={() => setTooltipContent(null)}
-                            >
-                              <g>
-                                <circle r={4} fill="#ec4899" stroke="#fff" strokeWidth={1.5} />
-                                <text
-                                  y={-8}
-                                  textAnchor="middle"
-                                  className="pointer-events-none fill-gray-800"
-                                  style={{ fontSize: 9, fontWeight: 600 }}
-                                >
-                                  {c.city}
-                                </text>
-                              </g>
-                            </Marker>
-                          ))}
+                              style={{
+                                default: { outline: "none" },
+                                hover: {
+                                  outline: "none",
+                                  fill: HEAT.hoverFill,
+                                  stroke: HEAT.strokeHover,
+                                  strokeWidth: 1,
+                                  cursor: "pointer",
+                                },
+                                pressed: { outline: "none" },
+                              }}
+                            />
+                          );
+                        })}
+                        {cityData.map((c) => (
+                          <Marker
+                            key={`${c.city}-${c.state}`}
+                            coordinates={c.coordinates}
+                            onMouseEnter={() =>
+                              setTooltipContent(
+                                renderTooltip(c.city, c.orders, c.revenue),
+                              )
+                            }
+                            onMouseLeave={() => setTooltipContent(null)}
+                          >
+                            <g>
+                              <circle
+                                r={4}
+                                fill={HEAT.dark}
+                                stroke="#fff"
+                                strokeWidth={1.5}
+                              />
+                            </g>
+                          </Marker>
+                        ))}
                       </>
                     )}
                   </Geographies>
-                </ZoomableGroup>
+                </ZoomableGroupWithMove>
               </ComposableMap>
               <MapZoomControls mapZoom={mapZoom} setMapZoom={setMapZoom} />
+              <HeatLegend />
               {tooltipContent && (
-                <div className="absolute top-2 left-1/2 -translate-x-1/2 z-10">
+                <div className="absolute top-2 left-1/2 -translate-x-1/2 z-20 pointer-events-none">
                   {tooltipContent}
                 </div>
               )}
             </div>
-            <div className="rounded-xl border border-gray-100 bg-gray-50/50 p-4">
-              <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 mb-3">
-                Top cities · Orders & revenue
+            <div className="rounded-xl border border-gray-200 bg-gray-50/50 p-4">
+              <p className="text-xs font-medium uppercase tracking-wider text-gray-500 mb-3 flex items-center gap-1.5">
+                <MapPin className="h-3.5 w-3.5" />
+                Top cities
               </p>
               <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
                 {cityData.map((c) => (
@@ -566,9 +634,9 @@ export function GeographyChart() {
         )}
       </div>
 
-      <div className="mt-3 flex items-center justify-between text-[11px] sm:text-xs text-gray-400">
-        <span>Drag to pan · Scroll or use +/− to zoom · Labels show by zoom level</span>
-      </div>
+      <p className="px-5 py-2 text-[11px] text-gray-400">
+        Drag to pan · Scroll to zoom
+      </p>
     </div>
   );
 }

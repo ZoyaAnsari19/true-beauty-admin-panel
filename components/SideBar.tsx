@@ -13,6 +13,7 @@ import {
   Bell,
   Palette,
   Boxes,
+  Share2,
   X,
 } from "lucide-react";
 import Link from "next/link";
@@ -37,6 +38,7 @@ const menuItems: MenuItem[] = [
   { label: "Add Coupons", icon: Gift, href: "/addCoupons" },
   { label: "Web Theme", icon: Palette, href: "/web-theme" },
   { label: "Inventory Management", icon: Boxes, href: "/inventory" },
+  { label: "Social Media Manage", icon: Share2, href: "/social-media-manage" },
 ];
 
 export default function SideBar() {
@@ -108,7 +110,8 @@ export default function SideBar() {
                 (item.href === "/withdraw-requests" && pathname.startsWith("/withdraw-requests")) ||
                 (item.href === "/notifications" && pathname.startsWith("/notifications")) ||
                 (item.href === "/addCoupons" && pathname.startsWith("/addCoupons")) ||
-                (item.href === "/web-theme" && pathname.startsWith("/web-theme"));
+                (item.href === "/web-theme" && pathname.startsWith("/web-theme")) ||
+                (item.href === "/social-media-manage" && pathname.startsWith("/social-media-manage"));
               return (
                 <Link
                   key={item.href}
