@@ -264,17 +264,19 @@ export default function Home() {
             {orderStatus.map((status) => (
               <div key={status.label} className="space-y-1">
                 <p className="text-xs text-gray-500">{status.label}</p>
-                <p className="text-sm font-semibold text-gray-900">
-                  {status.count.toLocaleString("en-IN")}
-                </p>
-                <span
-                  className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium ${status.chipClassName}`}
-                >
-                  {Math.round(
-                    (status.count / totalOrderStatusCount) * 100,
-                  )}
-                  %
-                </span>
+                <div className="flex items-center gap-2 md:block">
+                  <p className="text-sm font-semibold text-gray-900">
+                    {status.count.toLocaleString("en-IN")}
+                  </p>
+                  <span
+                    className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium md:mt-1 ${status.chipClassName}`}
+                  >
+                    {Math.round(
+                      (status.count / totalOrderStatusCount) * 100,
+                    )}
+                    %
+                  </span>
+                </div>
               </div>
             ))}
           </div>

@@ -123,7 +123,7 @@ export default function SettingsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between gap-2">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <Link
           href="/"
           className="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900"
@@ -132,7 +132,7 @@ export default function SettingsPage() {
           <span className="hidden sm:inline">Back to dashboard</span>
           <span className="sm:hidden">Back</span>
         </Link>
-        <div className="flex-1 text-center">
+        <div className="flex-1 text-center sm:text-center">
           <h1 className="text-xl font-semibold text-gray-900">Settings</h1>
           <p className="text-sm text-gray-500 mt-0.5">
             Manage store, payment, orders, notifications and security
@@ -141,7 +141,7 @@ export default function SettingsPage() {
         <button
           type="button"
           onClick={handleSave}
-          className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#D96A86] text-white font-medium hover:bg-[#C85A76] transition-colors"
+          className="inline-flex w-full justify-center sm:w-auto items-center gap-2 px-4 py-2.5 rounded-xl bg-[#D96A86] text-white font-medium hover:bg-[#C85A76] transition-colors"
         >
           <Save className="w-4 h-4" />
           {saved ? "Saved" : "Save changes"}
