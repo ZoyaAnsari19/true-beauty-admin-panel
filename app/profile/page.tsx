@@ -36,7 +36,7 @@ export default function ProfilePage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between gap-2">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <Link
           href="/"
           className="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900"
@@ -45,13 +45,13 @@ export default function ProfilePage() {
           <span className="hidden sm:inline">Back to dashboard</span>
           <span className="sm:hidden">Back</span>
         </Link>
-        <div className="flex-1 text-center">
+        <div className="flex-1 text-center sm:text-center">
           <h1 className="text-xl font-semibold text-gray-900">Profile</h1>
           <p className="text-sm text-gray-500 mt-0.5">
             View and update your personal details
           </p>
         </div>
-        {/* spacer to keep heading centered */}
+        {/* spacer to keep heading centered on desktop */}
         <div className="w-[120px] hidden sm:block" />
       </div>
 
