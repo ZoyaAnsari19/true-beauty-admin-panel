@@ -42,6 +42,7 @@ const pageTitles: Record<string, string> = {
   "/web-theme": "Web Theme",
   "/inventory": "Inventory Management",
   "/social-media-manage": "Social Media Manage",
+  "/profile": "Profile",
   "/settings": "Settings",
 };
 
@@ -82,6 +83,19 @@ export default function RootLayout({
           : isWithdrawRequestDetail
             ? "Withdrawal Request Details"
             : (pageTitles[pathname] || "Dashboard");
+
+  if (pathname === "/login") {
+    return (
+      <html lang="en">
+        <head>
+          <title>True Beauty Admin Panel - Login</title>
+        </head>
+        <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+          {children}
+        </body>
+      </html>
+    );
+  }
 
   return (
     <html lang="en">

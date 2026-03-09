@@ -1,9 +1,12 @@
 "use client";
 
 import React, { useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Search, Bell, User, ChevronDown, Menu } from "lucide-react";
 import { useSidebar } from "@/lib/sidebar-context";
+import { clearToken } from "@/lib/auth";
+import DeletePopup from "@/components/ui/deletePopup";
 
 interface TopBarProps {
   pageTitle?: string;
@@ -12,8 +15,16 @@ interface TopBarProps {
 export default function TopBar({ pageTitle = "Dashboard" }: TopBarProps) {
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const { toggle: toggleSidebar } = useSidebar();
   const router = useRouter();
+
+  const handleLogout = () => {
+    setShowLogoutConfirm(false);
+    setShowProfileMenu(false);
+    clearToken();
+    router.push("/login");
+  };
 
   const handleNotificationClick = (notificationId: string) => {
     setShowNotifications(false);
@@ -115,31 +126,47 @@ export default function TopBar({ pageTitle = "Dashboard" }: TopBarProps) {
                   onClick={() => setShowProfileMenu(false)}
                 />
                 <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-200 py-2 z-20">
-                  <a
+                  <Link
                     href="/profile"
+                    onClick={() => setShowProfileMenu(false)}
                     className="block px-4 py-2 text-sm text-gray-700 hover:bg-[#fef5f7] transition-colors"
                   >
                     Profile
-                  </a>
-                  <a
+                  </Link>
+                  <Link
                     href="/settings"
+                    onClick={() => setShowProfileMenu(false)}
                     className="block px-4 py-2 text-sm text-gray-700 hover:bg-[#fef5f7] transition-colors"
                   >
                     Settings
-                  </a>
-                  <div className="border-t border-gray-200 my-1"></div>
-                  <a
-                    href="/logout"
-                    className="block px-4 py-2 text-sm text-red-600 hover:bg-[#fef5f7] transition-colors"
+                  </Link>
+                  <div className="border-t border-gray-200 my-1" />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowProfileMenu(false);
+                      setShowLogoutConfirm(true);
+                    }}
+                    className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-[#fef5f7] transition-colors"
                   >
                     Logout
-                  </a>
+                  </button>
                 </div>
               </>
             )}
           </div>
         </div>
       </div>
+
+      <DeletePopup
+        open={showLogoutConfirm}
+        title="Logout"
+        description="Are you sure you want to logout? You will need to sign in again to access the admin panel."
+        confirmLabel="Logout"
+        cancelLabel="Cancel"
+        onConfirm={handleLogout}
+        onCancel={() => setShowLogoutConfirm(false)}
+      />
     </header>
   );
 }
