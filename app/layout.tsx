@@ -41,6 +41,7 @@ const pageTitles: Record<string, string> = {
   "/theme": "Web Theme",
   "/web-theme": "Web Theme",
   "/inventory": "Inventory Management",
+  "/social-media-manage": "Social Media Manage",
   "/settings": "Settings",
 };
 
