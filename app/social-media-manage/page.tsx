@@ -24,21 +24,24 @@ type SocialPlatformId =
   | "linkedin"
   | "whatsapp";
 
+type SocialLinkVisibility = "none" | "products" | "services" | "both";
+
 type SocialLink = {
   id: SocialPlatformId;
   name: string;
   url: string;
   enabled: boolean;
   editing?: boolean;
+  visibility: SocialLinkVisibility;
 };
 
 const INITIAL_SOCIAL_LINKS: SocialLink[] = [
-  { id: "facebook", name: "Facebook", url: "", enabled: false },
-  { id: "instagram", name: "Instagram", url: "", enabled: false },
-  { id: "youtube", name: "YouTube", url: "", enabled: false },
-  { id: "twitter", name: "Twitter", url: "", enabled: false },
-  { id: "linkedin", name: "LinkedIn", url: "", enabled: false },
-  { id: "whatsapp", name: "WhatsApp", url: "", enabled: false },
+  { id: "facebook", name: "Facebook", url: "", enabled: false, visibility: "none" },
+  { id: "instagram", name: "Instagram", url: "", enabled: false, visibility: "none" },
+  { id: "youtube", name: "YouTube", url: "", enabled: false, visibility: "none" },
+  { id: "twitter", name: "Twitter", url: "", enabled: false, visibility: "none" },
+  { id: "linkedin", name: "LinkedIn", url: "", enabled: false, visibility: "none" },
+  { id: "whatsapp", name: "WhatsApp", url: "", enabled: false, visibility: "none" },
 ];
 
 const PLATFORM_ICONS: Record<SocialPlatformId, React.ComponentType<{ className?: string }>> = {
@@ -52,13 +55,9 @@ const PLATFORM_ICONS: Record<SocialPlatformId, React.ComponentType<{ className?:
 
 export default function SocialMediaManagePage() {
   const [links, setLinks] = useState<SocialLink[]>(INITIAL_SOCIAL_LINKS);
-  const [shareOnProducts, setShareOnProducts] = useState(true);
-  const [shareOnServices, setShareOnServices] = useState(true);
   const [whatsAppEnabled, setWhatsAppEnabled] = useState(false);
   const [whatsAppNumber, setWhatsAppNumber] = useState("");
   const [whatsAppWelcomeMessage, setWhatsAppWelcomeMessage] = useState("");
-  const [socialLoginGoogle, setSocialLoginGoogle] = useState(false);
-  const [socialLoginFacebook, setSocialLoginFacebook] = useState(false);
   const [saved, setSaved] = useState(false);
 
   const updateLink = (id: SocialPlatformId, updates: Partial<SocialLink>) => {
@@ -141,13 +140,67 @@ export default function SocialMediaManagePage() {
                   <div className="flex-1 min-w-0 flex flex-col sm:flex-row sm:items-center gap-3">
                     {link.editing ? (
                       <>
-                        <input
-                          type="url"
-                          value={link.url}
-                          onChange={(e) => updateLink(link.id, { url: e.target.value })}
-                          placeholder={`https://${link.id}.com/...`}
-                          className="flex-1 min-w-0 px-3 py-2 rounded-lg border border-gray-200 text-sm focus:ring-2 focus:ring-[#D96A86]/30 focus:border-[#D96A86] outline-none"
-                        />
+                        <div className="flex-1 min-w-0 space-y-2">
+                          <input
+                            type="url"
+                            value={link.url}
+                            onChange={(e) => updateLink(link.id, { url: e.target.value })}
+                            placeholder={`https://${link.id}.com/...`}
+                            className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:ring-2 focus:ring-[#D96A86]/30 focus:border-[#D96A86] outline-none"
+                          />
+                          {link.url && (
+                            <div className="flex flex-wrap items-center gap-3">
+                              <span className="text-xs sm:text-sm text-gray-600">Show on</span>
+                              <div className="flex flex-wrap gap-3">
+                                <label className="inline-flex items-center gap-1.5 text-xs sm:text-sm text-gray-700">
+                                  <input
+                                    type="radio"
+                                    name={`${link.id}-visibility`}
+                                    value="products"
+                                    checked={link.visibility === "products"}
+                                    onChange={() =>
+                                      updateLink(link.id, {
+                                        visibility: "products" as SocialLinkVisibility,
+                                      })
+                                    }
+                                    className="h-3.5 w-3.5 text-[#D96A86] border-gray-300 focus:ring-[#D96A86]/40"
+                                  />
+                                  <span>Product page</span>
+                                </label>
+                                <label className="inline-flex items-center gap-1.5 text-xs sm:text-sm text-gray-700">
+                                  <input
+                                    type="radio"
+                                    name={`${link.id}-visibility`}
+                                    value="services"
+                                    checked={link.visibility === "services"}
+                                    onChange={() =>
+                                      updateLink(link.id, {
+                                        visibility: "services" as SocialLinkVisibility,
+                                      })
+                                    }
+                                    className="h-3.5 w-3.5 text-[#D96A86] border-gray-300 focus:ring-[#D96A86]/40"
+                                  />
+                                  <span>Service page</span>
+                                </label>
+                                <label className="inline-flex items-center gap-1.5 text-xs sm:text-sm text-gray-700">
+                                  <input
+                                    type="radio"
+                                    name={`${link.id}-visibility`}
+                                    value="both"
+                                    checked={link.visibility === "both"}
+                                    onChange={() =>
+                                      updateLink(link.id, {
+                                        visibility: "both" as SocialLinkVisibility,
+                                      })
+                                    }
+                                    className="h-3.5 w-3.5 text-[#D96A86] border-gray-300 focus:ring-[#D96A86]/40"
+                                  />
+                                  <span>Both pages</span>
+                                </label>
+                              </div>
+                            </div>
+                          )}
+                        </div>
                         <div className="flex items-center gap-2 shrink-0">
                           <button
                             type="button"
@@ -169,15 +222,15 @@ export default function SocialMediaManagePage() {
                       </>
                     ) : (
                       <>
-                        <div className="flex-1 min-w-0 flex items-center gap-2">
-                          {link.url ? (
+                        <div className="flex-1 min-w-0 sm:pr-24">
+                          {link.url && link.visibility !== "none" ? (
                             <a
                               href={link.url}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="text-sm text-[#D96A86] hover:underline truncate inline-flex items-center gap-1"
+                              className="flex items-center gap-1 max-w-full text-sm text-[#D96A86] hover:underline"
                             >
-                              {link.url}
+                              <span className="truncate">{link.url}</span>
                               <ArrowUpRight className="w-4 h-4 shrink-0 text-gray-400" />
                             </a>
                           ) : (
@@ -219,65 +272,6 @@ export default function SocialMediaManagePage() {
               );
             })}
           </ul>
-        </div>
-      </div>
-
-      {/* Social share buttons */}
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-        <div className="px-6 py-4 border-b border-gray-100">
-          <h2 className="text-base font-semibold text-gray-900 flex items-center gap-2">
-            <Share2 className="w-4 h-4 text-gray-600" />
-            Social share buttons
-          </h2>
-          <p className="text-sm text-gray-500 mt-0.5">
-            Show share buttons on product and service pages
-          </p>
-        </div>
-        <div className="p-6 space-y-4">
-          <div className="flex items-center justify-between p-4 rounded-xl bg-gray-50/60 border border-gray-100">
-            <div>
-              <p className="font-medium text-gray-900">Product pages</p>
-              <p className="text-sm text-gray-500">Allow visitors to share products on social media</p>
-            </div>
-            <button
-              type="button"
-              role="switch"
-              aria-checked={shareOnProducts}
-              onClick={() => setShareOnProducts((v) => !v)}
-              className={`relative inline-flex h-6 w-11 shrink-0 rounded-full border transition-colors focus:outline-none focus:ring-2 focus:ring-[#D96A86]/30 ${
-                shareOnProducts ? "bg-[#D96A86] border-[#D96A86]" : "bg-gray-200 border-gray-200"
-              }`}
-            >
-              <span
-                className={`pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow ring-0 transition-transform ${
-                  shareOnProducts ? "translate-x-5" : "translate-x-0.5"
-                }`}
-                style={{ marginTop: 2 }}
-              />
-            </button>
-          </div>
-          <div className="flex items-center justify-between p-4 rounded-xl bg-gray-50/60 border border-gray-100">
-            <div>
-              <p className="font-medium text-gray-900">Service pages</p>
-              <p className="text-sm text-gray-500">Allow visitors to share services on social media</p>
-            </div>
-            <button
-              type="button"
-              role="switch"
-              aria-checked={shareOnServices}
-              onClick={() => setShareOnServices((v) => !v)}
-              className={`relative inline-flex h-6 w-11 shrink-0 rounded-full border transition-colors focus:outline-none focus:ring-2 focus:ring-[#D96A86]/30 ${
-                shareOnServices ? "bg-[#D96A86] border-[#D96A86]" : "bg-gray-200 border-gray-200"
-              }`}
-            >
-              <span
-                className={`pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow ring-0 transition-transform ${
-                  shareOnServices ? "translate-x-5" : "translate-x-0.5"
-                }`}
-                style={{ marginTop: 2 }}
-              />
-            </button>
-          </div>
         </div>
       </div>
 
@@ -343,62 +337,6 @@ export default function SocialMediaManagePage() {
               </div>
             </div>
           )}
-        </div>
-      </div>
-
-      {/* Social login settings */}
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-        <div className="px-6 py-4 border-b border-gray-100">
-          <h2 className="text-base font-semibold text-gray-900">Social login</h2>
-          <p className="text-sm text-gray-500 mt-0.5">
-            Allow users to sign in with Google or Facebook (optional)
-          </p>
-        </div>
-        <div className="p-6 space-y-4">
-          <div className="flex items-center justify-between p-4 rounded-xl bg-gray-50/60 border border-gray-100">
-            <div>
-              <p className="font-medium text-gray-900">Google login</p>
-              <p className="text-sm text-gray-500">Sign in with Google account</p>
-            </div>
-            <button
-              type="button"
-              role="switch"
-              aria-checked={socialLoginGoogle}
-              onClick={() => setSocialLoginGoogle((v) => !v)}
-              className={`relative inline-flex h-6 w-11 shrink-0 rounded-full border transition-colors focus:outline-none focus:ring-2 focus:ring-[#D96A86]/30 ${
-                socialLoginGoogle ? "bg-[#D96A86] border-[#D96A86]" : "bg-gray-200 border-gray-200"
-              }`}
-            >
-              <span
-                className={`pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow ring-0 transition-transform ${
-                  socialLoginGoogle ? "translate-x-5" : "translate-x-0.5"
-                }`}
-                style={{ marginTop: 2 }}
-              />
-            </button>
-          </div>
-          <div className="flex items-center justify-between p-4 rounded-xl bg-gray-50/60 border border-gray-100">
-            <div>
-              <p className="font-medium text-gray-900">Facebook login</p>
-              <p className="text-sm text-gray-500">Sign in with Facebook account</p>
-            </div>
-            <button
-              type="button"
-              role="switch"
-              aria-checked={socialLoginFacebook}
-              onClick={() => setSocialLoginFacebook((v) => !v)}
-              className={`relative inline-flex h-6 w-11 shrink-0 rounded-full border transition-colors focus:outline-none focus:ring-2 focus:ring-[#D96A86]/30 ${
-                socialLoginFacebook ? "bg-[#D96A86] border-[#D96A86]" : "bg-gray-200 border-gray-200"
-              }`}
-            >
-              <span
-                className={`pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow ring-0 transition-transform ${
-                  socialLoginFacebook ? "translate-x-5" : "translate-x-0.5"
-                }`}
-                style={{ marginTop: 2 }}
-              />
-            </button>
-          </div>
         </div>
       </div>
     </div>
