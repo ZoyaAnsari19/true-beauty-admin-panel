@@ -194,10 +194,12 @@ export function SalesAnalyticsChart({
           />
         </AreaChart>
       </ResponsiveContainer>
-      <div className="mt-2 flex items-center justify-between text-[11px] sm:text-xs text-gray-400 px-0.5">
-        <span className="truncate">{xAxisLabel}</span>
-        <span className="truncate text-right">{yAxisLabel}</span>
-      </div>
+      {(xAxisLabel || yAxisLabel) && (
+        <div className="mt-2 flex items-center justify-between text-[11px] sm:text-xs text-gray-400 px-0.5">
+          <span className="truncate">{xAxisLabel}</span>
+          <span className="truncate text-right">{yAxisLabel}</span>
+        </div>
+      )}
     </div>
   );
 }

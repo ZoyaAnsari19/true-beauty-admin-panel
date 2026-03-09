@@ -331,33 +331,24 @@ export default function Home() {
 
               <SalesAnalyticsChart
                 data={activeSalesData}
-                xAxisLabel={
-                  activeRange === "today"
-                    ? "Time of day"
-                    : activeRange === "week"
-                      ? "Day of week"
-                      : "Week of month"
-                }
-                yAxisLabel="Sales (₹)"
+                xAxisLabel=""
+                yAxisLabel=""
                 currency="INR"
               />
 
               <div className="mt-2 border-t border-gray-100 pt-3">
-                <p className="text-xs font-medium text-gray-500 mb-2">
-                  Product-wise break-up
-                </p>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                  {activeSalesData.map((point) => (
+                <div className="flex flex-col gap-2">
+                  {activeSalesData.slice(0, 5).map((point, index) => (
                     <div
                       key={point.label}
                       className="flex items-center justify-between text-xs text-gray-600"
                     >
-                      <div className="min-w-0">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <span className="shrink-0 w-5 text-gray-500 font-medium">
+                          {index + 1}.
+                        </span>
                         <p className="truncate font-medium text-gray-800">
                           {point.productName ?? "Product"}
-                        </p>
-                        <p className="text-[11px] text-gray-500">
-                          {point.label}
                         </p>
                       </div>
                       <p className="ml-3 shrink-0 font-semibold text-gray-900">
