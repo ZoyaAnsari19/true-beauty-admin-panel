@@ -5,10 +5,12 @@ import React, {
   useCallback,
   useContext,
   useEffect,
+  useMemo,
   useState,
 } from "react";
 
 const STORAGE_KEY = "admin-subscription";
+const CHECKOUT_STORAGE_KEY = "admin-subscription-checkout";
 
 export type SubscriptionPlanId = "starter" | "professional" | "enterprise";
 
@@ -28,6 +30,66 @@ export interface Subscription {
   startDate: string; // ISO date
   expiryDate: string; // ISO date
   status: SubscriptionStatus;
+}
+
+export type SubscriptionCheckoutMode = "buy" | "renew";
+
+export interface BusinessDetails {
+  businessName: string;
+  ownerName: string;
+  email: string;
+  phone: string;
+  addressLine1: string;
+  city: string;
+  state: string;
+  pincode: string;
+  gstNumber?: string;
+}
+
+export type DocumentType = "gst" | "pan" | "other";
+
+export interface VerifiedDocument {
+  type: DocumentType;
+  fileName: string;
+  uploadedAt: string; // ISO datetime
+  verified: boolean;
+}
+
+export interface SubscriptionAddon {
+  id: "priority-support" | "extra-users" | "advanced-analytics";
+  name: string;
+  price: number; // monthly
+  description: string;
+}
+
+export const SUBSCRIPTION_ADDONS: SubscriptionAddon[] = [
+  {
+    id: "priority-support",
+    name: "Priority Support",
+    price: 199,
+    description: "Faster response time for support requests.",
+  },
+  {
+    id: "extra-users",
+    name: "Extra Admin Users",
+    price: 299,
+    description: "Add more admin seats for your team.",
+  },
+  {
+    id: "advanced-analytics",
+    name: "Advanced Analytics",
+    price: 399,
+    description: "Deeper insights and exports for reporting.",
+  },
+];
+
+export interface SubscriptionCheckoutData {
+  mode: SubscriptionCheckoutMode;
+  planId: SubscriptionPlanId | null;
+  businessDetails: BusinessDetails | null;
+  addons: SubscriptionAddon["id"][];
+  documents: VerifiedDocument[];
+  lastUpdatedAt: string; // ISO datetime
 }
 
 export const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
@@ -59,6 +121,26 @@ function readStored(): Subscription | null {
   }
 }
 
+function readStoredCheckout(): SubscriptionCheckoutData | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = localStorage.getItem(CHECKOUT_STORAGE_KEY);
+    if (!raw) return null;
+    return JSON.parse(raw) as SubscriptionCheckoutData;
+  } catch {
+    return null;
+  }
+}
+
+function writeStoredCheckout(data: SubscriptionCheckoutData) {
+  if (typeof window === "undefined") return;
+  try {
+    localStorage.setItem(CHECKOUT_STORAGE_KEY, JSON.stringify(data));
+  } catch (e) {
+    console.warn("Checkout persist failed:", e);
+  }
+}
+
 function getRemainingDays(expiryDate: string): number {
   const expiry = new Date(expiryDate);
   const today = new Date();
@@ -79,12 +161,22 @@ interface SubscriptionContextValue {
   purchasePlan: (planId: SubscriptionPlanId) => void;
   renewPlan: (planId: SubscriptionPlanId) => void;
   getPlanById: (id: SubscriptionPlanId) => SubscriptionPlan | undefined;
+  getAddonById: (id: SubscriptionAddon["id"]) => SubscriptionAddon | undefined;
+
+  /** Smart checkout state */
+  checkout: SubscriptionCheckoutData | null;
+  initCheckout: (mode: SubscriptionCheckoutMode, planId: SubscriptionPlanId) => SubscriptionCheckoutData;
+  saveBusinessDetails: (details: BusinessDetails) => void;
+  setAddons: (addonIds: SubscriptionAddon["id"][]) => void;
+  upsertDocument: (doc: Omit<VerifiedDocument, "uploadedAt">) => void;
+  clearCheckout: () => void;
 }
 
 const SubscriptionContext = createContext<SubscriptionContextValue | null>(null);
 
 export function SubscriptionProvider({ children }: { children: React.ReactNode }) {
   const [subscription, setSubscription] = useState<Subscription | null>(null);
+  const [checkout, setCheckout] = useState<SubscriptionCheckoutData | null>(null);
 
   useEffect(() => {
     const stored = readStored();
@@ -92,6 +184,8 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
       const status = getStatus(stored.expiryDate);
       setSubscription({ ...stored, status });
     }
+    const storedCheckout = readStoredCheckout();
+    if (storedCheckout) setCheckout(storedCheckout);
   }, []);
 
   // Derive current status from expiry when exposing subscription
@@ -106,6 +200,11 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
     } catch (e) {
       console.warn("Subscription persist failed:", e);
     }
+  }, []);
+
+  const setCheckoutAndPersist = useCallback((next: SubscriptionCheckoutData) => {
+    setCheckout(next);
+    writeStoredCheckout(next);
   }, []);
 
   const purchasePlan = useCallback(
@@ -150,17 +249,114 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
     return SUBSCRIPTION_PLANS.find((p) => p.id === id);
   }, []);
 
+  const getAddonById = useCallback((id: SubscriptionAddon["id"]) => {
+    return SUBSCRIPTION_ADDONS.find((a) => a.id === id);
+  }, []);
+
+  const initCheckout = useCallback(
+    (mode: SubscriptionCheckoutMode, planId: SubscriptionPlanId) => {
+      const existing = checkout ?? readStoredCheckout();
+      const now = new Date().toISOString();
+
+      const next: SubscriptionCheckoutData = {
+        mode,
+        planId,
+        businessDetails: mode === "renew" ? existing?.businessDetails ?? null : null,
+        addons: mode === "renew" ? existing?.addons ?? [] : [],
+        documents: mode === "renew" ? existing?.documents ?? [] : [],
+        lastUpdatedAt: now,
+      };
+
+      setCheckoutAndPersist(next);
+      return next;
+    },
+    [checkout, setCheckoutAndPersist]
+  );
+
+  const saveBusinessDetails = useCallback(
+    (details: BusinessDetails) => {
+      if (!checkout) return;
+      setCheckoutAndPersist({
+        ...checkout,
+        businessDetails: details,
+        lastUpdatedAt: new Date().toISOString(),
+      });
+    },
+    [checkout, setCheckoutAndPersist]
+  );
+
+  const setAddons = useCallback(
+    (addonIds: SubscriptionAddon["id"][]) => {
+      if (!checkout) return;
+      setCheckoutAndPersist({
+        ...checkout,
+        addons: addonIds,
+        lastUpdatedAt: new Date().toISOString(),
+      });
+    },
+    [checkout, setCheckoutAndPersist]
+  );
+
+  const upsertDocument = useCallback(
+    (doc: Omit<VerifiedDocument, "uploadedAt">) => {
+      if (!checkout) return;
+      const uploadedAt = new Date().toISOString();
+      const nextDocs = [
+        ...checkout.documents.filter((d) => d.type !== doc.type),
+        { ...doc, uploadedAt },
+      ];
+      setCheckoutAndPersist({
+        ...checkout,
+        documents: nextDocs,
+        lastUpdatedAt: new Date().toISOString(),
+      });
+    },
+    [checkout, setCheckoutAndPersist]
+  );
+
+  const clearCheckout = useCallback(() => {
+    setCheckout(null);
+    if (typeof window === "undefined") return;
+    try {
+      localStorage.removeItem(CHECKOUT_STORAGE_KEY);
+    } catch (e) {
+      console.warn("Checkout clear failed:", e);
+    }
+  }, []);
+
   const remainingDays = subscriptionWithStatus
     ? getRemainingDays(subscriptionWithStatus.expiryDate)
     : 0;
 
-  const value: SubscriptionContextValue = {
-    subscription: subscriptionWithStatus,
+  const value = useMemo<SubscriptionContextValue>(() => {
+    return {
+      subscription: subscriptionWithStatus,
+      remainingDays,
+      purchasePlan,
+      renewPlan,
+      getPlanById,
+      getAddonById,
+      checkout,
+      initCheckout,
+      saveBusinessDetails,
+      setAddons,
+      upsertDocument,
+      clearCheckout,
+    };
+  }, [
+    subscriptionWithStatus,
     remainingDays,
     purchasePlan,
     renewPlan,
     getPlanById,
-  };
+    getAddonById,
+    checkout,
+    initCheckout,
+    saveBusinessDetails,
+    setAddons,
+    upsertDocument,
+    clearCheckout,
+  ]);
 
   return (
     <SubscriptionContext.Provider value={value}>
