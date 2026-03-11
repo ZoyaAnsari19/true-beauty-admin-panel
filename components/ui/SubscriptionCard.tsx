@@ -37,6 +37,8 @@ export function SubscriptionCard() {
       ? "border-amber-200 bg-amber-50 text-amber-800"
       : "border-emerald-200 bg-emerald-50 text-emerald-800";
 
+  const renewHref = `/subscription/checkout?mode=renew&planId=${subscription.planId}`;
+
   return (
     <div className="flex flex-wrap items-center gap-2 min-w-0 justify-end sm:justify-end">
       <span
@@ -48,22 +50,12 @@ export function SubscriptionCard() {
         <span className="opacity-90 inline">·</span>
         <span className="inline">Expires {formatDate(subscription.expiryDate)}</span>
       </span>
-      {isExpired && (
-        <Link
-          href="/subscription"
-          className="inline-flex items-center rounded-full bg-[#D96A86] px-3 py-1.5 text-xs font-medium text-white hover:bg-[#C85A76]"
-        >
-          Buy Plan
-        </Link>
-      )}
-      {isNearExpiry && !isExpired && (
-        <Link
-          href="/subscription"
-          className="inline-flex items-center rounded-full bg-amber-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-amber-700"
-        >
-          Renew
-        </Link>
-      )}
+      <Link
+        href={renewHref}
+        className="inline-flex items-center rounded-full bg-[#D96A86] px-3 py-1.5 text-xs font-medium text-white hover:bg-[#C85A76]"
+      >
+        Renew Plan
+      </Link>
     </div>
   );
 }

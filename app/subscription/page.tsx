@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Check, CreditCard, ArrowLeft } from "lucide-react";
 import {
   useSubscription,
@@ -10,8 +11,8 @@ import {
 } from "@/lib/subscription-context";
 
 export default function SubscriptionPage() {
-  const { subscription, purchasePlan, renewPlan, remainingDays } =
-    useSubscription();
+  const router = useRouter();
+  const { subscription, remainingDays } = useSubscription();
   const [selectedPlanId, setSelectedPlanId] =
     useState<SubscriptionPlanId | null>(null);
   const [purchased, setPurchased] = useState(false);
@@ -19,13 +20,11 @@ export default function SubscriptionPage() {
   const isExpired = subscription?.status === "expired";
   const isNearExpiry = subscription && remainingDays <= 7 && !isExpired;
 
-  const handlePurchase = (planId: SubscriptionPlanId) => {
-    if (subscription?.status === "expired") {
-      renewPlan(planId);
-    } else {
-      purchasePlan(planId);
-    }
+  const handleSelectPlan = (planId: SubscriptionPlanId) => {
     setSelectedPlanId(planId);
+    const isFirstTime = !subscription || subscription.status === "expired";
+    const mode = isFirstTime ? "buy" : "renew";
+    router.push(`/subscription/checkout?mode=${mode}&planId=${planId}`);
     setPurchased(true);
   };
 
@@ -44,7 +43,9 @@ export default function SubscriptionPage() {
       <div>
         <h1 className="text-xl font-semibold text-gray-900">Subscription Plans</h1>
         <p className="text-sm text-gray-500 mt-0.5">
-          Choose a plan and pay to activate. Your plan is valid for 30 days.
+          Choose a plan to{" "}
+          {subscription && !isExpired ? "switch or renew" : "activate for the first time"}
+          . Your plan is valid for 30 days.
         </p>
       </div>
 
@@ -122,21 +123,15 @@ export default function SubscriptionPage() {
                   Support included
                 </li>
               </ul>
-              {isCurrent && !isExpired && !isNearExpiry ? (
-                <p className="text-sm text-gray-500 text-center py-2">
-                  Active plan
-                </p>
-              ) : (
-                <button
-                  type="button"
-                  onClick={() => handlePurchase(plan.id)}
-                  className="w-full inline-flex items-center justify-center rounded-xl bg-[#D96A86] px-4 py-3 text-sm font-medium text-white hover:bg-[#C85A76] focus-visible:outline focus-visible:ring-2 focus-visible:ring-[#D96A86] focus-visible:ring-offset-2"
-                >
-                  {subscription?.status === "expired" || !subscription
-                    ? "Buy Plan"
-                    : "Renew / Switch"}
-                </button>
-              )}
+              <button
+                type="button"
+                onClick={() => handleSelectPlan(plan.id)}
+                className="w-full inline-flex items-center justify-center rounded-xl bg-[#D96A86] px-4 py-3 text-sm font-medium text-white hover:bg-[#C85A76] focus-visible:outline focus-visible:ring-2 focus-visible:ring-[#D96A86] focus-visible:ring-offset-2"
+              >
+                {subscription?.status === "expired" || !subscription
+                  ? "Buy Plan"
+                  : "Renew / Switch"}
+              </button>
             </div>
           );
         })}

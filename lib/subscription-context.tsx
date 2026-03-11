@@ -11,6 +11,7 @@ import React, {
 
 const STORAGE_KEY = "admin-subscription";
 const CHECKOUT_STORAGE_KEY = "admin-subscription-checkout";
+const INVOICE_STORAGE_KEY = "admin-subscription-invoices";
 
 export type SubscriptionPlanId = "starter" | "professional" | "enterprise";
 
@@ -92,6 +93,21 @@ export interface SubscriptionCheckoutData {
   lastUpdatedAt: string; // ISO datetime
 }
 
+export interface SubscriptionInvoice {
+  id: string;
+  mode: SubscriptionCheckoutMode;
+  planId: SubscriptionPlanId;
+  planName: string;
+  basePrice: number;
+  addons: SubscriptionAddon["id"][];
+  addonsTotal: number;
+  total: number;
+  createdAt: string; // ISO datetime
+  startDate: string; // ISO date
+  expiryDate: string; // ISO date
+  businessDetails: BusinessDetails | null;
+}
+
 export const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
   { id: "starter", name: "Starter", price: 999, priceLabel: "₹999/month" },
   { id: "professional", name: "Professional", price: 1499, priceLabel: "₹1,499/month" },
@@ -129,6 +145,26 @@ function readStoredCheckout(): SubscriptionCheckoutData | null {
     return JSON.parse(raw) as SubscriptionCheckoutData;
   } catch {
     return null;
+  }
+}
+
+function readStoredInvoices(): SubscriptionInvoice[] {
+  if (typeof window === "undefined") return [];
+  try {
+    const raw = localStorage.getItem(INVOICE_STORAGE_KEY);
+    if (!raw) return [];
+    return JSON.parse(raw) as SubscriptionInvoice[];
+  } catch {
+    return [];
+  }
+}
+
+function writeStoredInvoices(invoices: SubscriptionInvoice[]) {
+  if (typeof window === "undefined") return;
+  try {
+    localStorage.setItem(INVOICE_STORAGE_KEY, JSON.stringify(invoices));
+  } catch (e) {
+    console.warn("Invoice persist failed:", e);
   }
 }
 
@@ -202,6 +238,37 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
     }
   }, []);
 
+  const createInvoice = useCallback(
+    (sub: Subscription, mode: SubscriptionCheckoutMode) => {
+      const currentCheckout = checkout ?? readStoredCheckout();
+      const addons = currentCheckout?.addons ?? [];
+      const basePlan = SUBSCRIPTION_PLANS.find((p) => p.id === sub.planId);
+      const basePrice = basePlan?.price ?? sub.price;
+      const addonsTotal = addons.reduce((sum, addonId) => {
+        const addon = SUBSCRIPTION_ADDONS.find((a) => a.id === addonId);
+        return sum + (addon?.price ?? 0);
+      }, 0);
+      const total = basePrice + addonsTotal;
+      const invoices = readStoredInvoices();
+      const invoice: SubscriptionInvoice = {
+        id: `INV-${Date.now()}`,
+        mode,
+        planId: sub.planId,
+        planName: sub.planName,
+        basePrice,
+        addons,
+        addonsTotal,
+        total,
+        createdAt: new Date().toISOString(),
+        startDate: sub.startDate,
+        expiryDate: sub.expiryDate,
+        businessDetails: currentCheckout?.businessDetails ?? null,
+      };
+      writeStoredInvoices([...invoices, invoice]);
+    },
+    [checkout],
+  );
+
   const setCheckoutAndPersist = useCallback((next: SubscriptionCheckoutData) => {
     setCheckout(next);
     writeStoredCheckout(next);
@@ -222,8 +289,9 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
         status: "active",
       };
       persist(sub);
+      createInvoice(sub, "buy");
     },
-    [persist]
+    [persist, createInvoice],
   );
 
   const renewPlan = useCallback(
@@ -241,8 +309,9 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
         status: "active",
       };
       persist(sub);
+      createInvoice(sub, "renew");
     },
-    [persist]
+    [persist, createInvoice],
   );
 
   const getPlanById = useCallback((id: SubscriptionPlanId) => {
