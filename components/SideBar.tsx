@@ -15,6 +15,7 @@ import {
   Boxes,
   Share2,
   X,
+  CreditCard,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -28,6 +29,7 @@ interface MenuItem {
 
 const menuItems: MenuItem[] = [
   { label: "Dashboard", icon: LayoutDashboard, href: "/" },
+  { label: "Subscription", icon: CreditCard, href: "/subscription" },
   { label: "User Management", icon: Users, href: "/users" },
   { label: "Add Product/Manage", icon: Package, href: "/products" },
   { label: "Add Service", icon: Scissors, href: "/services" },
@@ -111,7 +113,8 @@ export default function SideBar() {
                 (item.href === "/notifications" && pathname.startsWith("/notifications")) ||
                 (item.href === "/addCoupons" && pathname.startsWith("/addCoupons")) ||
                 (item.href === "/web-theme" && pathname.startsWith("/web-theme")) ||
-                (item.href === "/social-media-manage" && pathname.startsWith("/social-media-manage"));
+                (item.href === "/social-media-manage" && pathname.startsWith("/social-media-manage")) ||
+                (item.href === "/subscription" && pathname.startsWith("/subscription"));
               return (
                 <Link
                   key={item.href}

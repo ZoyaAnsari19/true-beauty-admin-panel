@@ -16,6 +16,7 @@ import { NotificationsProvider } from "@/lib/notifications-context";
 import { CouponsProvider } from "@/lib/coupons-context";
 import { ThemeProvider } from "@/lib/theme-context";
 import { StockHistoryProvider } from "@/lib/stock-history-context";
+import { SubscriptionProvider } from "@/lib/subscription-context";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -44,6 +45,7 @@ const pageTitles: Record<string, string> = {
   "/social-media-manage": "Social Media Manage",
   "/profile": "Profile",
   "/settings": "Settings",
+  "/subscription": "Subscription",
 };
 
 export default function RootLayout({
@@ -115,6 +117,7 @@ export default function RootLayout({
         <NotificationsProvider>
         <CouponsProvider>
         <ThemeProvider>
+        <SubscriptionProvider>
         <SidebarProvider>
         <div className="flex h-screen bg-[#fef5f7]">
           <SideBar />
@@ -126,6 +129,7 @@ export default function RootLayout({
           </div>
         </div>
         </SidebarProvider>
+        </SubscriptionProvider>
         </ThemeProvider>
         </CouponsProvider>
         </NotificationsProvider>

@@ -6,6 +6,7 @@ import { useAffiliates } from "@/lib/affiliates-context";
 import { KpiCard } from "@/components/ui/kpiCard";
 import { SalesAnalyticsChart } from "@/components/charts/SalesAnalyticsChart";
 import { GeographyChart } from "@/components/charts/GeographyChart";
+import { SubscriptionCard } from "@/components/SubscriptionCard";
 
 const RANGE_OPTIONS = [
   { id: "today", label: "Today" },
@@ -218,6 +219,9 @@ export default function Home() {
       <div className="flex items-center justify-between gap-3">
         <h1 className="text-xl font-semibold text-gray-900">Dashboard</h1>
       </div>
+
+      {/* Subscription card — visible at top */}
+      <SubscriptionCard />
 
       {/* KPI Cards — horizontal scroll on mobile, grid on desktop */}
       <div className="flex gap-4 overflow-x-auto pb-2 -mx-4 px-4 md:mx-0 md:px-0 md:grid md:grid-cols-2 lg:grid-cols-3 md:gap-6">
