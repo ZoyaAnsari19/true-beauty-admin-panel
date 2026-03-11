@@ -23,7 +23,7 @@ import {
 type StepId = "business" | "addons" | "documents" | "payment";
 
 const ALL_STEPS: { id: StepId; label: string }[] = [
-  { id: "business", label: "Business details" },
+  { id: "business", label: "Subscription details" },
   { id: "addons", label: "Add-ons" },
   { id: "documents", label: "Documents" },
   { id: "payment", label: "Payment" },
@@ -45,11 +45,8 @@ export default function SubscriptionCheckoutPage() {
   }, [checkout, planIdFromQuery, modeFromQuery, initCheckout]);
 
   const effectiveCheckout = checkout ?? null;
-  const isRenewFromQuery = modeFromQuery === "renew";
 
-  const [activeStep, setActiveStep] = useState<StepId>(
-    isRenewFromQuery ? "addons" : "business",
-  );
+  const [activeStep, setActiveStep] = useState<StepId>("business");
   const [isPaying, setIsPaying] = useState(false);
   const [paid, setPaid] = useState(false);
 
@@ -57,19 +54,7 @@ export default function SubscriptionCheckoutPage() {
     ? getPlanById(effectiveCheckout.planId) ?? null
     : null;
 
-  const isRenew = effectiveCheckout?.mode === "renew";
-
-  const steps = useMemo(() => {
-    if (!effectiveCheckout || !isRenew) return ALL_STEPS;
-    const hasDetails = !!effectiveCheckout.businessDetails;
-    const hasDocs = (effectiveCheckout.documents ?? []).length > 0;
-    if (hasDetails && hasDocs) {
-      return ALL_STEPS.filter(
-        (step) => step.id === "addons" || step.id === "payment",
-      );
-    }
-    return ALL_STEPS;
-  }, [effectiveCheckout, isRenew]);
+  const steps = useMemo(() => ALL_STEPS, []);
 
   const [businessForm, setBusinessForm] = useState(() => ({
     businessName: "",
@@ -84,46 +69,43 @@ export default function SubscriptionCheckoutPage() {
   }));
 
   useEffect(() => {
-    if (effectiveCheckout?.businessDetails) {
-      const d = effectiveCheckout.businessDetails;
-      setBusinessForm({
-        businessName: d.businessName,
-        ownerName: d.ownerName,
-        email: d.email,
-        phone: d.phone,
-        addressLine1: d.addressLine1,
-        city: d.city,
-        state: d.state,
-        pincode: d.pincode,
-        gstNumber: d.gstNumber ?? "",
-      });
-    }
-  }, [effectiveCheckout]);
+    const details = effectiveCheckout?.businessDetails;
+    if (!details) return;
+
+    setBusinessForm((prev) => {
+      if (
+        prev.businessName === details.businessName &&
+        prev.ownerName === details.ownerName &&
+        prev.email === details.email &&
+        prev.phone === details.phone &&
+        prev.addressLine1 === details.addressLine1 &&
+        prev.city === details.city &&
+        prev.state === details.state &&
+        prev.pincode === details.pincode &&
+        prev.gstNumber === (details.gstNumber ?? "")
+      ) {
+        return prev;
+      }
+
+      return {
+        businessName: details.businessName,
+        ownerName: details.ownerName,
+        email: details.email,
+        phone: details.phone,
+        addressLine1: details.addressLine1,
+        city: details.city,
+        state: details.state,
+        pincode: details.pincode,
+        gstNumber: details.gstNumber ?? "",
+      };
+    });
+  }, [effectiveCheckout?.businessDetails]);
 
   const [selectedAddons, setSelectedAddonsState] = useState<
     SubscriptionAddon["id"][]
   >(() => effectiveCheckout?.addons ?? []);
 
   const existingDocuments = effectiveCheckout?.documents ?? [];
-
-  if (!effectiveCheckout || !plan) {
-    return (
-      <div className="space-y-6">
-        <div className="flex items-center gap-2">
-          <Link
-            href="/subscription"
-            className="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Back to plans
-          </Link>
-        </div>
-        <div className="rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-800">
-          Plan selection not found. Please choose a subscription plan again.
-      </div>
-    </div>
-  );
-}
 
   const handleBusinessNext = () => {
     saveBusinessDetails({
@@ -135,7 +117,9 @@ export default function SubscriptionCheckoutPage() {
 
   const handleToggleAddon = (id: SubscriptionAddon["id"]) => {
     setSelectedAddonsState((prev) => {
-      const next = prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id];
+      const next = prev.includes(id)
+        ? prev.filter((x) => x !== id)
+        : [...prev, id];
       setAddons(next);
       return next;
     });
@@ -159,7 +143,7 @@ export default function SubscriptionCheckoutPage() {
   };
 
   const handlePayNow = async () => {
-    if (!effectiveCheckout.planId) return;
+    if (!effectiveCheckout || !effectiveCheckout.planId) return;
     setIsPaying(true);
     try {
       await new Promise((resolve) => setTimeout(resolve, 800));
@@ -176,6 +160,25 @@ export default function SubscriptionCheckoutPage() {
       setIsPaying(false);
     }
   };
+
+  if (!effectiveCheckout || !plan) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center gap-2">
+          <Link
+            href="/subscription"
+            className="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Back to plans
+          </Link>
+        </div>
+        <div className="rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-800">
+          Plan selection not found. Please choose a subscription plan again.
+        </div>
+      </div>
+    );
+  }
 
   const baseAmount = plan.price;
   const addonsTotal = selectedAddons.reduce((sum, addonId) => {
@@ -260,46 +263,27 @@ export default function SubscriptionCheckoutPage() {
           </ol>
 
           {activeStep === "business" && (
-            <section className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 space-y-4">
-              <div className="flex items-center gap-2 mb-2">
-                <div className="rounded-xl bg-[#fef5f7] p-2 text-[#D96A86]">
-                  <Building2 className="w-5 h-5" />
-                </div>
-                <div>
-                  <h2 className="text-base font-semibold text-gray-900">
-                    Business details
-                  </h2>
-                  <p className="text-xs text-gray-500">
-                    {effectiveCheckout.mode === "renew" && effectiveCheckout.businessDetails
-                      ? "We’ve loaded your saved details. You can still edit them."
-                      : "Tell us a few details about your business."}
-                  </p>
-                </div>
+            <section className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 space-y-6">
+              <div className="flex flex-col gap-1">
+                <h2 className="text-lg font-semibold text-gray-900">
+                  Subscribe to {plan.name}
+                </h2>
+                <p className="text-sm text-gray-500">
+                  Complete your subscription details.{" "}
+                  {effectiveCheckout.mode === "renew" && effectiveCheckout.businessDetails
+                    ? "We’ve loaded your saved details. You can still edit them."
+                    : "These details help us personalise your admin experience."}
+                </p>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-medium text-gray-700 mb-1.5">
-                    Business name
+                    Full Name<span className="text-rose-500">*</span>
                   </label>
                   <input
                     type="text"
-                    value={businessForm.businessName}
-                    onChange={(e) =>
-                      setBusinessForm((prev) => ({
-                        ...prev,
-                        businessName: e.target.value,
-                      }))
-                    }
-                    className="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm focus:ring-2 focus:ring-[#D96A86]/30 focus:border-[#D96A86] outline-none"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-medium text-gray-700 mb-1.5">
-                    Owner name
-                  </label>
-                  <input
-                    type="text"
+                    placeholder="Enter your full name"
                     value={businessForm.ownerName}
                     onChange={(e) =>
                       setBusinessForm((prev) => ({
@@ -312,10 +296,11 @@ export default function SubscriptionCheckoutPage() {
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-gray-700 mb-1.5">
-                    Email
+                    Email Address<span className="text-rose-500">*</span>
                   </label>
                   <input
                     type="email"
+                    placeholder="your@email.com"
                     value={businessForm.email}
                     onChange={(e) =>
                       setBusinessForm((prev) => ({
@@ -328,10 +313,11 @@ export default function SubscriptionCheckoutPage() {
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-gray-700 mb-1.5">
-                    Phone
+                    Phone Number<span className="text-rose-500">*</span>
                   </label>
                   <input
                     type="tel"
+                    placeholder="+91 98765 43210"
                     value={businessForm.phone}
                     onChange={(e) =>
                       setBusinessForm((prev) => ({
@@ -342,12 +328,30 @@ export default function SubscriptionCheckoutPage() {
                     className="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm focus:ring-2 focus:ring-[#D96A86]/30 focus:border-[#D96A86] outline-none"
                   />
                 </div>
-                <div className="md:col-span-2">
+                <div>
                   <label className="block text-xs font-medium text-gray-700 mb-1.5">
-                    Address
+                    Company Name<span className="text-rose-500">*</span>
                   </label>
                   <input
                     type="text"
+                    placeholder="Your company name"
+                    value={businessForm.businessName}
+                    onChange={(e) =>
+                      setBusinessForm((prev) => ({
+                        ...prev,
+                        businessName: e.target.value,
+                      }))
+                    }
+                    className="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm focus:ring-2 focus:ring-[#D96A86]/30 focus:border-[#D96A86] outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-1.5">
+                    Website (Optional)
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="https://yourwebsite.com"
                     value={businessForm.addressLine1}
                     onChange={(e) =>
                       setBusinessForm((prev) => ({
@@ -360,10 +364,11 @@ export default function SubscriptionCheckoutPage() {
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-gray-700 mb-1.5">
-                    City
+                    Business Type
                   </label>
                   <input
                     type="text"
+                    placeholder="Select business type"
                     value={businessForm.city}
                     onChange={(e) =>
                       setBusinessForm((prev) => ({
@@ -376,10 +381,11 @@ export default function SubscriptionCheckoutPage() {
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-gray-700 mb-1.5">
-                    State
+                    Team Size
                   </label>
                   <input
                     type="text"
+                    placeholder="Select team size"
                     value={businessForm.state}
                     onChange={(e) =>
                       setBusinessForm((prev) => ({
@@ -392,31 +398,16 @@ export default function SubscriptionCheckoutPage() {
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-gray-700 mb-1.5">
-                    Pincode
+                    Preferred Start Date
                   </label>
                   <input
-                    type="text"
+                    type="date"
+                    placeholder="dd-mm-yyyy"
                     value={businessForm.pincode}
                     onChange={(e) =>
                       setBusinessForm((prev) => ({
                         ...prev,
                         pincode: e.target.value,
-                      }))
-                    }
-                    className="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm focus:ring-2 focus:ring-[#D96A86]/30 focus:border-[#D96A86] outline-none"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-medium text-gray-700 mb-1.5">
-                    GST number (optional)
-                  </label>
-                  <input
-                    type="text"
-                    value={businessForm.gstNumber}
-                    onChange={(e) =>
-                      setBusinessForm((prev) => ({
-                        ...prev,
-                        gstNumber: e.target.value,
                       }))
                     }
                     className="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm focus:ring-2 focus:ring-[#D96A86]/30 focus:border-[#D96A86] outline-none"
@@ -428,9 +419,9 @@ export default function SubscriptionCheckoutPage() {
                 <button
                   type="button"
                   onClick={handleBusinessNext}
-                  className="inline-flex items-center gap-2 rounded-xl bg-[#D96A86] px-4 py-2.5 text-sm font-medium text-white hover:bg-[#C85A76]"
+                  className="inline-flex items-center gap-2 rounded-xl bg-[#D96A86] px-5 py-2.5 text-sm font-medium text-white hover:bg-[#C85A76]"
                 >
-                  Continue
+                  Continue to Add-ons
                 </button>
               </div>
             </section>

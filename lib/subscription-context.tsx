@@ -357,6 +357,13 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
   const setAddons = useCallback(
     (addonIds: SubscriptionAddon["id"][]) => {
       if (!checkout) return;
+      const current = checkout.addons ?? [];
+      if (
+        current.length === addonIds.length &&
+        current.every((id, index) => id === addonIds[index])
+      ) {
+        return;
+      }
       setCheckoutAndPersist({
         ...checkout,
         addons: addonIds,
