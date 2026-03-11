@@ -6,6 +6,7 @@ import { useAffiliates } from "@/lib/affiliates-context";
 import { KpiCard } from "@/components/ui/kpiCard";
 import { SalesAnalyticsChart } from "@/components/charts/SalesAnalyticsChart";
 import { GeographyChart } from "@/components/charts/GeographyChart";
+import { SubscriptionCard } from "@/components/ui/SubscriptionCard";
 
 const RANGE_OPTIONS = [
   { id: "today", label: "Today" },
@@ -214,9 +215,12 @@ export default function Home() {
 
   return (
     <div className="space-y-6">
-      {/* Dashboard header */}
-      <div className="flex items-center justify-between gap-3">
-        <h1 className="text-xl font-semibold text-gray-900">Dashboard</h1>
+      {/* Dashboard header + subscription badge (right aligned) */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 min-w-0">
+        <h1 className="text-xl font-semibold text-gray-900 shrink-0">Dashboard</h1>
+        <div className="w-full sm:w-auto min-w-0 flex justify-end sm:justify-end">
+          <SubscriptionCard />
+        </div>
       </div>
 
       {/* KPI Cards — horizontal scroll on mobile, grid on desktop */}

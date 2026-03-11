@@ -3,6 +3,23 @@
 import React from "react";
 import Image from "next/image";
 
+/** Reusable card wrapper – same look as product cards (rounded-2xl, border, shadow). */
+export function Card({
+  children,
+  className = "",
+}: {
+  children: React.ReactNode;
+  className?: string;
+}) {
+  return (
+    <div
+      className={`rounded-2xl border border-[#f8c6d0]/60 bg-white p-6 shadow-sm transition-shadow hover:shadow-md ${className}`}
+    >
+      {children}
+    </div>
+  );
+}
+
 export interface ProductOrderCardProps {
   productImage?: string | null;
   productName: string;
